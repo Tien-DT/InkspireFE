@@ -32,13 +32,11 @@ export function RegisterForm() {
         </p>
       </div>
       <div className='space-y-6'>
-        <Button
-          type='button'
-          variant='outline'
-          className='w-full justify-center gap-3 rounded-xl border-muted/40 bg-background text-sm font-semibold shadow-sm hover:bg-muted/60'
-        >
-          <GoogleIcon className='size-5' />
-          Đăng ký với Google
+        <Button asChild variant='outline' className='w-full justify-center gap-3 rounded-xl border-muted/40 bg-background text-sm font-semibold shadow-sm hover:bg-muted/60'>
+          <a href='/auth/google' onClick={() => localStorage.setItem('last_provider', 'google')}>
+            <GoogleIcon className='size-5' />
+            Đăng ký với Google
+          </a>
         </Button>
         <div className='flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.35em] text-muted-foreground'>
           <Separator className='flex-1 bg-muted' />

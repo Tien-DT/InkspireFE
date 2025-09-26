@@ -55,9 +55,11 @@ export function LoginForm() {
           <span className='absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-border' aria-hidden='true' />
           <span className='relative inline-flex bg-background px-3'>Hoặc tiếp tục với</span>
         </div>
-        <Button variant='outline' className='w-full justify-center gap-3 rounded-xl border-muted/40 bg-background text-sm font-semibold shadow-sm hover:bg-slate-50'>
-          <GoogleIcon className='size-5' />
-          Đăng nhập với Google
+        <Button asChild variant='outline' className='w-full justify-center gap-3 rounded-xl border-muted/40 bg-background text-sm font-semibold shadow-sm hover:bg-slate-50'>
+          <a href='/auth/google' onClick={() => localStorage.setItem('last_provider', 'google')}>
+            <GoogleIcon className='size-5' />
+            Đăng nhập với Google
+          </a>
         </Button>
       </form>
       <div className='text-center text-sm text-muted-foreground'>
