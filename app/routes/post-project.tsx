@@ -7,7 +7,7 @@ import { Textarea } from '~/components/ui/textarea'
 
 export default function PostProject() {
   return (
-    <div className='container mx-auto px-4 py-6 space-y-6'>
+    <div className='container mx-auto px-4 py-6 space-y-6'> 
       {/* Main Content */}
       {/* Page Title */}
       <div className='text-center mb-8'>
