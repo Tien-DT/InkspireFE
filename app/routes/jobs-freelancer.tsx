@@ -1,4 +1,5 @@
 import { Clock, Eye, Filter, Heart, Search, Star, Users } from 'lucide-react'
+import PaginationDemo from '~/components/Pagination'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent } from '~/components/ui/card'
@@ -12,7 +13,7 @@ export default function JobsFreelancer() {
       <div className='grid grid-cols-1 lg:grid-cols-4 gap-6'>
         {/* Left Sidebar - Filters */}
         <div className='lg:col-span-1'>
-          <Card className='sticky top-20'>
+          <Card className='sticky top-5'>
             <CardContent className='p-6'>
               <div className='flex items-center mb-4'>
                 <Filter className='h-5 w-5 mr-2' />
@@ -119,11 +120,10 @@ export default function JobsFreelancer() {
         {/* Main Content - Job Listings */}
         <div className='lg:col-span-2'>
           <div className='mb-6'>
-            <h1 className='text-xl font-semibold text-gray-900'>Tìm thấy 4 công việc phù hợp</h1>
-            <div className='flex items-center justify-between mt-2'>
-              <div></div>
+            <h1 className='text-2xl font-semibold text-gray-900'>Tìm thấy 4 công việc phù hợp</h1>
+            <div className='flex items-center justify-between mt-4'>
               <Select>
-                <SelectTrigger className='w-48'>
+                <SelectTrigger className='w-48 bg-white'>
                   <SelectValue placeholder='Sắp xếp theo' />
                 </SelectTrigger>
                 <SelectContent>
@@ -419,23 +419,7 @@ export default function JobsFreelancer() {
 
           {/* Pagination */}
           <div className='flex items-center justify-center mt-8 space-x-2'>
-            <span className='text-sm text-gray-600'>Trang:</span>
-            <Button variant='default' size='sm' className='bg-blue-600 text-white'>
-              1
-            </Button>
-            <Button variant='outline' size='sm'>
-              2
-            </Button>
-            <Button variant='outline' size='sm'>
-              3
-            </Button>
-            <span className='text-sm text-gray-600'>...</span>
-            <Button variant='outline' size='sm'>
-              25
-            </Button>
-            <Button variant='outline' size='sm'>
-              Sau
-            </Button>
+            <PaginationDemo />
           </div>
         </div>
 

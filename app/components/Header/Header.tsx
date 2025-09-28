@@ -3,6 +3,7 @@ import { Button } from '~/components/ui/button'
 import logo from '~/assets/logo.svg'
 import { Input } from '~/components/ui/input'
 import { Search } from 'lucide-react'
+import path from '~/constants/path'
 
 export function Header() {
   return (
@@ -17,9 +18,9 @@ export function Header() {
               <a href='#' className='text-sm text-muted-foreground hover:text-foreground'>
                 Đăng tuyển dụng
               </a>
-              <a href='#' className='text-sm text-muted-foreground hover:text-foreground'>
+              <Link to={path.jobsFreelancer} className='text-sm text-muted-foreground hover:text-foreground'>
                 Tìm việc làm
-              </a>
+              </Link>
               <a href='#' className='text-sm text-muted-foreground hover:text-foreground'>
                 Cách thức hoạt động
               </a>
