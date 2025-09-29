@@ -11,7 +11,8 @@ import {
   MessageSquare,
   Home,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  BookOpen
 } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { cn } from '~/lib/utils'
@@ -27,45 +28,50 @@ const sidebarItems: SidebarItem[] = [
   {
     title: 'Tổng quan',
     icon: <Home className="h-5 w-5" />,
-    href: '/admin-dashboard'
+    href: '/admin'
   },
   {
     title: 'Quản lý người dùng',
     icon: <Users className="h-5 w-5" />,
-    href: '/admin-users',
+    href: '/admin/users',
     badge: '47'
   },
   {
     title: 'Quản lý dự án',
     icon: <FileText className="h-5 w-5" />,
-    href: '/admin-projects',
+    href: '/admin/projects',
     badge: '23'
   },
   {
     title: 'Báo cáo & Thống kê',
     icon: <BarChart3 className="h-5 w-5" />,
-    href: '/admin-reports'
+    href: '/admin/reports-analytics'
   },
   {
-    title: 'Tài chính',
+    title: 'Giao dịch',
     icon: <Wallet className="h-5 w-5" />,
-    href: '/admin-finance'
+    href: '/admin/transactions'
   },
   {
-    title: 'Tin nhắn & Hỗ trợ',
+    title: 'Hỗ trợ & Phản hồi',
     icon: <MessageSquare className="h-5 w-5" />,
-    href: '/admin-messages',
+    href: '/admin/support-feedback',
     badge: '12'
   },
   {
-    title: 'Bảo mật',
+    title: 'Kiểm duyệt nội dung',
     icon: <Shield className="h-5 w-5" />,
-    href: '/admin-security'
+    href: '/admin/content-moderation'
   },
   {
-    title: 'Cài đặt',
+    title: 'Cài đặt hệ thống',
     icon: <Settings className="h-5 w-5" />,
-    href: '/admin-settings'
+    href: '/admin/system-settings'
+  },
+  {
+    title: 'Quản lý review sách',
+    icon: <BookOpen className="h-5 w-5" />,
+    href: '/admin/book-review-creator'
   }
 ]
 
