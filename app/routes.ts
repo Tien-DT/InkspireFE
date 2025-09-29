@@ -19,9 +19,22 @@ export default [
     route('manage-project', './routes/manage-project.tsx'),
     route('payment', './routes/payment.tsx'),
     route('chat', './routes/chat.tsx'),
-    route('banking-qr', './routes/banking-qr.tsx')
+    route('banking-qr', './routes/banking-qr.tsx'),
+    
+    // Freelancer specific routes
+    route('freelancer-dashboard', './routes/freelancer-dashboard.tsx'),
+    route('freelancer-profile', './routes/freelancer-profile.tsx'),
+    route('freelancer-projects', './routes/freelancer-projects.tsx')
     // ])
   ]),
+  
+  // Admin routes with AdminLayout
+  layout('./components/admin/AdminLayout.tsx', [
+    route('admin', './routes/admin-dashboard.tsx'),
+    route('admin/users', './routes/admin-users.tsx'),
+    route('admin/projects', './routes/admin-projects.tsx')
+  ]),
+
   layout('./layouts/auth-layout.tsx', [
     route('login', './routes/login/login-page.tsx'),
     route('register', './routes/register/register-page.tsx')
