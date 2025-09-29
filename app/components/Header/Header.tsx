@@ -15,15 +15,15 @@ export function Header() {
               <img src={logo} alt='Logo' className='h-12 w-auto md:h-14 object-fill inline-block' />
             </Link>
             <nav className='hidden md:flex items-center space-x-6'>
-              <a href='#' className='text-sm text-muted-foreground hover:text-foreground'>
+              <Link to="/post-project" className='text-sm text-muted-foreground hover:text-foreground'>
                 Đăng tuyển dụng
-              </a>
+              </Link>
               <Link to={path.jobsFreelancer} className='text-sm text-muted-foreground hover:text-foreground'>
                 Tìm việc làm
               </Link>
-              <a href='#' className='text-sm text-muted-foreground hover:text-foreground'>
+              <Link to="/about" className='text-sm text-muted-foreground hover:text-foreground'>
                 Cách thức hoạt động
-              </a>
+              </Link>
             </nav>
           </div>
 
@@ -34,10 +34,12 @@ export function Header() {
                 <Search className='h-5 w-5 text-gray-400' />
               </Button>
             </form>
-            <Button variant='ghost' size='sm'>
-              Đăng nhập
+            <Button variant='ghost' size='sm' asChild>
+              <Link to={path.login}>Đăng nhập</Link>
             </Button>
-            <Button size='sm'>Đăng ký</Button>
+            <Button size='sm' asChild>
+              <Link to={path.register}>Đăng ký</Link>
+            </Button>
           </div>
         </div>
       </div>

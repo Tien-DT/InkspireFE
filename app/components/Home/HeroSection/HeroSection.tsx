@@ -1,5 +1,6 @@
 import { ArrowRight, CircleFadingArrowUp, Users } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { Link } from 'react-router'
 import { Button } from '~/components/ui/button'
 import { motion } from 'framer-motion'
 import { fadeInUp } from '../animation'
@@ -9,6 +10,9 @@ interface HeroSectionProps {
   subtitle: ReactNode
   primaryLabel: string
   secondaryLabel: string
+  primaryHref?: string
+  secondaryHref?: string
+  taglineHref?: string
   isHero?: boolean
   tagline?: ReactNode
 }
@@ -18,6 +22,9 @@ export function HeroSection({
   subtitle,
   primaryLabel,
   secondaryLabel,
+  primaryHref,
+  secondaryHref,
+  taglineHref,
   isHero = false,
   tagline
 }: HeroSectionProps) {
@@ -39,26 +46,60 @@ export function HeroSection({
           {subtitle}
         </p>
         <div className='flex flex-col sm:flex-row gap-4 justify-center'>
-          <Button size='lg' variant='default'>
-            <Users />
-            {primaryLabel}
-          </Button>
-          <Button
-            size='lg'
-            variant='outline'
-            className='border-white text-white hover:bg-white hover:text-cyan-600 bg-transparent'
-          >
-            <CircleFadingArrowUp />
-            {secondaryLabel}
-          </Button>
+          {primaryHref ? (
+            <Button size='lg' variant='default' asChild>
+              <Link to={primaryHref}>
+                <Users />
+                {primaryLabel}
+              </Link>
+            </Button>
+          ) : (
+            <Button size='lg' variant='default'>
+              <Users />
+              {primaryLabel}
+            </Button>
+          )}
+          {secondaryHref ? (
+            <Button
+              size='lg'
+              variant='outline'
+              className='border-white text-white hover:bg-white hover:text-cyan-600 bg-transparent'
+              asChild
+            >
+              <Link to={secondaryHref}>
+                <CircleFadingArrowUp />
+                {secondaryLabel}
+              </Link>
+            </Button>
+          ) : (
+            <Button
+              size='lg'
+              variant='outline'
+              className='border-white text-white hover:bg-white hover:text-cyan-600 bg-transparent'
+            >
+              <CircleFadingArrowUp />
+              {secondaryLabel}
+            </Button>
+          )}
         </div>
         {isHero && tagline && (
-          <Button className='text-sm mt-6 bg-transparent shadow-none flex items-center hover:bg-transparent'>
-            {tagline}
-            <span>
-              <ArrowRight className='animate-arrow-move' />
-            </span>
-          </Button>
+          taglineHref ? (
+            <Button className='text-sm mt-6 bg-transparent shadow-none flex items-center hover:bg-transparent' asChild>
+              <Link to={taglineHref}>
+                {tagline}
+                <span>
+                  <ArrowRight className='animate-arrow-move' />
+                </span>
+              </Link>
+            </Button>
+          ) : (
+            <Button className='text-sm mt-6 bg-transparent shadow-none flex items-center hover:bg-transparent'>
+              {tagline}
+              <span>
+                <ArrowRight className='animate-arrow-move' />
+              </span>
+            </Button>
+          )
         )}
       </motion.div>
     </section>

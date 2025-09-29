@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { IconEye, IconEyeOff } from '@tabler/icons-react'
+import { Link } from 'react-router'
 
 import { GoogleIcon } from '~/components/icons/google-icon'
 import { Button } from '~/components/ui/button'
@@ -23,9 +24,9 @@ export function LoginForm() {
         <div className='grid gap-3'>
           <div className='flex items-center'>
             <Label htmlFor='login-password'>Mật khẩu</Label>
-            <a href='#' className='ml-auto text-sm font-medium text-emerald-600 underline-offset-4 hover:underline'>
+            {/* <Link to='/forgot-password' className='ml-auto text-sm font-medium text-emerald-600 underline-offset-4 hover:underline'>
               Quên mật khẩu?
-            </a>
+            </Link> */}
           </div>
           <div className='relative'>
             <Input
@@ -64,9 +65,9 @@ export function LoginForm() {
       </form>
       <div className='text-center text-sm text-muted-foreground'>
         Chưa có tài khoản?{' '}
-        <a href='/register' className='font-semibold text-emerald-600 underline-offset-4 hover:underline'>
+        <Link to='/register' className='font-semibold text-emerald-600 underline-offset-4 hover:underline'>
           Đăng ký ngay
-        </a>
+        </Link>
       </div>
     </>
   )

@@ -9,28 +9,33 @@ import {
 } from '~/components/ui/pagination'
 
 export function PaginationDemo() {
+  const handlePageClick = (page: number | string) => {
+    console.log('Navigate to page:', page)
+    // Thực hiện navigation logic ở đây
+  }
+
   return (
     <Pagination>
       <PaginationContent>
         <PaginationItem>
-          <PaginationPrevious href='#' />
+          <PaginationPrevious onClick={() => handlePageClick('prev')} />
         </PaginationItem>
         <PaginationItem>
-          <PaginationLink href='#'>1</PaginationLink>
+          <PaginationLink onClick={() => handlePageClick(1)}>1</PaginationLink>
         </PaginationItem>
         <PaginationItem>
-          <PaginationLink href='#' isActive>
+          <PaginationLink onClick={() => handlePageClick(2)} isActive>
             2
           </PaginationLink>
         </PaginationItem>
         <PaginationItem>
-          <PaginationLink href='#'>3</PaginationLink>
+          <PaginationLink onClick={() => handlePageClick(3)}>3</PaginationLink>
         </PaginationItem>
         <PaginationItem>
           <PaginationEllipsis />
         </PaginationItem>
         <PaginationItem>
-          <PaginationNext href='#' />
+          <PaginationNext onClick={() => handlePageClick('next')} />
         </PaginationItem>
       </PaginationContent>
     </Pagination>

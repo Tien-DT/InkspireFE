@@ -12,27 +12,27 @@ const sections: FooterSection[] = [
   {
     title: 'Dành cho',
     items: [
-      { label: 'Freelancer', to: '/for-freelancers' },
-      { label: 'Khách hàng', to: '/for-clients' },
-      { label: 'Doanh nghiệp', to: '/for-business' }
+      { label: 'Freelancer', to: '/dashboard-freelancer' },
+      { label: 'Khách hàng', to: '/post-project' },
+      { label: 'Tìm freelancer', to: '/search-freelancer' }
     ]
   },
   {
-    title: 'Danh mục',
+    title: 'Dịch vụ',
     items: [
-      { label: 'Thiết kế', to: '/c/design' },
-      { label: 'Lập trình', to: '/c/development' },
-      { label: 'Marketing', to: '/c/marketing' },
-      { label: 'Viết nội dung', to: '/c/writing' }
+      { label: 'Tìm việc làm', to: '/jobs-freelancer' },
+      { label: 'Đăng dự án', to: '/post-project' },
+      { label: 'Quản lý dự án', to: '/manage-project' },
+      { label: 'Thanh toán', to: '/payment' }
     ]
   },
   {
-    title: 'Công ty',
+    title: 'Hỗ trợ',
     items: [
       { label: 'Về chúng tôi', to: '/about' },
-      { label: 'Liên hệ', to: '/contact' },
-      { label: 'Điều khoản', to: '/terms' },
-      { label: 'Bảo mật', to: '/privacy' }
+      { label: 'Chat hỗ trợ', to: '/chat' },
+      { label: 'QR Banking', to: '/banking-qr' },
+      { label: 'Phản hồi', to: '/client-feedback' }
     ]
   }
 ]
@@ -41,9 +41,9 @@ const linkClasses = 'text-black hover:text-gray-700 transition-colors'
 const colTitleClasses = 'text-black font-semibold mb-4'
 
 const socials = [
-  { label: 'Facebook', to: '/social/facebook', icon: <Facebook /> },
-  { label: 'Instagram', to: '/social/instagram', icon: <Instagram /> },
-  { label: 'LinkedIn', to: '/social/linkedin', icon: <Linkedin /> }
+  { label: 'Facebook', to: '/', icon: <Facebook /> },
+  { label: 'Instagram', to: '/', icon: <Instagram /> },
+  { label: 'LinkedIn', to: '/', icon: <Linkedin /> }
 ] as const
 
 export function Footer() {

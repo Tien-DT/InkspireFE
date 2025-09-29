@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { Link } from 'react-router'
 import { fadeInUp, staggerContainer } from '../animation'
 import { BadgeCheck } from 'lucide-react'
 import { Button } from '~/components/ui/button'
@@ -11,7 +12,8 @@ export function PricingSection() {
       description: 'Hoàn hảo để bắt đầu',
       price: '0₫',
       features: ['Đăng tối đa 20 bài/tháng', 'Hồ sơ cơ bản', 'Hỗ trợ cơ bản'],
-      textBtn: 'Bắt đầu miễn phí'
+      textBtn: 'Bắt đầu miễn phí',
+      href: '/register'
     },
     {
       title: 'Cao cấp',
@@ -25,7 +27,8 @@ export function PricingSection() {
         'Đẩy top hồ sơ/bài viết 3 lần/ngày',
         'Ưu tiên đề xuất việc theo từ khóa tìm kiếm'
       ],
-      textBtn: 'Nâng cấp ngay'
+      textBtn: 'Nâng cấp ngay',
+      href: '/payment'
     }
   ]
 
@@ -77,8 +80,8 @@ export function PricingSection() {
                       </li>
                     ))}
                   </ul>
-                  <Button className={`w-full ${colorMap[plan.title].button}`} variant='outline'>
-                    {plan.textBtn}
+                  <Button className={`w-full ${colorMap[plan.title].button}`} variant='outline' asChild>
+                    <Link to={plan.href}>{plan.textBtn}</Link>
                   </Button>
                 </CardContent>
               </Card>

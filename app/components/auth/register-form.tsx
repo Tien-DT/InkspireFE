@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router'
 import {
   IconBuilding,
   IconChevronDown,
@@ -216,9 +217,9 @@ export function RegisterForm() {
         </form>
         <p className='text-center text-sm text-muted-foreground'>
           Đã có tài khoản?{' '}
-          <a href='/login' className='font-semibold text-emerald-600 underline-offset-4 hover:underline'>
+          <Link to='/login' className='font-semibold text-emerald-600 underline-offset-4 hover:underline'>
             Đăng nhập ngay
-          </a>
+          </Link>
         </p>
       </div>
     </>

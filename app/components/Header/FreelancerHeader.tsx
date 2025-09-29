@@ -1,4 +1,5 @@
 import { Bell, ChevronDown, MessageSquare, Search, User } from 'lucide-react'
+import { Link } from 'react-router'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import {
@@ -29,24 +30,24 @@ export default function FreelancerHeader() {
 
           {/* Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <a 
-              href="/jobs-freelancer" 
+            <Link 
+              to="/jobs-freelancer" 
               className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
             >
               Tìm việc làm
-            </a>
-            <a 
-              href="/portfolio" 
+            </Link>
+            <Link 
+              to="/freelancer-profile" 
               className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
             >
               Portfolio của tôi
-            </a>
-            <a 
-              href="/my-projects" 
+            </Link>
+            <Link 
+              to="/freelancer-projects" 
               className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
             >
               Dự án của tôi
-            </a>
+            </Link>
           </nav>
 
           {/* Right section with search and user actions */}

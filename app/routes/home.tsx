@@ -20,6 +20,9 @@ export default function Home() {
         subtitle='Nền tảng freelance hàng đầu Việt Nam kết nối doanh nghiệp với những tài năng xuất sắc nhất trong mọi lĩnh vực'
         primaryLabel='Tìm việc Freelancer'
         secondaryLabel='Đăng dự án ngay'
+        primaryHref='/jobs-freelancer'
+        secondaryHref='/post-project'
+        taglineHref='/search-freelancer'
         isHero
         tagline='Khám phá Hồ sơ Năng lực'
       />
@@ -35,6 +38,8 @@ export default function Home() {
         subtitle='Tham gia cộng đồng freelancer lớn nhất Việt Nam và khám phá những cơ hội không giới hạn'
         primaryLabel='Tìm việc Freelancer'
         secondaryLabel='Thuê tài năng'
+        primaryHref='/jobs-freelancer'
+        secondaryHref='/search-freelancer'
       />
     </div>
   )
