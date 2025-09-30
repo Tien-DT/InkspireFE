@@ -19,7 +19,10 @@ export default [
     route('manage-project', './routes/manage-project.tsx'),
     route('payment', './routes/payment.tsx'),
     route('chat', './routes/chat.tsx'),
-    route('banking-qr', './routes/banking-qr.tsx')
+    route('banking-qr', './routes/banking-qr.tsx'),
+
+    route('manage-jobs', './routes/manage-jobs.tsx')
+
     // ])
   ]),
   layout('./layouts/auth-layout.tsx', [
