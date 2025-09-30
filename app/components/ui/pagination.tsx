@@ -37,7 +37,7 @@ function PaginationLink({ className, isActive, size = 'icon', ...props }: Pagina
       data-active={isActive}
       className={cn(
         buttonVariants({
-          variant: isActive ? 'outline' : 'ghost',
+          variant: isActive ? 'default' : 'ghost',
           size
         }),
         className
@@ -52,7 +52,7 @@ function PaginationPrevious({ className, ...props }: React.ComponentProps<typeof
     <PaginationLink
       aria-label='Go to previous page'
       size='default'
-      className={cn('gap-1 px-2.5 sm:pl-2.5', className)}
+      className={cn('gap-1 px-2.5 sm:pl-2.5 bg-white', className)}
       {...props}
     >
       <ChevronLeftIcon />
@@ -66,7 +66,7 @@ function PaginationNext({ className, ...props }: React.ComponentProps<typeof Pag
     <PaginationLink
       aria-label='Go to next page'
       size='default'
-      className={cn('gap-1 px-2.5 sm:pr-2.5', className)}
+      className={cn('gap-1 px-2.5 sm:pr-2.5 bg-white', className)}
       {...props}
     >
       <span className='hidden sm:block'>Sau</span>

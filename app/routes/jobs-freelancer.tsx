@@ -1,4 +1,5 @@
-import { Clock, Eye, Filter, Heart, Search, Star, Users } from 'lucide-react'
+import { Calendar, Clock, Eye, Filter, Heart, Search, Users } from 'lucide-react'
+import { useSearchParams } from 'react-router'
 import PaginationDemo from '~/components/Pagination'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
@@ -6,8 +7,17 @@ import { Card, CardContent } from '~/components/ui/card'
 import { Checkbox } from '~/components/ui/checkbox'
 import { Input } from '~/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
+import { useRecruitments } from '~/hooks/useRecruitments'
 
 export default function JobsFreelancer() {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const page = Number(searchParams.get('page')) || 1
+  const pageSize = 10
+  const { data: recruitmentData, isLoading, error } = useRecruitments(page, pageSize)
+
+  const handlePageChange = (newPage: number) => {
+    setSearchParams({ page: newPage.toString() })
+  }
   return (
     <div className='container mx-auto px-4 py-6 space-y-6'>
       <div className='grid grid-cols-1 lg:grid-cols-4 gap-6'>
@@ -118,9 +128,15 @@ export default function JobsFreelancer() {
         </div>
 
         {/* Main Content - Job Listings */}
-        <div className='lg:col-span-2'>
+        <div className='lg:col-span-3'>
           <div className='mb-6'>
-            <h1 className='text-2xl font-semibold text-gray-900'>Tìm thấy 4 công việc phù hợp</h1>
+            <h1 className='text-2xl font-semibold text-gray-900'>
+              {isLoading
+                ? 'Đang tải dữ liệu...'
+                : error
+                  ? 'Có lỗi xảy ra'
+                  : `Tìm thấy ${recruitmentData?.items?.length || 0} công việc phù hợp`}
+            </h1>
             <div className='flex items-center justify-between mt-4'>
               <Select>
                 <SelectTrigger className='w-48 bg-white'>
@@ -135,303 +151,95 @@ export default function JobsFreelancer() {
             </div>
           </div>
 
-          <div className='space-y-6'>
-            {/* Job Card 1 */}
-            <Card className='hover:shadow-md transition-shadow'>
-              <CardContent className='p-6'>
-                <div className='flex items-start justify-between mb-4'>
-                  <div className='flex-1'>
-                    <div className='flex items-center mb-2'>
-                      <h3 className='text-lg font-semibold text-gray-900 mr-3'>
-                        Thiết kế logo cho startup công nghệ AI
-                      </h3>
-                      <Badge variant='secondary' className='bg-orange-100 text-orange-800'>
-                        HOT HIT
-                      </Badge>
-                      <Heart className='h-5 w-5 text-gray-400 ml-2 cursor-pointer hover:text-red-500' />
-                    </div>
-                    <div className='flex items-center text-sm text-gray-600 mb-3'>
-                      <span className='mr-4'>Techviet Solutions</span>
-                      <div className='flex items-center mr-4'>
-                        <Star className='h-4 w-4 text-yellow-400 mr-1' />
-                        <span>4.9 (23 đánh giá)</span>
+          {isLoading ? (
+            <div className='text-center py-8'>
+              <div className='animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900 mx-auto'></div>
+              <p className='mt-4 text-gray-600'>Đang tải dữ liệu...</p>
+            </div>
+          ) : error ? (
+            <div className='text-center py-8'>
+              <p className='text-red-600'>Có lỗi xảy ra: {(error as Error).message}</p>
+            </div>
+          ) : (
+            <div className='space-y-6'>
+              {recruitmentData?.items?.map((post) => (
+                <Card key={post.id} className='hover:shadow-md transition-shadow'>
+                  <CardContent className='p-6'>
+                    <div className='flex items-start justify-between mb-4 gap-10'>
+                      <div className='w-2/3 flex flex-col gap-5'>
+                        <div className='flex items-center'>
+                          <h3 className='text-lg font-semibold text-gray-900 mr-3'>{post.title}</h3>
+                          {post.status === 1 && (
+                            <Badge variant='secondary' className='bg-orange-100 text-orange-800'>
+                              HOT
+                            </Badge>
+                          )}
+                          <Heart className='h-5 w-5 text-gray-400 ml-2 cursor-pointer hover:text-red-500' />
+                        </div>
+                        <div className='flex items-center text-sm text-gray-600'>
+                          <span className='mr-4'>{post.projectName}</span>
+                          <div className='flex items-center mr-4'>
+                            <span>by {post.userName}</span>
+                          </div>
+                        </div>
+                        <p className='text-gray-700'>{post.description}</p>
+                        <div className='flex flex-wrap gap-2'>
+                          <Badge variant='blue'>Logo Design</Badge>
+                          <Badge variant='purple'>Branding</Badge>
+                          <Badge variant='orange'>Adobe Illustrator</Badge>
+                          <Badge variant='pink'>Photoshop</Badge>
+                          <Badge variant='green'>UI/UX</Badge>
+                        </div>
+                        <div className='flex justify-between items-center text-sm text-gray-600'>
+                          <div className='flex items-center'>
+                            <Clock className='h-4 w-4 mr-1 font-extrabold' />
+                            <span>
+                              <strong>Hết hạn:</strong> {new Date(post.postExpired).toLocaleDateString('vi-VN')}
+                            </span>
+                          </div>
+                          <div className='flex items-center'>
+                            <Users className='h-4 w-4 mr-1 font-extrabold' />
+                            <span>
+                              <strong>Team:</strong> {post.teamSize}
+                            </span>
+                          </div>
+                          <div className='flex items-center'>
+                            <Calendar className='h-4 w-4 mr-1 font-extrabold' />
+                            <span>
+                              <strong>Đăng:</strong> {new Date(post.createdAt).toLocaleDateString('vi-VN')}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    <p className='text-gray-700 mb-4'>
-                      Chúng tôi cần thiết kế logo chuyên nghiệp cho startup công nghệ AI. Logo cần thể hiện sự hiện đại,
-                      đáng tin cậy và sáng tạo.
-                    </p>
-                    <div className='flex flex-wrap gap-2 mb-4'>
-                      <Badge variant='outline' className='text-blue-600 border-blue-600'>
-                        Logo Design
-                      </Badge>
-                      <Badge variant='outline' className='text-purple-600 border-purple-600'>
-                        Branding
-                      </Badge>
-                      <Badge variant='outline' className='text-orange-600 border-orange-600'>
-                        Adobe Illustrator
-                      </Badge>
-                      <Badge variant='outline' className='text-pink-600 border-pink-600'>
-                        Photoshop
-                      </Badge>
-                    </div>
-                    <div className='flex items-center text-sm text-gray-600 space-x-6'>
-                      <div className='flex items-center'>
-                        <Clock className='h-4 w-4 mr-1' />
-                        <span>Hạn: 5 ngày</span>
-                      </div>
-                      <div className='flex items-center'>
-                        <Users className='h-4 w-4 mr-1' />
-                        <span>12-49 xuất</span>
-                      </div>
-                      <div className='flex items-center'>
-                        <span>Đăng 2 giờ trước</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className='text-right ml-6'>
-                    <div className='text-2xl font-bold text-green-600 mb-2'>3-5M VND</div>
-                    <div className='text-sm text-gray-600 mb-4'>Giá cố định</div>
-                    <div className='flex items-center text-yellow-400 mb-4'>
-                      <Star className='h-4 w-4' />
-                      <Star className='h-4 w-4' />
-                      <Star className='h-4 w-4' />
-                      <Star className='h-4 w-4' />
-                      <Star className='h-4 w-4' />
-                    </div>
-                    <div className='text-sm text-gray-600 mb-4'>Cấp độ: Trung cấp</div>
-                    <Button className='w-full bg-black hover:bg-gray-800 text-white mb-2'>Ứng tuyển ngay</Button>
-                    <button className='w-full text-sm text-gray-600 hover:text-gray-800 flex items-center justify-center'>
-                      <Eye className='h-4 w-4 mr-1' />
-                      Xem chi tiết
-                    </button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                      <div className='text-right w-1/3'>
+                        <div className='text-2xl font-bold text-green-600 mb-2'>
+                          {post.budget.toLocaleString('vi-VN')} VND
+                        </div>
+                        <div className='text-sm text-gray-600 mb-4'>Giá cố định</div>
 
-            {/* Job Card 2 */}
-            <Card className='hover:shadow-md transition-shadow'>
-              <CardContent className='p-6'>
-                <div className='flex items-start justify-between mb-4'>
-                  <div className='flex-1'>
-                    <div className='flex items-center mb-2'>
-                      <h3 className='text-lg font-semibold text-gray-900 mr-3'>
-                        Thiết kế UI/UX cho ứng dụng mobile e-commerce
-                      </h3>
-                      <Badge variant='secondary' className='bg-red-100 text-red-800'>
-                        Gấp
-                      </Badge>
-                      <Heart className='h-5 w-5 text-gray-400 ml-2 cursor-pointer hover:text-red-500' />
-                    </div>
-                    <div className='flex items-center text-sm text-gray-600 mb-3'>
-                      <span className='mr-4'>Digital Commerce Co.</span>
-                      <div className='flex items-center mr-4'>
-                        <Star className='h-4 w-4 text-yellow-400 mr-1' />
-                        <span>4.7 (45 đánh giá)</span>
+                        <div className='flex flex-col gap-1'>
+                          <Button className='w-full bg-black hover:bg-gray-800 text-white mb-2'>Ứng tuyển ngay</Button>
+                          <Button className='bg-white w-full text-sm text-gray-600 flex items-center justify-center'>
+                            <Eye className='h-4 w-4 mr-1' />
+                            Xem chi tiết
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                    <p className='text-gray-700 mb-4'>
-                      Cần thiết kế giao diện người dùng cho ứng dụng mua sắm trực tuyến. Bao gồm wireframe, mockup và
-                      prototype tương tác.
-                    </p>
-                    <div className='flex flex-wrap gap-2 mb-4'>
-                      <Badge variant='outline' className='text-green-600 border-green-600'>
-                        UI/UX
-                      </Badge>
-                      <Badge variant='outline' className='text-blue-600 border-blue-600'>
-                        Mobile Design
-                      </Badge>
-                      <Badge variant='outline' className='text-purple-600 border-purple-600'>
-                        Figma
-                      </Badge>
-                      <Badge variant='outline' className='text-orange-600 border-orange-600'>
-                        Prototyping
-                      </Badge>
-                    </div>
-                    <div className='flex items-center text-sm text-gray-600 space-x-6'>
-                      <div className='flex items-center'>
-                        <Clock className='h-4 w-4 mr-1' />
-                        <span>Hạn: 2 tuần</span>
-                      </div>
-                      <div className='flex items-center'>
-                        <Users className='h-4 w-4 mr-1' />
-                        <span>5-15 xuất</span>
-                      </div>
-                      <div className='flex items-center'>
-                        <span>Đăng 5 giờ trước</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className='text-right ml-6'>
-                    <div className='text-2xl font-bold text-orange-600'>Thương Lượng</div>
-                    <div className='text-sm text-gray-600 mb-4'>Giá hấp dẫn</div>
-                    <div className='flex items-center text-yellow-400 mb-4'>
-                      <Star className='h-4 w-4' />
-                      <Star className='h-4 w-4' />
-                      <Star className='h-4 w-4' />
-                      <Star className='h-4 w-4' />
-                      <Star className='h-4 w-4' />
-                    </div>
-                    <div className='text-sm text-gray-600 mb-4'>Cấp độ: Chuyên gia</div>
-                    <Button className='w-full bg-black hover:bg-gray-800 text-white mb-2'>Ứng tuyển ngay</Button>
-                    <button className='w-full text-sm text-gray-600 hover:text-gray-800 flex items-center justify-center'>
-                      <Eye className='h-4 w-4 mr-1' />
-                      Xem chi tiết
-                    </button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Job Card 3 */}
-            <Card className='hover:shadow-md transition-shadow'>
-              <CardContent className='p-6'>
-                <div className='flex items-start justify-between mb-4'>
-                  <div className='flex-1'>
-                    <div className='flex items-center mb-2'>
-                      <h3 className='text-lg font-semibold text-gray-900 mr-3'>
-                        Thiết kế brochure và poster cho sự kiện
-                      </h3>
-                      <Heart className='h-5 w-5 text-gray-400 ml-2 cursor-pointer hover:text-red-500' />
-                    </div>
-                    <div className='flex items-center text-sm text-gray-600 mb-3'>
-                      <span className='mr-4'>Event Management Pro</span>
-                      <div className='flex items-center mr-4'>
-                        <Star className='h-4 w-4 text-yellow-400 mr-1' />
-                        <span>4.8 (67 đánh giá)</span>
-                      </div>
-                    </div>
-                    <p className='text-gray-700 mb-4'>
-                      Cần thiết kế brochure và poster cho sự kiện công nghệ lớn. Thiết kế cần thể hiện tính chuyên
-                      nghiệp và thu hút.
-                    </p>
-                    <div className='flex flex-wrap gap-2 mb-4'>
-                      <Badge variant='outline' className='text-orange-600 border-orange-600'>
-                        Print Design
-                      </Badge>
-                      <Badge variant='outline' className='text-purple-600 border-purple-600'>
-                        Poster
-                      </Badge>
-                      <Badge variant='outline' className='text-blue-600 border-blue-600'>
-                        InDesign
-                      </Badge>
-                      <Badge variant='outline' className='text-pink-600 border-pink-600'>
-                        Marketing
-                      </Badge>
-                    </div>
-                    <div className='flex items-center text-sm text-gray-600 space-x-6'>
-                      <div className='flex items-center'>
-                        <Clock className='h-4 w-4 mr-1' />
-                        <span>Hạn: 1 tuần</span>
-                      </div>
-                      <div className='flex items-center'>
-                        <Users className='h-4 w-4 mr-1' />
-                        <span>10-30 xuất</span>
-                      </div>
-                      <div className='flex items-center'>
-                        <span>Đăng 1 ngày trước</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className='text-right ml-6'>
-                    <div className='text-2xl font-bold text-green-600 mb-2'>4-7M VND</div>
-                    <div className='text-sm text-gray-600 mb-4'>Giá cố định</div>
-                    <div className='flex items-center text-yellow-400 mb-4'>
-                      <Star className='h-4 w-4' />
-                      <Star className='h-4 w-4' />
-                      <Star className='h-4 w-4' />
-                      <Star className='h-4 w-4' />
-                      <Star className='h-4 w-4' />
-                    </div>
-                    <div className='text-sm text-gray-600 mb-4'>Cấp độ: Trung cấp</div>
-                    <Button className='w-full bg-black hover:bg-gray-800 text-white mb-2'>Ứng tuyển ngay</Button>
-                    <button className='w-full text-sm text-gray-600 hover:text-gray-800 flex items-center justify-center'>
-                      <Eye className='h-4 w-4 mr-1' />
-                      Xem chi tiết
-                    </button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Job Card 4 */}
-            <Card className='hover:shadow-md transition-shadow'>
-              <CardContent className='p-6'>
-                <div className='flex items-start justify-between mb-4'>
-                  <div className='flex-1'>
-                    <div className='flex items-center mb-2'>
-                      <h3 className='text-lg font-semibold text-gray-900 mr-3'>
-                        Viết kịch bản quảng cáo bánh quy Oreo
-                      </h3>
-                      <Heart className='h-5 w-5 text-gray-400 ml-2 cursor-pointer hover:text-red-500' />
-                    </div>
-                    <div className='flex items-center text-sm text-gray-600 mb-3'>
-                      <span className='mr-4'>Green Food Vietnam</span>
-                      <div className='flex items-center mr-4'>
-                        <Star className='h-4 w-4 text-yellow-400 mr-1' />
-                        <span>4.6 (34 đánh giá)</span>
-                      </div>
-                    </div>
-                    <p className='text-gray-700 mb-4'>
-                      Viết kịch bản quảng cáo về bánh quy Oreo. Kịch bản cần thu hút và mang tính chuyên nghiệp.
-                    </p>
-                    <div className='flex flex-wrap gap-2 mb-4'>
-                      <Badge variant='outline' className='text-blue-600 border-blue-600'>
-                        Content Writer
-                      </Badge>
-                    </div>
-                    <div className='flex items-center text-sm text-gray-600 space-x-6'>
-                      <div className='flex items-center'>
-                        <Clock className='h-4 w-4 mr-1' />
-                        <span>Hạn: 5 ngày</span>
-                      </div>
-                      <div className='flex items-center'>
-                        <Users className='h-4 w-4 mr-1' />
-                        <span>5-15 xuất</span>
-                      </div>
-                      <div className='flex items-center'>
-                        <span>Đăng 3 ngày trước</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className='text-right ml-6'>
-                    <div className='text-2xl font-bold text-green-600 mb-2'>8-12M VND</div>
-                    <div className='text-sm text-gray-600 mb-4'>Giá cố định</div>
-                    <div className='flex items-center text-yellow-400 mb-4'>
-                      <Star className='h-4 w-4' />
-                      <Star className='h-4 w-4' />
-                      <Star className='h-4 w-4' />
-                      <Star className='h-4 w-4' />
-                      <Star className='h-4 w-4' />
-                    </div>
-                    <div className='text-sm text-gray-600 mb-4'>Cấp độ: Trung cấp</div>
-                    <Button className='w-full bg-black hover:bg-gray-800 text-white mb-2'>Ứng tuyển ngay</Button>
-                    <button className='w-full text-sm text-gray-600 hover:text-gray-800 flex items-center justify-center'>
-                      <Eye className='h-4 w-4 mr-1' />
-                      Xem chi tiết
-                    </button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
 
           {/* Pagination */}
-          <div className='flex items-center justify-center mt-8 space-x-2'>
-            <PaginationDemo />
-          </div>
-        </div>
-
-        {/* Right Sidebar */}
-        <div className='lg:col-span-1'>
-          <div className='space-y-6'>
-            {/* Ad Space or Featured Content */}
-            <Card>
-              <CardContent className='p-6 text-center'>
-                <div className='text-gray-400 text-sm'>Quảng cáo</div>
-              </CardContent>
-            </Card>
+          <div className='flex justify-center'>
+            <PaginationDemo
+              currentPage={page}
+              hasNextPage={!!recruitmentData?.items?.length}
+              isLoading={isLoading}
+              onPageChange={handlePageChange}
+            />
           </div>
         </div>
       </div>
