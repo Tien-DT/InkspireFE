@@ -93,5 +93,8 @@
     "vite": "^6.3.3",
     "vite-plugin-devtools-json": "^1.0.0",
     "vite-tsconfig-paths": "^5.1.4"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "^4.30.0"
   }
 }
