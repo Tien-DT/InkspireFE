@@ -1,13 +1,34 @@
-import { useState } from 'react'
+import { useState, type FormEvent } from 'react'
 import { IconEye, IconEyeOff } from '@tabler/icons-react'
 
 import { GoogleIcon } from '~/components/icons/google-icon'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
+import { useLogin } from '~/hooks/useAuth'
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [rememberMe, setRememberMe] = useState(false)
+
+  const { mutate: login, isPending } = useLogin()
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    
+    // Basic validation
+    if (!email || !password) {
+      return
+    }
+
+    login({
+      email,
+      password,
+      rememberMe
+    })
+  }
 
   return (
     <>
@@ -15,10 +36,19 @@ export function LoginForm() {
         <h1 className='text-2xl font-bold text-slate-900'>Đăng nhập tài khoản</h1>
         <p className='text-sm text-muted-foreground'>Nhập email và mật khẩu để truy cập vào hành trình sáng tạo của bạn.</p>
       </div>
-      <form className='grid gap-6 text-left'>
+      <form onSubmit={handleSubmit} className='grid gap-6 text-left'>
         <div className='grid gap-3'>
           <Label htmlFor='login-email'>Email</Label>
-          <Input id='login-email' type='email' placeholder='admin@freelancehub.com' autoComplete='email' required />
+          <Input 
+            id='login-email' 
+            type='email' 
+            placeholder='admin@freelancehub.com' 
+            autoComplete='email' 
+            required 
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={isPending}
+          />
         </div>
         <div className='grid gap-3'>
           <div className='flex items-center'>
@@ -35,6 +65,9 @@ export function LoginForm() {
               autoComplete='current-password'
               className='pr-12'
               required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={isPending}
             />
             <Button
               type='button'
@@ -43,13 +76,31 @@ export function LoginForm() {
               onClick={() => setShowPassword((prev) => !prev)}
               className='absolute right-2 top-1/2 size-9 -translate-y-1/2 rounded-lg text-muted-foreground/80 hover:bg-muted/60 hover:text-foreground'
               aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+              disabled={isPending}
             >
               {showPassword ? <IconEyeOff className='size-4' /> : <IconEye className='size-4' />}
             </Button>
           </div>
         </div>
-        <Button type='submit' className='w-full rounded-xl bg-emerald-500 text-sm font-semibold text-white hover:bg-emerald-500/90'>
-          Đăng nhập
+        <div className='flex items-center gap-2'>
+          <input
+            type='checkbox'
+            id='remember-me'
+            checked={rememberMe}
+            onChange={(e) => setRememberMe(e.target.checked)}
+            disabled={isPending}
+            className='size-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500'
+          />
+          <Label htmlFor='remember-me' className='text-sm font-normal cursor-pointer'>
+            Ghi nhớ đăng nhập
+          </Label>
+        </div>
+        <Button 
+          type='submit' 
+          className='w-full rounded-xl bg-emerald-500 text-sm font-semibold text-white hover:bg-emerald-500/90'
+          disabled={isPending}
+        >
+          {isPending ? 'Đang đăng nhập...' : 'Đăng nhập'}
         </Button>
         <div className='relative text-center text-sm text-muted-foreground'>
           <span className='absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-border' aria-hidden='true' />

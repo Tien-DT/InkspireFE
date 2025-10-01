@@ -1,8 +1,8 @@
 import { isRouteErrorResponse, Links, Meta, Outlet, Scripts, ScrollRestoration } from 'react-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import type { Route } from './+types/root'
 import { ThemeProvider } from 'next-themes'
+import { Toaster } from '~/components/ui/sonner'
 import './app.css'
 
 const queryClient = new QueryClient({
@@ -50,8 +50,8 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute='class' defaultTheme='light' enableSystem storageKey='vite-ui-theme'>
         <Outlet />
+        <Toaster />
       </ThemeProvider>
-      {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
     </QueryClientProvider>
   )
 }

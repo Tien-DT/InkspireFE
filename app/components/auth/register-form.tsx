@@ -1,6 +1,5 @@
-import { useState } from 'react'
+import { useState, type FormEvent } from 'react'
 import {
-  IconBuilding,
   IconChevronDown,
   IconEye,
   IconEyeOff,
@@ -18,10 +17,69 @@ import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { Separator } from '~/components/ui/separator'
 import { cn } from '~/utils/cn'
+import { useRegister } from '~/hooks/useAuth'
+import { ROLE_MAP, type RoleType } from '~/types/auth.type'
+import { toast } from 'sonner'
 
 export function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  
+  // Form state
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [email, setEmail] = useState('')
+  const [phoneNumber, setPhoneNumber] = useState('')
+  const [role, setRole] = useState<RoleType | ''>('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [agreeTerms, setAgreeTerms] = useState(false)
+
+  const { mutate: register, isPending } = useRegister()
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    
+    // Validation
+    if (!firstName.trim() || !lastName.trim()) {
+      toast.error('Vui lòng nhập đầy đủ họ và tên')
+      return
+    }
+
+    if (!email || !password || !phoneNumber || !role) {
+      toast.error('Vui lòng điền đầy đủ thông tin bắt buộc')
+      return
+    }
+
+    if (password.length < 8) {
+      toast.error('Mật khẩu phải có ít nhất 8 ký tự')
+      return
+    }
+
+    if (password !== confirmPassword) {
+      toast.error('Mật khẩu xác nhận không khớp')
+      return
+    }
+
+    if (!agreeTerms) {
+      toast.error('Vui lòng đồng ý với điều khoản dịch vụ')
+      return
+    }
+
+    // Map role to number
+    const roleNumber = ROLE_MAP[role]
+
+    // Submit registration
+    register({
+      email: email.trim(),
+      password,
+      phoneNumber: phoneNumber.trim(),
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      role: roleNumber,
+      status: 0 // 0 = pending verification
+    })
+  }
 
   return (
     <>
@@ -43,21 +101,41 @@ export function RegisterForm() {
           hoặc điền thông tin
           <Separator className='flex-1 bg-muted' />
         </div>
-        <form className='grid gap-6 text-left'>
+        <form onSubmit={handleSubmit} className='grid gap-6 text-left'>
           <div className='grid gap-4 md:grid-cols-2'>
-            <div className='grid gap-2 md:col-span-2'>
-              <Label htmlFor='register-full-name' className='text-sm font-semibold text-slate-900'>
-                Họ và tên <span className='text-emerald-500'>*</span>
+            <div className='grid gap-2'>
+              <Label htmlFor='register-first-name' className='text-sm font-semibold text-slate-900'>
+                Họ <span className='text-emerald-500'>*</span>
               </Label>
               <div className='relative'>
                 <IconUserCircle className='pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/70' />
                 <Input
-                  id='register-full-name'
+                  id='register-first-name'
                   type='text'
-                  placeholder='Nguyễn Văn An'
-                  autoComplete='name'
+                  placeholder='Nguyễn'
                   required
                   className='pl-12'
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  disabled={isPending}
+                />
+              </div>
+            </div>
+            <div className='grid gap-2'>
+              <Label htmlFor='register-last-name' className='text-sm font-semibold text-slate-900'>
+                Tên <span className='text-emerald-500'>*</span>
+              </Label>
+              <div className='relative'>
+                <IconUserCircle className='pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/70' />
+                <Input
+                  id='register-last-name'
+                  type='text'
+                  placeholder='Văn An'
+                  required
+                  className='pl-12'
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  disabled={isPending}
                 />
               </div>
             </div>
@@ -74,6 +152,9 @@ export function RegisterForm() {
                   autoComplete='email'
                   required
                   className='pl-12'
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={isPending}
                 />
               </div>
             </div>
@@ -90,25 +171,13 @@ export function RegisterForm() {
                   autoComplete='tel'
                   required
                   className='pl-12'
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  disabled={isPending}
                 />
               </div>
             </div>
-            <div className='grid gap-2'>
-              <Label htmlFor='register-company' className='text-sm font-semibold text-slate-900'>
-                Công ty
-              </Label>
-              <div className='relative'>
-                <IconBuilding className='pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/70' />
-                <Input
-                  id='register-company'
-                  type='text'
-                  placeholder='Tên công ty (tuỳ chọn)'
-                  autoComplete='organization'
-                  className='pl-12'
-                />
-              </div>
-            </div>
-            <div className='grid gap-2'>
+            <div className='grid gap-2 md:col-span-2'>
               <Label htmlFor='register-role' className='text-sm font-semibold text-slate-900'>
                 Vai trò <span className='text-emerald-500'>*</span>
               </Label>
@@ -116,14 +185,16 @@ export function RegisterForm() {
                 <IconUserCheck className='pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/70' />
                 <select
                   id='register-role'
-                  defaultValue=''
+                  value={role}
+                  onChange={(e) => setRole(e.target.value as RoleType)}
                   required
+                  disabled={isPending}
                   className={cn(
                     'flex h-11 w-full appearance-none rounded-xl border border-input bg-transparent pl-12 pr-10 text-sm font-medium text-foreground shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
                   )}
                 >
                   <option value='' disabled hidden>
-                    Chon vai tro cua ban
+                    Chọn vai trò của bạn
                   </option>
                   <option value='client'>Khách hàng</option>
                   <option value='designer'>Nhà thiết kế</option>
@@ -143,10 +214,13 @@ export function RegisterForm() {
                 <Input
                   id='register-password'
                   type={showPassword ? 'text' : 'password'}
-                  placeholder='Tối thiểu 6 ký tự'
+                  placeholder='Tối thiểu 8 ký tự'
                   autoComplete='new-password'
                   className='pl-12 pr-12'
                   required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isPending}
                 />
                 <Button
                   type='button'
@@ -155,6 +229,7 @@ export function RegisterForm() {
                   onClick={() => setShowPassword((prev) => !prev)}
                   className='absolute right-2 top-1/2 size-9 -translate-y-1/2 rounded-lg text-muted-foreground/80 hover:bg-muted/60 hover:text-foreground'
                   aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                  disabled={isPending}
                 >
                   {showPassword ? <IconEyeOff className='size-4' /> : <IconEye className='size-4' />}
                 </Button>
@@ -173,6 +248,9 @@ export function RegisterForm() {
                   autoComplete='new-password'
                   className='pl-12 pr-12'
                   required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  disabled={isPending}
                 />
                 <Button
                   type='button'
@@ -181,6 +259,7 @@ export function RegisterForm() {
                   onClick={() => setShowConfirmPassword((prev) => !prev)}
                   className='absolute right-2 top-1/2 size-9 -translate-y-1/2 rounded-lg text-muted-foreground/80 hover:bg-muted/60 hover:text-foreground'
                   aria-label={showConfirmPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                  disabled={isPending}
                 >
                   {showConfirmPassword ? <IconEyeOff className='size-4' /> : <IconEye className='size-4' />}
                 </Button>
@@ -189,7 +268,14 @@ export function RegisterForm() {
           </div>
           <div className='space-y-3 text-sm text-muted-foreground'>
             <label htmlFor='register-terms' className='flex items-start gap-3'>
-              <Checkbox id='register-terms' required className='mt-1' />
+              <Checkbox 
+                id='register-terms' 
+                required 
+                className='mt-1' 
+                checked={agreeTerms}
+                onCheckedChange={(checked) => setAgreeTerms(checked === true)}
+                disabled={isPending}
+              />
               <span className='leading-6'>
                 Tôi đồng ý với{' '}
                 <a href='#' className='font-semibold text-emerald-600 underline-offset-4 hover:underline'>
@@ -202,16 +288,13 @@ export function RegisterForm() {
                 .
               </span>
             </label>
-            <label htmlFor='register-updates' className='flex items-start gap-3'>
-              <Checkbox id='register-updates' className='mt-1' />
-              <span className='leading-6'>Tôi muốn nhận thông tin cập nhật và ưu đãi qua email.</span>
-            </label>
           </div>
           <Button
             type='submit'
             className='w-full rounded-xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 hover:bg-slate-900/90'
+            disabled={isPending}
           >
-            Tạo tài khoản
+            {isPending ? 'Đang tạo tài khoản...' : 'Tạo tài khoản'}
           </Button>
         </form>
         <p className='text-center text-sm text-muted-foreground'>
