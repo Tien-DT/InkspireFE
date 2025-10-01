@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { Route } from './+types/root'
 import { ThemeProvider } from 'next-themes'
 import { Toaster } from '~/components/ui/sonner'
+import { AuthProvider } from '~/contexts/AuthContext'
 import './app.css'
 
 const queryClient = new QueryClient({
@@ -48,10 +49,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute='class' defaultTheme='light' enableSystem storageKey='vite-ui-theme'>
-        <Outlet />
-        <Toaster />
-      </ThemeProvider>
+      <AuthProvider>
+        <ThemeProvider attribute='class' defaultTheme='light' enableSystem storageKey='vite-ui-theme'>
+          <Outlet />
+          <Toaster />
+        </ThemeProvider>
+      </AuthProvider>
     </QueryClientProvider>
   )
 }

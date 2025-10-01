@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { authApi } from '~/apis/auth.api'
 import type { LoginRequest, RegisterRequest } from '~/types/auth.type'
+import { clearLS, setAccessTokenToLS, setRefreshTokenToLS } from '~/utils/auth'
 
 /**
  * Custom hook for user login
@@ -15,18 +16,18 @@ export const useLogin = () => {
     mutationFn: (data: LoginRequest) => authApi.login(data),
     onSuccess: (response) => {
       // Store tokens in localStorage
-      localStorage.setItem('access_token', response.access_token)
-      localStorage.setItem('refresh_token', response.refresh_token)
-      
+      setAccessTokenToLS(response.access_token)
+      setRefreshTokenToLS(response.refresh_token)
+
       // Store user status
       localStorage.setItem('user_status', response.status.toString())
       localStorage.setItem('email_verified', response.email_verified.toString())
-      
+
       // Show success message
       toast.success('Đăng nhập thành công!', {
         description: 'Chào mừng bạn quay trở lại.'
       })
-      
+
       // Redirect to dashboard or home
       navigate('/dashboard-freelancer')
     },
@@ -34,7 +35,7 @@ export const useLogin = () => {
       // Handle different error cases
       const errorMessage = error?.response?.data?.message || error?.message
       const errorType = error?.response?.data?.error
-      
+
       if (errorType === 'email_not_verified') {
         toast.error('Email chưa được xác thực', {
           description: 'Vui lòng kiểm tra email và xác thực tài khoản của bạn.'
@@ -66,7 +67,7 @@ export const useRegister = () => {
       toast.success('Đăng ký thành công!', {
         description: response.message || 'Vui lòng kiểm tra email để xác thực tài khoản.'
       })
-      
+
       // Redirect to login page after successful registration
       setTimeout(() => {
         navigate('/login')
@@ -76,7 +77,7 @@ export const useRegister = () => {
       // Handle different error cases
       const errorMessage = error?.response?.data?.message || error?.message
       const status = error?.response?.status
-      
+
       if (status === 409) {
         // Conflict - email or phone already exists
         toast.error('Đăng ký thất bại', {
@@ -103,27 +104,27 @@ export const useRegister = () => {
 export const useLogout = () => {
   const navigate = useNavigate()
 
+  const clearAuthState = () => {
+    clearLS()
+    localStorage.removeItem('user_status')
+    localStorage.removeItem('email_verified')
+  }
+
   return useMutation({
     mutationFn: () => authApi.logout(),
     onSuccess: () => {
       // Clear all auth data from localStorage
-      localStorage.removeItem('access_token')
-      localStorage.removeItem('refresh_token')
-      localStorage.removeItem('user_status')
-      localStorage.removeItem('email_verified')
-      
+      clearAuthState()
+
       toast.success('Đăng xuất thành công')
-      
+
       // Redirect to login page
       navigate('/login')
     },
     onError: () => {
       // Even if API call fails, clear local storage and redirect
-      localStorage.removeItem('access_token')
-      localStorage.removeItem('refresh_token')
-      localStorage.removeItem('user_status')
-      localStorage.removeItem('email_verified')
-      
+      clearAuthState()
+
       navigate('/login')
     }
   })

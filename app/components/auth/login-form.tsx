@@ -1,11 +1,11 @@
 import { useState, type FormEvent } from 'react'
 import { IconEye, IconEyeOff } from '@tabler/icons-react'
 
-import { GoogleIcon } from '~/components/icons/google-icon'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { useLogin } from '~/hooks/useAuth'
+import { GoogleLoginButton } from '~/components/auth/google-login-button'
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
@@ -106,12 +106,7 @@ export function LoginForm() {
           <span className='absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-border' aria-hidden='true' />
           <span className='relative inline-flex bg-background px-3'>Hoặc tiếp tục với</span>
         </div>
-        <Button asChild variant='outline' className='w-full justify-center gap-3 rounded-xl border-muted/40 bg-background text-sm font-semibold shadow-sm hover:bg-slate-50'>
-          <a href='/auth/google' onClick={() => localStorage.setItem('last_provider', 'google')}>
-            <GoogleIcon className='size-5' />
-            Đăng nhập với Google
-          </a>
-        </Button>
+        <GoogleLoginButton rememberMe={rememberMe} />
       </form>
       <div className='text-center text-sm text-muted-foreground'>
         Chưa có tài khoản?{' '}

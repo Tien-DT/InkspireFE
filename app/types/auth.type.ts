@@ -5,6 +5,13 @@ export interface LoginRequest {
   rememberMe: boolean
 }
 
+export interface GoogleLoginRequest {
+  idToken: string
+  firstName?: string | null
+  lastName?: string | null
+  rememberMe?: boolean
+}
+
 export interface RegisterRequest {
   email: string
   password: string
@@ -21,6 +28,35 @@ export interface LoginResponse {
   refresh_token: string
   status: number
   email_verified: boolean
+  user?: {
+    id: string
+    email: string
+    first_name?: string
+    last_name?: string
+    phone_number?: string
+    role?: number
+    status?: number
+    email_verified: boolean
+    created_at?: string
+    updated_at?: string
+  }
+}
+
+export interface GoogleLoginResponse {
+  access_token: string
+  refresh_token: string
+  user: {
+    id: string
+    email: string
+    first_name?: string
+    last_name?: string
+    phone_number?: string
+    role: number
+    status: number
+    email_verified: boolean
+    created_at: string
+    updated_at: string
+  }
 }
 
 export interface RegisterResponse {
