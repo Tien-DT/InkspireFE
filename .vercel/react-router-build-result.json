@@ -1,0 +1,304 @@
+{
+  "buildManifest": {
+    "routes": {
+      "root": {
+        "id": "root",
+        "file": "root.tsx",
+        "path": ""
+      },
+      "layouts/MainLayout/MainLayout": {
+        "id": "layouts/MainLayout/MainLayout",
+        "parentId": "root",
+        "file": "./layouts/MainLayout/MainLayout.tsx"
+      },
+      "routes/home": {
+        "id": "routes/home",
+        "parentId": "layouts/MainLayout/MainLayout",
+        "file": "./routes/home.tsx",
+        "index": true
+      },
+      "routes/about": {
+        "id": "routes/about",
+        "parentId": "layouts/MainLayout/MainLayout",
+        "file": "./routes/about.tsx",
+        "path": "about"
+      },
+      "routes/jobs-freelancer": {
+        "id": "routes/jobs-freelancer",
+        "parentId": "layouts/MainLayout/MainLayout",
+        "file": "./routes/jobs-freelancer.tsx",
+        "path": "jobs-freelancer"
+      },
+      "routes/search-freelancer": {
+        "id": "routes/search-freelancer",
+        "parentId": "layouts/MainLayout/MainLayout",
+        "file": "./routes/search-freelancer.tsx",
+        "path": "search-freelancer"
+      },
+      "routes/dashboard-freelancer": {
+        "id": "routes/dashboard-freelancer",
+        "parentId": "layouts/MainLayout/MainLayout",
+        "file": "./routes/dashboard-freelancer.tsx",
+        "path": "dashboard-freelancer"
+      },
+      "routes/post-project": {
+        "id": "routes/post-project",
+        "parentId": "layouts/MainLayout/MainLayout",
+        "file": "./routes/post-project.tsx",
+        "path": "post-project"
+      },
+      "routes/post-new-project": {
+        "id": "routes/post-new-project",
+        "parentId": "layouts/MainLayout/MainLayout",
+        "file": "./routes/post-new-project.tsx",
+        "path": "post-new-project"
+      },
+      "routes/manage-project": {
+        "id": "routes/manage-project",
+        "parentId": "layouts/MainLayout/MainLayout",
+        "file": "./routes/manage-project.tsx",
+        "path": "manage-project"
+      },
+      "routes/payment": {
+        "id": "routes/payment",
+        "parentId": "layouts/MainLayout/MainLayout",
+        "file": "./routes/payment.tsx",
+        "path": "payment"
+      },
+      "routes/chat": {
+        "id": "routes/chat",
+        "parentId": "layouts/MainLayout/MainLayout",
+        "file": "./routes/chat.tsx",
+        "path": "chat"
+      },
+      "routes/banking-qr": {
+        "id": "routes/banking-qr",
+        "parentId": "layouts/MainLayout/MainLayout",
+        "file": "./routes/banking-qr.tsx",
+        "path": "banking-qr"
+      },
+      "routes/manage-jobs": {
+        "id": "routes/manage-jobs",
+        "parentId": "layouts/MainLayout/MainLayout",
+        "file": "./routes/manage-jobs.tsx",
+        "path": "manage-jobs"
+      },
+      "layouts/auth-layout": {
+        "id": "layouts/auth-layout",
+        "parentId": "root",
+        "file": "./layouts/auth-layout.tsx"
+      },
+      "routes/login/login-page": {
+        "id": "routes/login/login-page",
+        "parentId": "layouts/auth-layout",
+        "file": "./routes/login/login-page.tsx",
+        "path": "login"
+      },
+      "routes/register/register-page": {
+        "id": "routes/register/register-page",
+        "parentId": "layouts/auth-layout",
+        "file": "./routes/register/register-page.tsx",
+        "path": "register"
+      }
+    }
+  },
+  "reactRouterConfig": {
+    "appDirectory": "D:/WorkSpace/inkspire/app",
+    "basename": "/",
+    "buildDirectory": "D:/WorkSpace/inkspire/build",
+    "future": {
+      "unstable_middleware": false,
+      "unstable_optimizeDeps": false,
+      "unstable_splitRouteModules": false,
+      "unstable_subResourceIntegrity": false,
+      "unstable_viteEnvironmentApi": false
+    },
+    "routes": {
+      "root": {
+        "id": "root",
+        "file": "root.tsx",
+        "path": ""
+      },
+      "layouts/MainLayout/MainLayout": {
+        "id": "layouts/MainLayout/MainLayout",
+        "parentId": "root",
+        "file": "./layouts/MainLayout/MainLayout.tsx"
+      },
+      "routes/home": {
+        "id": "routes/home",
+        "parentId": "layouts/MainLayout/MainLayout",
+        "file": "./routes/home.tsx",
+        "index": true
+      },
+      "routes/about": {
+        "id": "routes/about",
+        "parentId": "layouts/MainLayout/MainLayout",
+        "file": "./routes/about.tsx",
+        "path": "about"
+      },
+      "routes/jobs-freelancer": {
+        "id": "routes/jobs-freelancer",
+        "parentId": "layouts/MainLayout/MainLayout",
+        "file": "./routes/jobs-freelancer.tsx",
+        "path": "jobs-freelancer"
+      },
+      "routes/search-freelancer": {
+        "id": "routes/search-freelancer",
+        "parentId": "layouts/MainLayout/MainLayout",
+        "file": "./routes/search-freelancer.tsx",
+        "path": "search-freelancer"
+      },
+      "routes/dashboard-freelancer": {
+        "id": "routes/dashboard-freelancer",
+        "parentId": "layouts/MainLayout/MainLayout",
+        "file": "./routes/dashboard-freelancer.tsx",
+        "path": "dashboard-freelancer"
+      },
+      "routes/post-project": {
+        "id": "routes/post-project",
+        "parentId": "layouts/MainLayout/MainLayout",
+        "file": "./routes/post-project.tsx",
+        "path": "post-project"
+      },
+      "routes/post-new-project": {
+        "id": "routes/post-new-project",
+        "parentId": "layouts/MainLayout/MainLayout",
+        "file": "./routes/post-new-project.tsx",
+        "path": "post-new-project"
+      },
+      "routes/manage-project": {
+        "id": "routes/manage-project",
+        "parentId": "layouts/MainLayout/MainLayout",
+        "file": "./routes/manage-project.tsx",
+        "path": "manage-project"
+      },
+      "routes/payment": {
+        "id": "routes/payment",
+        "parentId": "layouts/MainLayout/MainLayout",
+        "file": "./routes/payment.tsx",
+        "path": "payment"
+      },
+      "routes/chat": {
+        "id": "routes/chat",
+        "parentId": "layouts/MainLayout/MainLayout",
+        "file": "./routes/chat.tsx",
+        "path": "chat"
+      },
+      "routes/banking-qr": {
+        "id": "routes/banking-qr",
+        "parentId": "layouts/MainLayout/MainLayout",
+        "file": "./routes/banking-qr.tsx",
+        "path": "banking-qr"
+      },
+      "routes/manage-jobs": {
+        "id": "routes/manage-jobs",
+        "parentId": "layouts/MainLayout/MainLayout",
+        "file": "./routes/manage-jobs.tsx",
+        "path": "manage-jobs"
+      },
+      "layouts/auth-layout": {
+        "id": "layouts/auth-layout",
+        "parentId": "root",
+        "file": "./layouts/auth-layout.tsx"
+      },
+      "routes/login/login-page": {
+        "id": "routes/login/login-page",
+        "parentId": "layouts/auth-layout",
+        "file": "./routes/login/login-page.tsx",
+        "path": "login"
+      },
+      "routes/register/register-page": {
+        "id": "routes/register/register-page",
+        "parentId": "layouts/auth-layout",
+        "file": "./routes/register/register-page.tsx",
+        "path": "register"
+      }
+    },
+    "routeDiscovery": {
+      "mode": "initial"
+    },
+    "serverBuildFile": "index.js",
+    "serverModuleFormat": "esm",
+    "ssr": false,
+    "unstable_routeConfig": [
+      {
+        "id": "root",
+        "path": "",
+        "file": "root.tsx",
+        "children": [
+          {
+            "file": "./layouts/MainLayout/MainLayout.tsx",
+            "children": [
+              {
+                "file": "./routes/home.tsx",
+                "index": true
+              },
+              {
+                "file": "./routes/about.tsx",
+                "path": "about"
+              },
+              {
+                "file": "./routes/jobs-freelancer.tsx",
+                "path": "jobs-freelancer"
+              },
+              {
+                "file": "./routes/search-freelancer.tsx",
+                "path": "search-freelancer"
+              },
+              {
+                "file": "./routes/dashboard-freelancer.tsx",
+                "path": "dashboard-freelancer"
+              },
+              {
+                "file": "./routes/post-project.tsx",
+                "path": "post-project"
+              },
+              {
+                "file": "./routes/post-new-project.tsx",
+                "path": "post-new-project"
+              },
+              {
+                "file": "./routes/manage-project.tsx",
+                "path": "manage-project"
+              },
+              {
+                "file": "./routes/payment.tsx",
+                "path": "payment"
+              },
+              {
+                "file": "./routes/chat.tsx",
+                "path": "chat"
+              },
+              {
+                "file": "./routes/banking-qr.tsx",
+                "path": "banking-qr"
+              },
+              {
+                "file": "./routes/manage-jobs.tsx",
+                "path": "manage-jobs"
+              }
+            ]
+          },
+          {
+            "file": "./layouts/auth-layout.tsx",
+            "children": [
+              {
+                "file": "./routes/login/login-page.tsx",
+                "path": "login"
+              },
+              {
+                "file": "./routes/register/register-page.tsx",
+                "path": "register"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "viteConfig": {
+    "build": {
+      "assetsDir": "assets"
+    }
+  }
+}
