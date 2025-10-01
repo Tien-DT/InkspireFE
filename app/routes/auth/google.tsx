@@ -12,7 +12,7 @@ export default function GoogleAuthRedirect() {
 
     // Build your backend OAuth URL or direct Google URL.
     // Prefer a backend endpoint if available via env.
-    const apiBase = (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_API_BASE_URL as
+    const apiBase = (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_API_URL as
       | string
       | undefined
     const backendUrl = apiBase

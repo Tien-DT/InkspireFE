@@ -4,8 +4,11 @@ import logo from '~/assets/logo.svg'
 import { Input } from '~/components/ui/input'
 import { Search } from 'lucide-react'
 import path from '~/constants/path'
+import { useAuth } from '~/contexts/AuthContext'
 
 export function Header() {
+  const { userName } = useAuth()
+
   return (
     <header className='bg-white border-b border-border'>
       <div className='container mx-auto px-4 py-2'>
@@ -30,14 +33,30 @@ export function Header() {
           <div className='flex items-center space-x-4'>
             <form className='relative'>
               <Input type='search' placeholder='Tìm kiếm...' className='md:w-[100px] lg:w-[300px] pr-8' />
-              <Button className='absolute inset-y-0 right-0 flex items-center pr-3 bg-transparent shadow-none hover:bg-transparent'>
+              <Button
+                type='button'
+                className='absolute inset-y-0 right-0 flex items-center pr-3 bg-transparent shadow-none hover:bg-transparent'
+              >
                 <Search className='h-5 w-5 text-gray-400' />
               </Button>
             </form>
-            <Button variant='ghost' size='sm'>
-              Đăng nhập
-            </Button>
-            <Button size='sm'>Đăng ký</Button>
+            {userName ? (
+              <div className='flex items-center space-x-2'>
+                <span className='hidden text-sm text-muted-foreground md:inline'>Xin chào</span>
+                <span className='max-w-[140px] truncate text-sm font-semibold text-foreground' title={userName}>
+                  {userName}
+                </span>
+              </div>
+            ) : (
+              <>
+                <Button variant='ghost' size='sm' asChild>
+                  <Link to='/login'>Đăng nhập</Link>
+                </Button>
+                <Button size='sm' asChild>
+                  <Link to='/register'>Đăng ký</Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </div>
