@@ -1,14 +1,26 @@
-type Role = 'User' | 'Admin'
+export enum UserStatus {
+  INACTIVE = 0,
+  ACTIVE = 1,
+  SUSPENDED = 2
+}
+
+export enum UserRole {
+  CLIENT = 0,
+  DESIGNER = 1,
+  DEVELOPER = 2,
+  MARKETER = 3,
+  PROJECT_MANAGER = 4
+}
 
 export interface User {
-  _id: string
-  roles: Role[]
+  id: string
   email: string
-  name?: string
-  date_of_birth?: string // ISO 8610
-  avatar?: string
-  address?: string
-  phone?: string
-  createdAt: string
-  updatedAt: string
+  first_name?: string
+  last_name?: string
+  phone_number?: string
+  role?: UserRole
+  status?: UserStatus
+  email_verified: boolean
+  created_at?: string
+  updated_at?: string
 }

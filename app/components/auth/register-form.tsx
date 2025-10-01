@@ -18,13 +18,13 @@ import { Label } from '~/components/ui/label'
 import { Separator } from '~/components/ui/separator'
 import { cn } from '~/utils/cn'
 import { useRegister } from '~/hooks/useAuth'
-import { ROLE_MAP, type RoleType } from '~/types/auth.type'
 import { toast } from 'sonner'
+import { ROLE_MAP, type RoleType } from '~/constants/auth.constants'
 
 export function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  
+
   // Form state
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
@@ -39,7 +39,7 @@ export function RegisterForm() {
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    
+
     // Validation
     if (!firstName.trim() || !lastName.trim()) {
       toast.error('Vui lòng nhập đầy đủ họ và tên')
@@ -90,7 +90,11 @@ export function RegisterForm() {
         </p>
       </div>
       <div className='space-y-6'>
-        <Button asChild variant='outline' className='w-full justify-center gap-3 rounded-xl border-muted/40 bg-background text-sm font-semibold shadow-sm hover:bg-muted/60'>
+        <Button
+          asChild
+          variant='outline'
+          className='w-full justify-center gap-3 rounded-xl border-muted/40 bg-background text-sm font-semibold shadow-sm hover:bg-muted/60'
+        >
           <a href='/auth/google' onClick={() => localStorage.setItem('last_provider', 'google')}>
             <GoogleIcon className='size-5' />
             Đăng ký với Google
@@ -268,10 +272,10 @@ export function RegisterForm() {
           </div>
           <div className='space-y-3 text-sm text-muted-foreground'>
             <label htmlFor='register-terms' className='flex items-start gap-3'>
-              <Checkbox 
-                id='register-terms' 
-                required 
-                className='mt-1' 
+              <Checkbox
+                id='register-terms'
+                required
+                className='mt-1'
                 checked={agreeTerms}
                 onCheckedChange={(checked) => setAgreeTerms(checked === true)}
                 disabled={isPending}
@@ -307,5 +311,3 @@ export function RegisterForm() {
     </>
   )
 }
-
-

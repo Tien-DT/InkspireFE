@@ -103,9 +103,9 @@
     }
   },
   "reactRouterConfig": {
-    "appDirectory": "C:/Users/USER/Documents/TaiLieu/EXE201/InkspireFE/InkspireFE/app",
+    "appDirectory": "D:/WorkSpace/inkspire/app",
     "basename": "/",
-    "buildDirectory": "C:/Users/USER/Documents/TaiLieu/EXE201/InkspireFE/InkspireFE/build",
+    "buildDirectory": "D:/WorkSpace/inkspire/build",
     "future": {
       "unstable_middleware": false,
       "unstable_optimizeDeps": false,

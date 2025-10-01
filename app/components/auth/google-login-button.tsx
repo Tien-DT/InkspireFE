@@ -9,6 +9,7 @@ import { Button } from '~/components/ui/button'
 import { setAccessTokenToLS, setRefreshTokenToLS, setProfileToLS, setLastAuthContext } from '~/utils/auth'
 import { useAuth } from '~/contexts/AuthContext'
 import { toast } from 'sonner'
+import type { AuthError, GoogleLoginRequest, GoogleLoginResponse } from '~/types/auth.type'
 
 interface GoogleLoginButtonProps {
   rememberMe?: boolean
@@ -21,26 +22,26 @@ export function GoogleLoginButton({ rememberMe = false, onSuccess, onError }: Go
   const navigate = useNavigate()
   const { refreshAuth } = useAuth()
 
-  const googleLoginMutation = useMutation({
+  const googleLoginMutation = useMutation<GoogleLoginResponse, AuthError, GoogleLoginRequest>({
     mutationFn: authApi.googleLogin,
     onSuccess: (data) => {
       // Lưu tokens vào localStorage
       setAccessTokenToLS(data.access_token)
       setRefreshTokenToLS(data.refresh_token)
-      
+
       // Lưu thông tin user nếu có
       if (data.user) {
-        setProfileToLS(data.user as any)
+        setProfileToLS(data.user)
       }
-      
+
       // Lưu last auth context
       setLastAuthContext('google', data.user?.email)
-      
+
       // Refresh auth state
       refreshAuth()
-      
+
       toast.success('Đăng nhập thành công!')
-      
+
       if (onSuccess) {
         onSuccess()
       } else {
@@ -48,13 +49,32 @@ export function GoogleLoginButton({ rememberMe = false, onSuccess, onError }: Go
         navigate('/')
       }
     },
-    onError: (error: any) => {
+    onError: (error: AuthError) => {
       console.error('Google login error:', error)
-      const errorMessage = error?.response?.data?.message || error?.message || 'Đăng nhập Google thất bại'
-      toast.error(errorMessage)
-      
+
+      // Xử lý các loại lỗi cụ thể từ backend
+      if (error?.response?.status === 400) {
+        if (error?.response?.data?.error === 'INVALID_CREDENTIALS') {
+          toast.error('Email hoặc mật khẩu không đúng')
+        } else if (error?.response?.data?.error === 'EMAIL_NOT_VERIFIED') {
+          toast.error('Email chưa được xác thực', {
+            description: 'Vui lòng kiểm tra email và xác thực tài khoản của bạn.'
+          })
+        } else {
+          toast.error(error?.response?.data?.message || 'Thông tin đăng nhập không hợp lệ')
+        }
+      } else if (error?.response?.status === 401) {
+        toast.error('Email hoặc mật khẩu không đúng')
+      } else if (error?.response?.status === 403) {
+        toast.error('Tài khoản của bạn đã bị khóa')
+      } else if (error?.response?.status === 404) {
+        toast.error('Không tìm thấy tài khoản')
+      } else {
+        toast.error(error?.response?.data?.message || 'Đăng nhập Google thất bại')
+      }
+
       if (onError) {
-        onError(errorMessage)
+        onError(error?.response?.data?.message || error?.message || 'Đăng nhập thất bại')
       }
     }
   })
@@ -62,19 +82,19 @@ export function GoogleLoginButton({ rememberMe = false, onSuccess, onError }: Go
   const handleGoogleLogin = async () => {
     try {
       setIsLoading(true)
-      
+
       // Sign in with Firebase
       const result = await signInWithPopup(auth, googleProvider)
-      
+
       // Get the ID token from Firebase
       const idToken = await result.user.getIdToken()
-      
+
       // Extract user info from Firebase
       const displayName = result.user.displayName || ''
       const nameParts = displayName.split(' ')
       const firstName = nameParts[0] || undefined
       const lastName = nameParts.slice(1).join(' ') || undefined
-      
+
       // Call backend API with the ID token
       googleLoginMutation.mutate({
         idToken,
@@ -82,21 +102,30 @@ export function GoogleLoginButton({ rememberMe = false, onSuccess, onError }: Go
         lastName,
         rememberMe
       })
-    } catch (error: any) {
+    } catch (error) {
       console.error('Firebase sign in error:', error)
       setIsLoading(false)
-      
+
       // Handle specific Firebase errors
-      if (error.code === 'auth/popup-closed-by-user') {
-        toast.info('Đăng nhập bị hủy')
-      } else if (error.code === 'auth/cancelled-popup-request') {
-        // Silent - user already has a popup open
+      if (error instanceof Error) {
+        const firebaseError = error as { code?: string; message: string }
+
+        if (firebaseError.code === 'auth/popup-closed-by-user') {
+          toast.info('Đăng nhập bị hủy')
+        } else if (firebaseError.code === 'auth/cancelled-popup-request') {
+          // Silent - user already has a popup open
+        } else {
+          toast.error('Không thể đăng nhập với Google')
+        }
+
+        if (onError) {
+          onError(firebaseError.message)
+        }
       } else {
-        toast.error('Không thể đăng nhập với Google')
-      }
-      
-      if (onError) {
-        onError(error.message)
+        toast.error('Có lỗi xảy ra khi đăng nhập với Google')
+        if (onError) {
+          onError('Unknown error occurred')
+        }
       }
     }
   }
@@ -105,20 +134,20 @@ export function GoogleLoginButton({ rememberMe = false, onSuccess, onError }: Go
 
   return (
     <Button
-      type="button"
-      variant="outline"
-      className="w-full justify-center gap-3 rounded-xl border-muted/40 bg-background text-sm font-semibold shadow-sm hover:bg-slate-50"
+      type='button'
+      variant='outline'
+      className='w-full justify-center gap-3 rounded-xl border-muted/40 bg-background text-sm font-semibold shadow-sm hover:bg-slate-50'
       onClick={handleGoogleLogin}
       disabled={isButtonLoading}
     >
       {isButtonLoading ? (
         <>
-          <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
+          <div className='h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600' />
           Đang đăng nhập...
         </>
       ) : (
         <>
-          <GoogleIcon className="size-5" />
+          <GoogleIcon className='size-5' />
           Đăng nhập với Google
         </>
       )}
