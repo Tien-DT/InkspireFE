@@ -2,6 +2,10 @@
   "name": "inkspire",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
   "scripts": {
     "build": "react-router build",
     "dev": "react-router dev",
@@ -11,7 +15,9 @@
     "prettier": "prettier --check .",
     "prettier:fix": "prettier --write .",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "verify-deploy": "node verify-deployment.mjs",
+    "verify-deploy:full": "node verify-deployment.mjs --build"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -96,6 +102,7 @@
   },
   "optionalDependencies": {
     "@rollup/rollup-linux-x64-gnu": "^4.30.0",
+    "@tailwindcss/oxide-linux-x64-gnu": "^4.0.0-beta.7",
     "lightningcss-linux-x64-gnu": "^1.29.0"
   }
 }
