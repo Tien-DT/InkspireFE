@@ -6,7 +6,12 @@ import devtoolsJson from 'vite-plugin-devtools-json'
 
 export default defineConfig({
   css: {
-    devSourcemap: true
+    devSourcemap: false
+  },
+  build: {
+    sourcemap: false,
+    cssMinify: true,
+    minify: true
   },
   server: {
     port: 3000
