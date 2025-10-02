@@ -2,7 +2,7 @@ import { Link } from 'react-router'
 import { Button } from '~/components/ui/button'
 import logo from '~/assets/logo.svg'
 import { Input } from '~/components/ui/input'
-import { Bell, MessageSquare, Search, User } from 'lucide-react'
+import { BellDot, MessageSquareDot, Search, User } from 'lucide-react'
 import { PATH } from '~/constants/path'
 import { useAuth } from '~/contexts/AuthContext'
 import {
@@ -16,7 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
 import { Badge } from '../ui/badge'
 
 export function Header() {
-  const { userName } = useAuth()
+  const { userName, isAuthenticated } = useAuth()
 
   return (
     <header className='bg-white border-b border-border'>
@@ -49,11 +49,11 @@ export function Header() {
                 <Search className='h-5 w-5 text-gray-400' />
               </Button>
             </form>
-            {userName ? (
+            {isAuthenticated ? (
               <div className='flex items-center space-x-4'>
                 {/* Notifications */}
                 <Button variant='ghost' size='icon' className='relative'>
-                  <Bell className='h-5 w-5' />
+                  <BellDot className='h-5 w-5' />
                   <Badge variant='destructive' className='absolute -right-1 -top-1 h-4 w-4 p-0 text-[10px]'>
                     3
                   </Badge>
@@ -61,7 +61,7 @@ export function Header() {
 
                 {/* Messages */}
                 <Button variant='ghost' size='icon' className='relative'>
-                  <MessageSquare className='h-5 w-5' />
+                  <MessageSquareDot className='h-5 w-5' />
                   <Badge variant='destructive' className='absolute -right-1 -top-1 h-4 w-4 p-0 text-[10px]'>
                     5
                   </Badge>
@@ -72,8 +72,8 @@ export function Header() {
                   <DropdownMenuTrigger asChild>
                     <Button variant='ghost' className='relative h-8 w-8 rounded-full'>
                       <Avatar className='h-8 w-8'>
-                        <AvatarImage src='' alt={userName} />
-                        <AvatarFallback>{userName.charAt(0).toUpperCase()}</AvatarFallback>
+                        <AvatarImage src='' alt={userName || 'User'} />
+                        <AvatarFallback>{(userName || 'U').charAt(0).toUpperCase()}</AvatarFallback>
                       </Avatar>
                     </Button>
                   </DropdownMenuTrigger>
