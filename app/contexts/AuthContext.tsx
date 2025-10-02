@@ -1,139 +1,153 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
-import type { User } from '~/types/user.type'
+import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import type { ReactNode } from "react";
+import type { User } from "~/types/user.type";
 import {
   getAccessTokenFromLS,
   getProfileFromLS,
   AUTH_CHANGE_EVENT,
   LocalStorageEventTarget,
   clearAllAuth,
-  parseJwtPayload
-} from '~/utils/auth'
+  parseJwtPayload,
+} from "~/utils/auth";
 
 interface AuthContextInterface {
-  isAuthenticated: boolean
-  setIsAuthenticated: (value: boolean) => void
-  profile: User | null
-  setProfile: (profile: User | null) => void
-  userName: string | null
-  logout: () => void
-  refreshAuth: () => void
+  isAuthenticated: boolean;
+  setIsAuthenticated: (v: boolean) => void;
+  profile: User | null;
+  setProfile: (p: User | null) => void;
+  userName: string | null;
+  logout: () => void;
+  refreshAuth: () => void;
+  authReady: boolean;
+  setAuthReady: (ready: boolean) => void;
 }
 
-const AuthContext = createContext<AuthContextInterface | undefined>(undefined)
+const AuthContext = createContext<AuthContextInterface | undefined>(undefined);
 
 export const useAuth = () => {
-  const context = useContext(AuthContext)
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider')
-  }
-  return context
-}
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within an AuthProvider");
+  return ctx;
+};
 
-interface AuthProviderProps {
-  children: ReactNode
-}
+interface AuthProviderProps { children: ReactNode }
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
-  const [profile, setProfile] = useState<User | null>(null)
-  const [userName, setUserName] = useState<string | null>(null)
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [profile, setProfile] = useState<User | null>(null);
+  const [userName, setUserName] = useState<string | null>(null);
+  const [authReady, setAuthReady] = useState(false);
 
-  // Function to extract user name from access token
-  const extractUserName = (token: string | null): string | null => {
-    if (!token) return null
-    const payload = parseJwtPayload(token)
-    if (!payload) return null
+  // Extract display name từ JWT
+  const extractUserName = useCallback((token: string | null): string | null => {
+    if (!token) return null;
+    const payload = parseJwtPayload(token);
+    if (!payload) return null;
 
-    // Try to get firstName and lastName
-    const firstName = payload.firstName || payload.first_name || payload.given_name
-    const lastName = payload.lastName || payload.last_name || payload.family_name
+    const first = (payload as any).firstName ?? (payload as any).first_name ?? (payload as any).given_name;
+    const last  = (payload as any).lastName  ?? (payload as any).last_name  ?? (payload as any).family_name;
 
-    if (firstName && lastName) {
-      return `${firstName} ${lastName}`.trim()
-    }
-    if (firstName) return String(firstName).trim()
-    if (lastName) return String(lastName).trim()
+    if (first && last) return `${String(first).trim()} ${String(last).trim()}`;
+    if (first) return String(first).trim();
+    if (last)  return String(last).trim();
+    if ((payload as any).name)  return String((payload as any).name).trim();
+    if ((payload as any).email) return String((payload as any).email).trim();
+    return null;
+  }, []);
 
-    // Fallback to name or email
-    if (payload.name) return String(payload.name).trim()
-    if (payload.email) return String(payload.email).trim()
+  // Làm mới state auth từ localStorage
+  const refreshAuth = useCallback(() => {
+    const token = getAccessTokenFromLS();
+    const storedProfile = getProfileFromLS();
 
-    return null
-  }
-
-  // Function to refresh authentication state
-  const refreshAuth = () => {
-    const token = getAccessTokenFromLS()
-    const storedProfile = getProfileFromLS()
-
-    if (token) {
-      setIsAuthenticated(true)
-      setProfile(storedProfile)
-      setUserName(extractUserName(token))
-    } else {
-      setIsAuthenticated(false)
-      setProfile(null)
-      setUserName(null)
-    }
-  }
-
-  // Function to logout
-  const logout = () => {
-    clearAllAuth()
-    setIsAuthenticated(false)
-    setProfile(null)
-    setUserName(null)
-  }
-
-  // Initialize auth state on mount
-  useEffect(() => {
-    refreshAuth()
-  }, [])
-
-  // Listen for auth changes
-  useEffect(() => {
-    const handleAuthChange = () => {
-      refreshAuth()
+    if (!token) {
+      setIsAuthenticated(false);
+      setProfile(null);
+      setUserName(null);
+      return;
     }
 
-    const handleClearLS = () => {
-      setIsAuthenticated(false)
-      setProfile(null)
-      setUserName(null)
-    }
-
-    LocalStorageEventTarget.addEventListener(AUTH_CHANGE_EVENT, handleAuthChange)
-    LocalStorageEventTarget.addEventListener('clearLS', handleClearLS)
-
-    // Also listen for storage events from other tabs
-    const handleStorageChange = (event: StorageEvent) => {
-      if (!event.key || event.key === 'access_token' || event.key === 'refresh_token' || event.key === 'profile') {
-        refreshAuth()
+    const payload = parseJwtPayload(token);
+    if (payload?.exp) {
+      const now = Math.floor(Date.now() / 1000);
+      const exp = payload.exp as number;
+      if (exp <= now) {
+        // Hết hạn: clear và reset state
+        clearAllAuth();
+        setIsAuthenticated(false);
+        setProfile(null);
+        setUserName(null);
+        return;
       }
     }
 
-    window.addEventListener('storage', handleStorageChange)
+    setIsAuthenticated(true);
+    setProfile(storedProfile);
+    setUserName(extractUserName(token));
+  }, [extractUserName]);
+
+  const logout = useCallback(() => {
+    // Clear LS + phát tín hiệu cho tab khác
+    clearAllAuth();
+    try {
+      localStorage.setItem("auth:logout", "1");
+      localStorage.removeItem("auth:logout");
+    } catch {}
+    window.dispatchEvent(new CustomEvent('session:expired'))
+    setIsAuthenticated(false);
+    setProfile(null);
+    setUserName(null);
+  }, []);
+
+  // Init khi mount
+  useEffect(() => { refreshAuth(); }, [refreshAuth]);
+
+  // Nghe thay đổi trong cùng tab (event nội bộ) + các tab khác (storage)
+  useEffect(() => {
+    const handleAuthChange = () => refreshAuth();
+
+    const handleStorage = (e: StorageEvent) => {
+      if (!e.key) {
+        // storage.clear() → reload state
+        refreshAuth();
+        return;
+      }
+      // sync rõ ràng theo key
+      if (
+        e.key === "access_token" ||
+        e.key === "refresh_token" ||
+        e.key === "profile" ||
+        e.key === "auth:logout" ||
+        e.key === "auth:login"
+      ) {
+        refreshAuth();
+      }
+    };
+
+    LocalStorageEventTarget.addEventListener(AUTH_CHANGE_EVENT, handleAuthChange);
+    window.addEventListener("storage", handleStorage);
 
     return () => {
-      LocalStorageEventTarget.removeEventListener(AUTH_CHANGE_EVENT, handleAuthChange)
-      LocalStorageEventTarget.removeEventListener('clearLS', handleClearLS)
-      window.removeEventListener('storage', handleStorageChange)
-    }
-  }, [])
+      LocalStorageEventTarget.removeEventListener(AUTH_CHANGE_EVENT, handleAuthChange);
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, [refreshAuth]);
 
   return (
     <AuthContext.Provider
-      value={{
-        isAuthenticated,
-        setIsAuthenticated,
-        profile,
-        setProfile,
-        userName,
-        logout,
-        refreshAuth
+      value={{ 
+        isAuthenticated, 
+        setIsAuthenticated, 
+        profile, 
+        setProfile, 
+        userName, 
+        logout, 
+        refreshAuth,
+        authReady,
+        setAuthReady
       }}
     >
       {children}
     </AuthContext.Provider>
-  )
-}
+  );
+};

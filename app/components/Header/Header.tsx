@@ -16,7 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
 import { Badge } from '../ui/badge'
 
 export function Header() {
-  const { userName, isAuthenticated } = useAuth()
+  const { userName, isAuthenticated, authReady } = useAuth()
 
   return (
     <header className='bg-white border-b border-border'>
@@ -27,15 +27,15 @@ export function Header() {
               <img src={logo} alt='Logo' className='h-12 w-auto md:h-14 object-fill inline-block' />
             </Link>
             <nav className='hidden md:flex items-center space-x-6'>
-              <a href='#' className='text-sm text-muted-foreground hover:text-foreground'>
+              <Link to={PATH.postProject} className='text-sm text-muted-foreground hover:text-foreground'>
                 Đăng tuyển dụng
-              </a>
+              </Link>
               <Link to={PATH.jobsFreelancer} className='text-sm text-muted-foreground hover:text-foreground'>
                 Tìm việc làm
               </Link>
-              <a href='#' className='text-sm text-muted-foreground hover:text-foreground'>
+              <Link to='#' className='text-sm text-muted-foreground hover:text-foreground'>
                 Cách thức hoạt động
-              </a>
+              </Link>
             </nav>
           </div>
 
@@ -49,7 +49,7 @@ export function Header() {
                 <Search className='h-5 w-5 text-gray-400' />
               </Button>
             </form>
-            {isAuthenticated ? (
+            {authReady && isAuthenticated ? (
               <div className='flex items-center space-x-4'>
                 {/* Notifications */}
                 <Button variant='ghost' size='icon' className='relative'>
@@ -78,9 +78,11 @@ export function Header() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align='end'>
-                    <DropdownMenuItem>
-                      <User className='mr-2 h-4 w-4' />
-                      <Link to={PATH.profile}>Thông tin cá nhân</Link>
+                    <DropdownMenuItem asChild>
+                    <Link to={PATH.profile} className="flex items-center">
+   <User className='mr-2 h-4 w-4' />
+    Thông tin cá nhân
+   </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem>
                       <Link to={PATH.dashboard}>Dashboard</Link>
@@ -89,13 +91,13 @@ export function Header() {
                       <Link to={PATH.manageProject}>Quản lý dự án</Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem className='text-destructive'>
+                    <DropdownMenuItem asChild className='text-destructive'>
                       <Link to={PATH.logout}>Đăng xuất</Link>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
-            ) : (
+            ) : authReady ? (
               <>
                 <Button variant='ghost' size='sm' asChild>
                   <Link to={PATH.login}>Đăng nhập</Link>
@@ -104,7 +106,7 @@ export function Header() {
                   <Link to={PATH.register}>Đăng ký</Link>
                 </Button>
               </>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
