@@ -9,6 +9,9 @@ import { Input } from '~/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import { useRecruitments } from '~/hooks/useRecruitments'
 
+import { Suspense } from 'react'
+import { HydrateFallback } from '~/components/ui'
+
 export default function JobsFreelancer() {
   const [searchParams, setSearchParams] = useSearchParams()
   const page = Number(searchParams.get('page')) || 1
@@ -151,86 +154,85 @@ export default function JobsFreelancer() {
             </div>
           </div>
 
-          {isLoading ? (
-            <div className='text-center py-8'>
-              <div className='animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900 mx-auto'></div>
-              <p className='mt-4 text-gray-600'>Đang tải dữ liệu...</p>
-            </div>
-          ) : error ? (
-            <div className='text-center py-8'>
-              <p className='text-red-600'>Có lỗi xảy ra: {(error as Error).message}</p>
-            </div>
-          ) : (
-            <div className='space-y-6'>
-              {recruitmentData?.items?.map((post) => (
-                <Card key={post.id} className='hover:shadow-md transition-shadow'>
-                  <CardContent className='p-6'>
-                    <div className='flex items-start justify-between mb-4 gap-10'>
-                      <div className='w-2/3 flex flex-col gap-5'>
-                        <div className='flex items-center'>
-                          <h3 className='text-lg font-semibold text-gray-900 mr-3'>{post.title}</h3>
-                          {post.status === 1 && (
-                            <Badge variant='secondary' className='bg-orange-100 text-orange-800'>
-                              HOT
-                            </Badge>
-                          )}
-                          <Heart className='h-5 w-5 text-gray-400 ml-2 cursor-pointer hover:text-red-500' />
-                        </div>
-                        <div className='flex items-center text-sm text-gray-600'>
-                          <span className='mr-4'>{post.projectName}</span>
-                          <div className='flex items-center mr-4'>
-                            <span>by {post.userName}</span>
-                          </div>
-                        </div>
-                        <p className='text-gray-700'>{post.description}</p>
-                        <div className='flex flex-wrap gap-2'>
-                          <Badge variant='blue'>Logo Design</Badge>
-                          <Badge variant='purple'>Branding</Badge>
-                          <Badge variant='orange'>Adobe Illustrator</Badge>
-                          <Badge variant='pink'>Photoshop</Badge>
-                          <Badge variant='green'>UI/UX</Badge>
-                        </div>
-                        <div className='flex justify-between items-center text-sm text-gray-600'>
+          <Suspense fallback={<HydrateFallback variant='list' items={5} />}>
+            {error ? (
+              <div className='text-center py-8'>
+                <p className='text-red-600'>Có lỗi xảy ra: {(error as Error).message}</p>
+              </div>
+            ) : (
+              <div className='space-y-6'>
+                {recruitmentData?.items?.map((post) => (
+                  <Card key={post.id} className='hover:shadow-md transition-shadow'>
+                    <CardContent className='p-6'>
+                      <div className='flex items-start justify-between mb-4 gap-10'>
+                        <div className='w-2/3 flex flex-col gap-5'>
                           <div className='flex items-center'>
-                            <Clock className='h-4 w-4 mr-1 font-extrabold' />
-                            <span>
-                              <strong>Hết hạn:</strong> {new Date(post.postExpired).toLocaleDateString('vi-VN')}
-                            </span>
+                            <h3 className='text-lg font-semibold text-gray-900 mr-3'>{post.title}</h3>
+                            {post.status === 1 && (
+                              <Badge variant='secondary' className='bg-orange-100 text-orange-800'>
+                                HOT
+                              </Badge>
+                            )}
+                            <Heart className='h-5 w-5 text-gray-400 ml-2 cursor-pointer hover:text-red-500' />
                           </div>
-                          <div className='flex items-center'>
-                            <Users className='h-4 w-4 mr-1 font-extrabold' />
-                            <span>
-                              <strong>Team:</strong> {post.teamSize}
-                            </span>
+                          <div className='flex items-center text-sm text-gray-600'>
+                            <span className='mr-4'>{post.projectName}</span>
+                            <div className='flex items-center mr-4'>
+                              <span>by {post.userName}</span>
+                            </div>
                           </div>
-                          <div className='flex items-center'>
-                            <Calendar className='h-4 w-4 mr-1 font-extrabold' />
-                            <span>
-                              <strong>Đăng:</strong> {new Date(post.createdAt).toLocaleDateString('vi-VN')}
-                            </span>
+                          <p className='text-gray-700'>{post.description}</p>
+                          <div className='flex flex-wrap gap-2'>
+                            <Badge variant='blue'>Logo Design</Badge>
+                            <Badge variant='purple'>Branding</Badge>
+                            <Badge variant='orange'>Adobe Illustrator</Badge>
+                            <Badge variant='pink'>Photoshop</Badge>
+                            <Badge variant='green'>UI/UX</Badge>
+                          </div>
+                          <div className='flex justify-between items-center text-sm text-gray-600'>
+                            <div className='flex items-center'>
+                              <Clock className='h-4 w-4 mr-1 font-extrabold' />
+                              <span>
+                                <strong>Hết hạn:</strong> {new Date(post.postExpired).toLocaleDateString('vi-VN')}
+                              </span>
+                            </div>
+                            <div className='flex items-center'>
+                              <Users className='h-4 w-4 mr-1 font-extrabold' />
+                              <span>
+                                <strong>Team:</strong> {post.teamSize}
+                              </span>
+                            </div>
+                            <div className='flex items-center'>
+                              <Calendar className='h-4 w-4 mr-1 font-extrabold' />
+                              <span>
+                                <strong>Đăng:</strong> {new Date(post.createdAt).toLocaleDateString('vi-VN')}
+                              </span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <div className='text-right w-1/3'>
-                        <div className='text-2xl font-bold text-green-600 mb-2'>
-                          {post.budget.toLocaleString('vi-VN')} VND
-                        </div>
-                        <div className='text-sm text-gray-600 mb-4'>Giá cố định</div>
+                        <div className='text-right w-1/3'>
+                          <div className='text-2xl font-bold text-green-600 mb-2'>
+                            {post.budget.toLocaleString('vi-VN')} VND
+                          </div>
+                          <div className='text-sm text-gray-600 mb-4'>Giá cố định</div>
 
-                        <div className='flex flex-col gap-1'>
-                          <Button className='w-full bg-black hover:bg-gray-800 text-white mb-2'>Ứng tuyển ngay</Button>
-                          <Button className='bg-white w-full text-sm text-gray-600 flex items-center justify-center'>
-                            <Eye className='h-4 w-4 mr-1' />
-                            Xem chi tiết
-                          </Button>
+                          <div className='flex flex-col gap-1'>
+                            <Button className='w-full bg-black hover:bg-gray-800 text-white mb-2'>
+                              Ứng tuyển ngay
+                            </Button>
+                            <Button className='bg-white w-full text-sm text-gray-600 flex items-center justify-center'>
+                              <Eye className='h-4 w-4 mr-1' />
+                              Xem chi tiết
+                            </Button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </Suspense>
 
           {/* Pagination */}
           <div className='flex justify-center'>
