@@ -1,15 +1,24 @@
-// import React from 'react'
-// import { Outlet } from 'react-router'
+import { Navigate, Outlet, useLocation } from 'react-router'
+import { useAuth } from '~/contexts/AuthContext'
+import { PATH } from '~/constants/path'
 
-// export function loader() {
-//     const { isAuthenticated } = useContext(AppContext)
-//   return isAuthenticated ? <Outlet /> : <Navigate to='/login' />
-// }
+export default function ProtectedLayout() {
+  const { isAuthenticated } = useAuth()
+  const location = useLocation()
 
-// export default function ProtectedLayout() {
-//   return (
-//     <div>
-//       <Outlet />
-//     </div>
-//   )
-// }
+  if (!isAuthenticated) {
+    // Redirect to login page with return url
+    return (
+      <Navigate
+        to={PATH.login}
+        replace
+        state={{
+          from: location.pathname,
+          message: 'Vui lòng đăng nhập để tiếp tục'
+        }}
+      />
+    )
+  }
+
+  return <Outlet />
+}

@@ -1,14 +1,28 @@
-const path = {
+export const PATH = {
+  // Public routes
   home: '/',
-  user: '/user',
-  profile: '/user/profile',
-  changePassword: '/user/password',
+  about: '/about',
+  jobsFreelancer: '/jobs-freelancer',
+  searchFreelancer: '/search-freelancer',
+
+  // Auth routes
   login: '/login',
   register: '/register',
   logout: '/logout',
-  jobsFreelancer: '/jobs-freelancer'
-  // productDetail: ':nameId',
-  // cart: '/cart'
+
+  // Protected routes
+  profile: '/profile',
+  dashboard: '/dashboard-freelancer',
+  postProject: '/post-project',
+  postNewProject: '/post-new-project',
+  manageProject: '/manage-project',
+  manageJobs: '/manage-jobs',
+  payment: '/payment',
+  chat: '/chat',
+  bankingQr: '/banking-qr',
+
+  // User routes
+  changePassword: '/user/password'
 } as const
 
-export default path
+export type PathKeys = keyof typeof PATH

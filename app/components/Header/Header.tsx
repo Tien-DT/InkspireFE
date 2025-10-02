@@ -2,9 +2,18 @@ import { Link } from 'react-router'
 import { Button } from '~/components/ui/button'
 import logo from '~/assets/logo.svg'
 import { Input } from '~/components/ui/input'
-import { Search } from 'lucide-react'
-import path from '~/constants/path'
+import { Bell, MessageSquare, Search, User } from 'lucide-react'
+import { PATH } from '~/constants/path'
 import { useAuth } from '~/contexts/AuthContext'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from '~/components/ui/dropdown-menu'
+import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
+import { Badge } from '../ui/badge'
 
 export function Header() {
   const { userName } = useAuth()
@@ -21,7 +30,7 @@ export function Header() {
               <a href='#' className='text-sm text-muted-foreground hover:text-foreground'>
                 Đăng tuyển dụng
               </a>
-              <Link to={path.jobsFreelancer} className='text-sm text-muted-foreground hover:text-foreground'>
+              <Link to={PATH.jobsFreelancer} className='text-sm text-muted-foreground hover:text-foreground'>
                 Tìm việc làm
               </Link>
               <a href='#' className='text-sm text-muted-foreground hover:text-foreground'>
@@ -41,19 +50,58 @@ export function Header() {
               </Button>
             </form>
             {userName ? (
-              <div className='flex items-center space-x-2'>
-                <span className='hidden text-sm text-muted-foreground md:inline'>Xin chào</span>
-                <span className='max-w-[140px] truncate text-sm font-semibold text-foreground' title={userName}>
-                  {userName}
-                </span>
+              <div className='flex items-center space-x-4'>
+                {/* Notifications */}
+                <Button variant='ghost' size='icon' className='relative'>
+                  <Bell className='h-5 w-5' />
+                  <Badge variant='destructive' className='absolute -right-1 -top-1 h-4 w-4 p-0 text-[10px]'>
+                    3
+                  </Badge>
+                </Button>
+
+                {/* Messages */}
+                <Button variant='ghost' size='icon' className='relative'>
+                  <MessageSquare className='h-5 w-5' />
+                  <Badge variant='destructive' className='absolute -right-1 -top-1 h-4 w-4 p-0 text-[10px]'>
+                    5
+                  </Badge>
+                </Button>
+
+                {/* User Menu */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant='ghost' className='relative h-8 w-8 rounded-full'>
+                      <Avatar className='h-8 w-8'>
+                        <AvatarImage src='' alt={userName} />
+                        <AvatarFallback>{userName.charAt(0).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align='end'>
+                    <DropdownMenuItem>
+                      <User className='mr-2 h-4 w-4' />
+                      <Link to={PATH.profile}>Thông tin cá nhân</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Link to={PATH.dashboard}>Dashboard</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Link to={PATH.manageProject}>Quản lý dự án</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem className='text-destructive'>
+                      <Link to={PATH.logout}>Đăng xuất</Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             ) : (
               <>
                 <Button variant='ghost' size='sm' asChild>
-                  <Link to='/login'>Đăng nhập</Link>
+                  <Link to={PATH.login}>Đăng nhập</Link>
                 </Button>
                 <Button size='sm' asChild>
-                  <Link to='/register'>Đăng ký</Link>
+                  <Link to={PATH.register}>Đăng ký</Link>
                 </Button>
               </>
             )}
