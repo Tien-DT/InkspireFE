@@ -1,7 +1,7 @@
 import { Outlet, redirect, useLoaderData, useOutletContext } from 'react-router'
 import axiosClient from '~/lib/axios'
 import { getAccessTokenFromLS } from '~/utils/auth'
-import PATH from '~/constants/path'
+import { PATH } from '~/constants/path'
 
 export type ProtectedContext = {
   accessToken: string

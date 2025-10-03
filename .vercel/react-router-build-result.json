@@ -35,53 +35,64 @@
         "file": "./routes/search-freelancer.tsx",
         "path": "search-freelancer"
       },
+      "layouts/ProtectedLayout/ProtectedLayout": {
+        "id": "layouts/ProtectedLayout/ProtectedLayout",
+        "parentId": "layouts/MainLayout/MainLayout",
+        "file": "./layouts/ProtectedLayout/ProtectedLayout.tsx"
+      },
       "routes/dashboard-freelancer": {
         "id": "routes/dashboard-freelancer",
-        "parentId": "layouts/MainLayout/MainLayout",
+        "parentId": "layouts/ProtectedLayout/ProtectedLayout",
         "file": "./routes/dashboard-freelancer.tsx",
         "path": "dashboard-freelancer"
       },
       "routes/post-project": {
         "id": "routes/post-project",
-        "parentId": "layouts/MainLayout/MainLayout",
+        "parentId": "layouts/ProtectedLayout/ProtectedLayout",
         "file": "./routes/post-project.tsx",
         "path": "post-project"
       },
       "routes/post-new-project": {
         "id": "routes/post-new-project",
-        "parentId": "layouts/MainLayout/MainLayout",
+        "parentId": "layouts/ProtectedLayout/ProtectedLayout",
         "file": "./routes/post-new-project.tsx",
         "path": "post-new-project"
       },
       "routes/manage-project": {
         "id": "routes/manage-project",
-        "parentId": "layouts/MainLayout/MainLayout",
+        "parentId": "layouts/ProtectedLayout/ProtectedLayout",
         "file": "./routes/manage-project.tsx",
         "path": "manage-project"
       },
       "routes/payment": {
         "id": "routes/payment",
-        "parentId": "layouts/MainLayout/MainLayout",
+        "parentId": "layouts/ProtectedLayout/ProtectedLayout",
         "file": "./routes/payment.tsx",
         "path": "payment"
       },
       "routes/chat": {
         "id": "routes/chat",
-        "parentId": "layouts/MainLayout/MainLayout",
+        "parentId": "layouts/ProtectedLayout/ProtectedLayout",
         "file": "./routes/chat.tsx",
         "path": "chat"
       },
       "routes/banking-qr": {
         "id": "routes/banking-qr",
-        "parentId": "layouts/MainLayout/MainLayout",
+        "parentId": "layouts/ProtectedLayout/ProtectedLayout",
         "file": "./routes/banking-qr.tsx",
         "path": "banking-qr"
       },
       "routes/manage-jobs": {
         "id": "routes/manage-jobs",
-        "parentId": "layouts/MainLayout/MainLayout",
+        "parentId": "layouts/ProtectedLayout/ProtectedLayout",
         "file": "./routes/manage-jobs.tsx",
         "path": "manage-jobs"
+      },
+      "routes/post-recruitment": {
+        "id": "routes/post-recruitment",
+        "parentId": "layouts/ProtectedLayout/ProtectedLayout",
+        "file": "./routes/post-recruitment.tsx",
+        "path": "post-recruitment"
       },
       "layouts/auth-layout": {
         "id": "layouts/auth-layout",
@@ -103,9 +114,9 @@
     }
   },
   "reactRouterConfig": {
-    "appDirectory": "D:/WorkSpace/inkspire/app",
+    "appDirectory": "C:/Users/funny/OneDrive/Documents/GitHub/InkspireFE/app",
     "basename": "/",
-    "buildDirectory": "D:/WorkSpace/inkspire/build",
+    "buildDirectory": "C:/Users/funny/OneDrive/Documents/GitHub/InkspireFE/build",
     "future": {
       "unstable_middleware": false,
       "unstable_optimizeDeps": false,
@@ -148,53 +159,64 @@
         "file": "./routes/search-freelancer.tsx",
         "path": "search-freelancer"
       },
+      "layouts/ProtectedLayout/ProtectedLayout": {
+        "id": "layouts/ProtectedLayout/ProtectedLayout",
+        "parentId": "layouts/MainLayout/MainLayout",
+        "file": "./layouts/ProtectedLayout/ProtectedLayout.tsx"
+      },
       "routes/dashboard-freelancer": {
         "id": "routes/dashboard-freelancer",
-        "parentId": "layouts/MainLayout/MainLayout",
+        "parentId": "layouts/ProtectedLayout/ProtectedLayout",
         "file": "./routes/dashboard-freelancer.tsx",
         "path": "dashboard-freelancer"
       },
       "routes/post-project": {
         "id": "routes/post-project",
-        "parentId": "layouts/MainLayout/MainLayout",
+        "parentId": "layouts/ProtectedLayout/ProtectedLayout",
         "file": "./routes/post-project.tsx",
         "path": "post-project"
       },
       "routes/post-new-project": {
         "id": "routes/post-new-project",
-        "parentId": "layouts/MainLayout/MainLayout",
+        "parentId": "layouts/ProtectedLayout/ProtectedLayout",
         "file": "./routes/post-new-project.tsx",
         "path": "post-new-project"
       },
       "routes/manage-project": {
         "id": "routes/manage-project",
-        "parentId": "layouts/MainLayout/MainLayout",
+        "parentId": "layouts/ProtectedLayout/ProtectedLayout",
         "file": "./routes/manage-project.tsx",
         "path": "manage-project"
       },
       "routes/payment": {
         "id": "routes/payment",
-        "parentId": "layouts/MainLayout/MainLayout",
+        "parentId": "layouts/ProtectedLayout/ProtectedLayout",
         "file": "./routes/payment.tsx",
         "path": "payment"
       },
       "routes/chat": {
         "id": "routes/chat",
-        "parentId": "layouts/MainLayout/MainLayout",
+        "parentId": "layouts/ProtectedLayout/ProtectedLayout",
         "file": "./routes/chat.tsx",
         "path": "chat"
       },
       "routes/banking-qr": {
         "id": "routes/banking-qr",
-        "parentId": "layouts/MainLayout/MainLayout",
+        "parentId": "layouts/ProtectedLayout/ProtectedLayout",
         "file": "./routes/banking-qr.tsx",
         "path": "banking-qr"
       },
       "routes/manage-jobs": {
         "id": "routes/manage-jobs",
-        "parentId": "layouts/MainLayout/MainLayout",
+        "parentId": "layouts/ProtectedLayout/ProtectedLayout",
         "file": "./routes/manage-jobs.tsx",
         "path": "manage-jobs"
+      },
+      "routes/post-recruitment": {
+        "id": "routes/post-recruitment",
+        "parentId": "layouts/ProtectedLayout/ProtectedLayout",
+        "file": "./routes/post-recruitment.tsx",
+        "path": "post-recruitment"
       },
       "layouts/auth-layout": {
         "id": "layouts/auth-layout",
@@ -246,36 +268,45 @@
                 "path": "search-freelancer"
               },
               {
-                "file": "./routes/dashboard-freelancer.tsx",
-                "path": "dashboard-freelancer"
-              },
-              {
-                "file": "./routes/post-project.tsx",
-                "path": "post-project"
-              },
-              {
-                "file": "./routes/post-new-project.tsx",
-                "path": "post-new-project"
-              },
-              {
-                "file": "./routes/manage-project.tsx",
-                "path": "manage-project"
-              },
-              {
-                "file": "./routes/payment.tsx",
-                "path": "payment"
-              },
-              {
-                "file": "./routes/chat.tsx",
-                "path": "chat"
-              },
-              {
-                "file": "./routes/banking-qr.tsx",
-                "path": "banking-qr"
-              },
-              {
-                "file": "./routes/manage-jobs.tsx",
-                "path": "manage-jobs"
+                "file": "./layouts/ProtectedLayout/ProtectedLayout.tsx",
+                "children": [
+                  {
+                    "file": "./routes/dashboard-freelancer.tsx",
+                    "path": "dashboard-freelancer"
+                  },
+                  {
+                    "file": "./routes/post-project.tsx",
+                    "path": "post-project"
+                  },
+                  {
+                    "file": "./routes/post-new-project.tsx",
+                    "path": "post-new-project"
+                  },
+                  {
+                    "file": "./routes/manage-project.tsx",
+                    "path": "manage-project"
+                  },
+                  {
+                    "file": "./routes/payment.tsx",
+                    "path": "payment"
+                  },
+                  {
+                    "file": "./routes/chat.tsx",
+                    "path": "chat"
+                  },
+                  {
+                    "file": "./routes/banking-qr.tsx",
+                    "path": "banking-qr"
+                  },
+                  {
+                    "file": "./routes/manage-jobs.tsx",
+                    "path": "manage-jobs"
+                  },
+                  {
+                    "file": "./routes/post-recruitment.tsx",
+                    "path": "post-recruitment"
+                  }
+                ]
               }
             ]
           },
