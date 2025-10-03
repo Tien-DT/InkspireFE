@@ -1,7 +1,7 @@
 import { Outlet, redirect, useLoaderData, useOutletContext } from 'react-router'
 import axiosClient from '~/lib/axios'
 import { getAccessTokenFromLS } from '~/utils/auth'
-import path from '~/constants/path'
+import PATH from '~/constants/path'
 
 export type ProtectedContext = {
   accessToken: string
@@ -10,7 +10,7 @@ export type ProtectedContext = {
 export async function clientLoader() {
   const accessToken = getAccessTokenFromLS()
   if (!accessToken) {
-    return redirect(path.login)
+    return redirect(PATH.login)
   }
 
   axiosClient.defaults.headers.common.Authorization = `Bearer ${accessToken}`
