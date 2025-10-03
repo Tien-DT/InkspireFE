@@ -1,24 +1,33 @@
-import { Navigate, Outlet, useLocation } from 'react-router'
-import { useAuth } from '~/contexts/AuthContext'
-import { PATH } from '~/constants/path'
+import { Outlet, redirect, useLoaderData, useOutletContext } from 'react-router'
+import axiosClient from '~/lib/axios'
+import { getAccessTokenFromLS } from '~/utils/auth'
+import path from '~/constants/path'
 
-export default function ProtectedLayout() {
-  const { isAuthenticated } = useAuth()
-  const location = useLocation()
+export type ProtectedContext = {
+  accessToken: string
+}
 
-  if (!isAuthenticated) {
-    // Redirect to login page with return url
-    return (
-      <Navigate
-        to={PATH.login}
-        replace
-        state={{
-          from: location.pathname,
-          message: 'Vui lòng đăng nhập để tiếp tục'
-        }}
-      />
-    )
+export async function clientLoader() {
+  const accessToken = getAccessTokenFromLS()
+  if (!accessToken) {
+    return redirect(path.login)
   }
 
-  return <Outlet />
+  axiosClient.defaults.headers.common.Authorization = `Bearer ${accessToken}`
+
+  const data: ProtectedContext = { accessToken }
+  return data
+}
+
+export default function ProtectedLayout() {
+  const data = useLoaderData() as ProtectedContext
+  return (
+    <div>
+      <Outlet context={data} />
+    </div>
+  )
+}
+
+export function useProtectedContext() {
+  return useOutletContext<ProtectedContext>()
 }
