@@ -5,14 +5,17 @@ import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { Badge } from '~/components/ui/badge'
 import { useRecruitmentForm } from '~/contexts/RecruitmentFormContext'
+import { useAuth } from '~/contexts/AuthContext'
 import { recruitmentApi } from '~/apis/recruitment.api'
 import type { RecruitmentCategory, Skill } from '~/types/recruitment.type'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
+import { getAccessTokenFromLS, parseJwtPayload } from '~/utils/auth'
 
 export default function PostProjectConfirm() {
   const navigate = useNavigate()
   const { step1Data, getCombinedData, resetForm, setCurrentStep } = useRecruitmentForm()
+  const { profile } = useAuth()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const [hasRedirected, setHasRedirected] = useState(false)
@@ -23,6 +26,23 @@ export default function PostProjectConfirm() {
 
   useEffect(() => {
     setCurrentStep(2)
+
+    // Debug: Check profile on mount
+    console.log('=== POST PROJECT CONFIRM MOUNTED ===')
+    console.log('Profile from context:', profile)
+    console.log('Profile ID:', profile?.id)
+    const token = getAccessTokenFromLS()
+    console.log('Access Token:', token ? 'exists' : 'none')
+    if (token) {
+      const payload = parseJwtPayload(token)
+      console.log('Token Payload:', payload)
+      const userId =
+        payload?.['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] ||
+        payload?.sub ||
+        payload?.userId ||
+        payload?.id
+      console.log('User ID from token:', userId)
+    }
 
     const fetchData = async () => {
       try {
@@ -50,7 +70,7 @@ export default function PostProjectConfirm() {
     }, 50)
 
     return () => clearTimeout(timer)
-  }, [setCurrentStep, step1Data, navigate, hasRedirected])
+  }, [setCurrentStep, step1Data, navigate, hasRedirected, profile])
 
   const handleSubmit = async () => {
     const combinedData = getCombinedData()
@@ -61,10 +81,44 @@ export default function PostProjectConfirm() {
       return
     }
 
+    // Try to get userId from profile first
+    let userId = profile?.id
+
+    // If profile doesn't have id, try to get from JWT token
+    if (!userId) {
+      const token = getAccessTokenFromLS()
+      const payload = parseJwtPayload(token)
+
+      // .NET JWT uses XML SOAP claim names
+      userId =
+        (payload?.['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] as string) ||
+        (payload?.sub as string) ||
+        (payload?.userId as string) ||
+        (payload?.id as string)
+    }
+
+    // Debug: Log to check
+    console.log('Profile:', profile)
+    console.log('User ID:', userId)
+
+    if (!userId) {
+      toast.error('Vui lòng đăng nhập để đăng dự án')
+      navigate('/login')
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
-      await recruitmentApi.createRecruitment(combinedData)
+      // Add userId to the request
+      const dataWithUserId = {
+        ...combinedData,
+        userId: userId
+      }
+
+      console.log('Submitting data:', dataWithUserId)
+
+      await recruitmentApi.createRecruitment(dataWithUserId)
       setIsSuccess(true)
       toast.success('Đăng dự án thành công!')
 

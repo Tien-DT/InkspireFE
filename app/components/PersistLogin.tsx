@@ -2,13 +2,13 @@ import { useEffect, useState } from 'react'
 import { Outlet } from 'react-router'
 import { useAuth } from '~/contexts/AuthContext'
 import { authApi } from '~/apis/auth.api'
-import { 
-  getRefreshTokenFromLS, 
-  setAccessTokenToLS, 
-  setRefreshTokenToLS, 
-  clearAllAuth, 
-  parseJwtPayload, 
-  getAccessTokenFromLS 
+import {
+  getRefreshTokenFromLS,
+  setAccessTokenToLS,
+  setRefreshTokenToLS,
+  clearAllAuth,
+  parseJwtPayload,
+  getAccessTokenFromLS
 } from '~/utils/auth'
 import axiosClient from '~/lib/axios'
 
@@ -64,42 +64,31 @@ export default function PersistLogin({ children }: PersistLoginProps) {
         }
 
         // Thực hiện silent refresh
-        console.log('Performing silent refresh...')
         const response = await authApi.refreshToken(refreshToken)
-        
+
         // Lưu token mới
         setAccessTokenToLS(response.access_token)
-        
+
         // Nếu backend trả về refresh token mới (token rotation)
         if (response.refresh_token) {
           setRefreshTokenToLS(response.refresh_token)
         }
 
-        const res = await authApi.refreshToken(refreshToken)
-const data = (res as any).data ?? res
-const newAccess = data.access_token ?? data.accessToken
-const newRefresh = data.refresh_token ?? data.refreshToken
-if (!newAccess) throw new Error('No access token in refresh response')
-// Lưu token mới
-setAccessTokenToLS(newAccess)
-if (newRefresh) setRefreshTokenToLS(newRefresh)
-// Cập nhật header mặc định cho axios client để các request sau dùng token mới
-axiosClient.defaults.headers.common.Authorization = `Bearer ${newAccess}`
+        // Cập nhật header mặc định cho axios client để các request sau dùng token mới
+        axiosClient.defaults.headers.common.Authorization = `Bearer ${response.access_token}`
 
         // Refresh auth state
         refreshAuth()
-        
-        console.log('Silent refresh successful')
+
         window.dispatchEvent(new CustomEvent('session:refreshed'))
       } catch (error) {
         console.log('Silent refresh failed:', error)
-        
+
         // Refresh thất bại, clear auth data
         clearAllAuth()
-        
+
         // Phát tín hiệu cho session manager
         window.dispatchEvent(new CustomEvent('session:refreshed'))
-        
       } finally {
         setAuthReady(true)
         setIsLoading(false)
@@ -115,12 +104,10 @@ axiosClient.defaults.headers.common.Authorization = `Bearer ${newAccess}`
   // Hiển thị loading spinner trong khi đang refresh
   if (isLoading || !authReady) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          <p className="text-sm text-muted-foreground">
-            Đang khôi phục phiên đăng nhập...
-          </p>
+      <div className='min-h-screen flex items-center justify-center bg-background'>
+        <div className='flex flex-col items-center space-y-4'>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary'></div>
+          <p className='text-sm text-muted-foreground'>Đang khôi phục phiên đăng nhập...</p>
         </div>
       </div>
     )

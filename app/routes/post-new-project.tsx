@@ -1,3 +1,10 @@
+// This route is temporarily disabled
+// The functionality has been moved to post-project.tsx
+
+export default function PostNewProject() {
+  return null
+}
+
 // import { ArrowLeft, ArrowRight } from 'lucide-react'
 // import { useState, useEffect } from 'react'
 // import { useNavigate } from 'react-router'

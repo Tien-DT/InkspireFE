@@ -196,8 +196,9 @@ export default function PostProject() {
                       />
                       <p className='text-sm text-gray-500 mt-1'>Nhập số tiền ngân sách dự kiến</p>
                     </div>
-
-                    <div>
+                  </div>
+                  <div className='flex flex-col md:flex-row gap-6'>
+                    <div className='basis-1/2 w-full min-w-0'>
                       <label className='block text-md font-semibold text-gray-700 mb-2'>Ngày bắt đầu</label>
                       <Popover>
                         <PopoverTrigger asChild>
@@ -224,34 +225,34 @@ export default function PostProject() {
                       </Popover>
                       <p className='text-sm text-gray-500 mt-1'>Thời gian mở form đăng tuyển</p>
                     </div>
-                  </div>
 
-                  <div>
-                    <label className='block text-md font-semibold text-gray-700 mb-2'>Ngày kết thúc</label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant='outline'
-                          className={cn(
-                            'w-full justify-start text-left font-normal',
-                            !endDate && 'text-muted-foreground'
-                          )}
-                        >
-                          <CalendarIcon className='mr-2 h-4 w-4' />
-                          {endDate ? format(endDate, 'PPP') : <span>Chọn ngày</span>}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className='w-auto p-0'>
-                        <Calendar
-                          mode='single'
-                          selected={endDate}
-                          onSelect={setEndDate}
-                          disabled={(date) => date < (startDate || new Date(new Date().setHours(0, 0, 0, 0)))}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <p className='text-sm text-gray-500 mt-1'>Ngày kết thúc không được nhỏ hơn ngày bắt đầu</p>
+                    <div className='basis-1/2 w-full min-w-0'>
+                      <label className='block text-md font-semibold text-gray-700 mb-2'>Ngày kết thúc</label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant='outline'
+                            className={cn(
+                              'w-full justify-start text-left font-normal',
+                              !endDate && 'text-muted-foreground'
+                            )}
+                          >
+                            <CalendarIcon className='mr-2 h-4 w-4' />
+                            {endDate ? format(endDate, 'PPP') : <span>Chọn ngày</span>}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className='w-auto p-0'>
+                          <Calendar
+                            mode='single'
+                            selected={endDate}
+                            onSelect={setEndDate}
+                            disabled={(date) => date < (startDate || new Date(new Date().setHours(0, 0, 0, 0)))}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <p className='text-sm text-gray-500 mt-1'>Ngày kết thúc không được nhỏ hơn ngày bắt đầu</p>
+                    </div>
                   </div>
 
                   <div>
