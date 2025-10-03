@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { authApi } from '~/apis/auth.api'
 import type { LoginRequest, RegisterRequest } from '~/types/auth.type'
-import { clearLS, setAccessTokenToLS, setRefreshTokenToLS, setProfileToLS } from '~/utils/auth'
+import { setAccessTokenToLS, setRefreshTokenToLS, setProfileToLS } from '~/utils/auth'
 import { useAuth } from '~/contexts/AuthContext'
 
 /**
@@ -16,7 +16,7 @@ export const useLogin = () => {
 
   return useMutation({
     mutationFn: (data: LoginRequest) => authApi.login(data),
-    onSuccess: (response) => {
+    onSuccess: async (response) => {
       // Store tokens in localStorage
       setAccessTokenToLS(response.access_token)
       setRefreshTokenToLS(response.refresh_token)
@@ -31,8 +31,12 @@ export const useLogin = () => {
 
       // Show success message
       toast.success('Đăng nhập thành công!', {
-        description: 'Chào mừng bạn quay trở lại.'
+        description: 'Chào mừng bạn quay trở lại.',
+        duration: 2000
       })
+
+      // Small delay for smooth transition
+      await new Promise((resolve) => setTimeout(resolve, 500))
 
       // Redirect to dashboard or home
       navigate('/dashboard-freelancer')
@@ -114,29 +118,31 @@ export const useRegister = () => {
  */
 export const useLogout = () => {
   const navigate = useNavigate()
-
-  const clearAuthState = () => {
-    clearLS()
-    localStorage.removeItem('user_status')
-    localStorage.removeItem('email_verified')
-  }
+  const { logout: contextLogout } = useAuth()
 
   return useMutation({
-    mutationFn: () => authApi.logout(),
+    mutationFn: async () => {
+      // Optionally call backend to invalidate token
+      try {
+        await authApi.logout()
+      } catch (error) {
+        // Ignore backend errors, still logout locally
+        console.warn('Backend logout failed, continuing with local logout', error)
+      }
+    },
     onSuccess: () => {
-      // Clear all auth data from localStorage
-      clearAuthState()
+      // Clear all auth data via context
+      contextLogout()
 
       toast.success('Đăng xuất thành công')
 
       // Redirect to login page
-      navigate('/login')
+      navigate('/', { replace: true })
     },
     onError: () => {
       // Even if API call fails, clear local storage and redirect
-      clearAuthState()
-
-      navigate('/login')
+      contextLogout()
+      navigate('/', { replace: true })
     }
   })
 }

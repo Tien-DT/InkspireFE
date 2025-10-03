@@ -1,27 +1,24 @@
 import { Navigate, Outlet, useLocation } from 'react-router'
 import { useAuth } from '~/contexts/AuthContext'
 import { PATH } from '~/constants/path'
+import { RecruitmentFormProvider } from '~/contexts/RecruitmentFormContext'
 
 export default function ProtectedLayout() {
   const { isAuthenticated, authReady } = useAuth()
   const location = useLocation()
 
-  // Chờ auth ready trước khi kiểm tra authentication
   if (!authReady) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          <p className="text-sm text-muted-foreground">
-            Đang kiểm tra phiên đăng nhập...
-          </p>
+      <div className='min-h-screen flex items-center justify-center bg-background'>
+        <div className='flex flex-col items-center space-y-4'>
+          <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary'></div>
+          <p className='text-sm text-muted-foreground'>Đang kiểm tra phiên đăng nhập...</p>
         </div>
       </div>
     )
   }
 
   if (!isAuthenticated) {
-    // Redirect to login page with return url
     return (
       <Navigate
         to={PATH.login}
@@ -34,5 +31,9 @@ export default function ProtectedLayout() {
     )
   }
 
-  return <Outlet />
+  return (
+    <RecruitmentFormProvider>
+      <Outlet />
+    </RecruitmentFormProvider>
+  )
 }

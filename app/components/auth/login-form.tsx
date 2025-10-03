@@ -6,6 +6,7 @@ import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { useLogin } from '~/hooks/useAuth'
 import { GoogleLoginButton } from '~/components/auth/google-login-button'
+import { LoadingOverlay } from '~/components/auth/LoadingOverlay'
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
@@ -17,7 +18,7 @@ export function LoginForm() {
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    
+
     // Basic validation
     if (!email || !password) {
       return
@@ -32,19 +33,22 @@ export function LoginForm() {
 
   return (
     <>
+      <LoadingOverlay show={isPending} message='Đang đăng nhập...' />
       <div className='flex flex-col items-center gap-2 text-center'>
         <h1 className='text-2xl font-bold text-slate-900'>Đăng nhập tài khoản</h1>
-        <p className='text-sm text-muted-foreground'>Nhập email và mật khẩu để truy cập vào hành trình sáng tạo của bạn.</p>
+        <p className='text-sm text-muted-foreground'>
+          Nhập email và mật khẩu để truy cập vào hành trình sáng tạo của bạn.
+        </p>
       </div>
       <form onSubmit={handleSubmit} className='grid gap-6 text-left'>
         <div className='grid gap-3'>
           <Label htmlFor='login-email'>Email</Label>
-          <Input 
-            id='login-email' 
-            type='email' 
-            placeholder='admin@freelancehub.com' 
-            autoComplete='email' 
-            required 
+          <Input
+            id='login-email'
+            type='email'
+            placeholder='admin@freelancehub.com'
+            autoComplete='email'
+            required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             disabled={isPending}
@@ -95,12 +99,19 @@ export function LoginForm() {
             Ghi nhớ đăng nhập
           </Label>
         </div>
-        <Button 
-          type='submit' 
-          className='w-full rounded-xl bg-emerald-500 text-sm font-semibold text-white hover:bg-emerald-500/90'
+        <Button
+          type='submit'
+          className='w-full rounded-xl bg-emerald-500 text-sm font-semibold text-white hover:bg-emerald-500/90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]'
           disabled={isPending}
         >
-          {isPending ? 'Đang đăng nhập...' : 'Đăng nhập'}
+          {isPending ? (
+            <span className='flex items-center justify-center gap-2'>
+              <div className='h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent'></div>
+              Đang đăng nhập...
+            </span>
+          ) : (
+            'Đăng nhập'
+          )}
         </Button>
         <div className='relative text-center text-sm text-muted-foreground'>
           <span className='absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-border' aria-hidden='true' />
@@ -117,4 +128,3 @@ export function LoginForm() {
     </>
   )
 }
-
