@@ -6,6 +6,7 @@ import { ThemeProvider } from 'next-themes'
 import { Toaster } from '~/components/ui/sonner'
 import { AuthProvider } from '~/contexts/AuthContext'
 import { ChatProvider } from '~/contexts/ChatContext'
+import { VideoCallProvider } from '~/contexts/VideoCallContext'
 import AuthErrorBoundary from '~/components/errors/AuthErrorBoundary'
 import PersistLogin from '~/components/PersistLogin'
 import './app.css'
@@ -55,10 +56,11 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <ChatProvider>
-          <AuthErrorBoundary autoRedirectToLogin loginPath="/login">
-            <PersistLogin>
-              <ThemeProvider attribute='class' defaultTheme='light' enableSystem storageKey='vite-ui-theme'>
-                <Suspense
+          <VideoCallProvider>
+            <AuthErrorBoundary autoRedirectToLogin loginPath="/login">
+              <PersistLogin>
+                <ThemeProvider attribute='class' defaultTheme='light' enableSystem storageKey='vite-ui-theme'>
+                  <Suspense
                   fallback={
                     <div className='min-h-screen bg-background animate-pulse'>
                       <div className='container mx-auto px-4 py-8'>
@@ -85,6 +87,7 @@ export default function App() {
               </ThemeProvider>
             </PersistLogin>
           </AuthErrorBoundary>
+          </VideoCallProvider>
         </ChatProvider>
       </AuthProvider>
     </QueryClientProvider>

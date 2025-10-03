@@ -2,6 +2,13 @@ import * as signalR from '@microsoft/signalr'
 import type { HubConnection, HubConnectionState } from '@microsoft/signalr'
 import { getAccessTokenFromLS } from '~/utils/auth'
 import type { ChatMessageResponse, SendMessageRequest } from '~/types/chat.type'
+import type {
+  CallOffer,
+  CallAnswer,
+  CallIceCandidate,
+  CallRejection,
+  CallEnd
+} from '~/types/call.type'
 
 // ===== SignalR Client Interface =====
 export interface IChatClient {
@@ -13,6 +20,12 @@ export interface IChatClient {
   onUserOnline?: (userId: string) => void
   onUserOffline?: (userId: string) => void
   onConversationUpdated?: (conversationId: string) => void
+  // Video Call Events
+  onCallOffer?: (offer: CallOffer) => void
+  onCallAnswer?: (answer: CallAnswer) => void
+  onCallIceCandidate?: (data: CallIceCandidate) => void
+  onCallRejected?: (data: CallRejection) => void
+  onCallEnded?: (data: CallEnd) => void
 }
 
 // ===== SignalR Hub Connection Manager =====
@@ -182,6 +195,38 @@ class SignalRChatService {
       console.log('[SignalR] ConversationUpdated:', conversationId)
       this.clientHandlers.onConversationUpdated?.(conversationId)
     })
+
+    // ===== Video Call Events =====
+    
+    // CallOffer
+    this.connection.on('CallOffer', (offer: CallOffer) => {
+      console.log('[SignalR] CallOffer received:', offer.callId)
+      this.onCallOffer?.(offer)
+    })
+
+    // CallAnswer
+    this.connection.on('CallAnswer', (answer: CallAnswer) => {
+      console.log('[SignalR] CallAnswer received:', answer.callId)
+      this.onCallAnswer?.(answer)
+    })
+
+    // CallIceCandidate
+    this.connection.on('CallIceCandidate', (data: CallIceCandidate) => {
+      console.log('[SignalR] CallIceCandidate received')
+      this.onCallIceCandidate?.(data)
+    })
+
+    // CallRejected
+    this.connection.on('CallRejected', (data: CallRejection) => {
+      console.log('[SignalR] CallRejected:', data.callId)
+      this.onCallRejected?.(data)
+    })
+
+    // CallEnded
+    this.connection.on('CallEnded', (data: CallEnd) => {
+      console.log('[SignalR] CallEnded:', data.callId)
+      this.onCallEnded?.(data)
+    })
   }
 
   /**
@@ -301,6 +346,123 @@ class SignalRChatService {
       console.warn('[SignalR] NotifyOffline failed:', error)
     }
   }
+
+  // ===== Video Call Methods =====
+
+  /**
+   * Send call offer to initiate call
+   */
+  async sendCallOffer(offer: CallOffer): Promise<void> {
+    console.log('[SignalR] ===== ATTEMPTING TO SEND CALL OFFER =====')
+    console.log('[SignalR] Connection state:', this.connection?.state)
+    console.log('[SignalR] Is connected:', this.isConnected())
+    
+    if (!this.connection) {
+      const error = 'SignalR connection is null'
+      console.error('[SignalR]', error)
+      throw new Error(error)
+    }
+    
+    if (!this.isConnected()) {
+      const error = `SignalR not connected (state: ${this.connection.state})`
+      console.error('[SignalR]', error)
+      throw new Error(error)
+    }
+    
+    try {
+      console.log('[SignalR] Offer details:', JSON.stringify({
+        callId: offer.callId,
+        callType: offer.callType,
+        caller: offer.caller,
+        receiver: offer.receiver,
+        conversationId: offer.conversationId
+      }, null, 2))
+      
+      await this.connection.invoke('SendCallOffer', offer)
+      console.log('[SignalR] ===== CALL OFFER SENT SUCCESSFULLY =====')
+    } catch (error) {
+      console.error('[SignalR] ===== SEND CALL OFFER FAILED =====')
+      console.error('[SignalR] Error:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Send call answer to accept call
+   */
+  async sendCallAnswer(answer: CallAnswer): Promise<void> {
+    console.log('[SignalR] ===== ATTEMPTING TO SEND CALL ANSWER =====')
+    console.log('[SignalR] Connection state:', this.connection?.state)
+    console.log('[SignalR] Answer CallId:', answer.callId)
+    console.log('[SignalR] Caller ID:', answer.callerId)
+    
+    if (!this.connection || !this.isConnected()) {
+      const error = `SignalR not connected (state: ${this.connection?.state})`
+      console.error('[SignalR]', error)
+      throw new Error(error)
+    }
+    
+    try {
+      await this.connection.invoke('SendCallAnswer', answer)
+      console.log('[SignalR] ===== CALL ANSWER SENT SUCCESSFULLY =====')
+    } catch (error) {
+      console.error('[SignalR] ===== SEND CALL ANSWER FAILED =====')
+      console.error('[SignalR] Error:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Send ICE candidate for WebRTC connection
+   */
+  async sendCallIceCandidate(data: CallIceCandidate): Promise<void> {
+    if (!this.connection || !this.isConnected()) {
+      return // Silently fail for ICE candidates
+    }
+    try {
+      await this.connection.invoke('SendCallIceCandidate', data)
+    } catch (error) {
+      console.warn('[SignalR] SendCallIceCandidate failed:', error)
+    }
+  }
+
+  /**
+   * Send call rejection
+   */
+  sendCallRejection(data: CallRejection): void {
+    if (!this.connection || !this.isConnected()) {
+      return
+    }
+    try {
+      this.connection.invoke('SendCallRejection', data)
+      console.log('[SignalR] Call rejection sent:', data.callId)
+    } catch (error) {
+      console.error('[SignalR] SendCallRejection failed:', error)
+    }
+  }
+
+  /**
+   * Send call end notification
+   */
+  sendCallEnd(data: CallEnd): void {
+    if (!this.connection || !this.isConnected()) {
+      return
+    }
+    try {
+      this.connection.invoke('SendCallEnd', data)
+      console.log('[SignalR] Call end sent:', data.callId)
+    } catch (error) {
+      console.error('[SignalR] SendCallEnd failed:', error)
+    }
+  }
+
+  // ===== Call Event Handlers (to be set by VideoCallContext) =====
+  
+  onCallOffer?: (offer: CallOffer) => void
+  onCallAnswer?: (answer: CallAnswer) => void
+  onCallIceCandidate?: (data: CallIceCandidate) => void
+  onCallRejected?: (data: CallRejection) => void
+  onCallEnded?: (data: CallEnd) => void
 }
 
 // Export singleton instance
