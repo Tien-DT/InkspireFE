@@ -83,18 +83,40 @@ export interface RecruitmentPost {
   id: string
   title: string
   description: string
+  projectName: string
   budget: number
   teamSize: string
-  postExpired: string
+  startTime: string
+  endTime: string
   createdAt: string
   status: number
-  userName: string
-  projectName: string
+  skills: Skill[]
+  user: {
+    id: string
+    firstName: string
+    lastName: string
+    email: string
+  }
+  project: {
+    id: string
+    projectName: string
+    description: string
+  }
+  categories: RecruitmentCategory[]
+}
+
+export interface PaginationInfo {
+  currentPage: number
+  pageSize: number
+  totalPages: number
+  totalCount: number
+  hasPrevious: boolean
+  hasNext: boolean
 }
 
 export interface RecruitmentResponse {
-  items: RecruitmentPost[]
-  total?: number
-  page?: number
-  pageSize?: number
+  success: boolean
+  message: string
+  data: RecruitmentPost[]
+  pagination: PaginationInfo
 }
