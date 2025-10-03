@@ -1,33 +1,48 @@
 import type { User } from '~/types/user.type'
 
-export const LocalStorageEventTarget = new EventTarget()
+export const LocalStorageEventTarget = typeof window !== 'undefined' ? new EventTarget() : null
 export const AUTH_CHANGE_EVENT = 'authchange'
 
 const dispatchAuthChange = () => {
-  LocalStorageEventTarget.dispatchEvent(new Event(AUTH_CHANGE_EVENT))
+  if (LocalStorageEventTarget) {
+    LocalStorageEventTarget.dispatchEvent(new Event(AUTH_CHANGE_EVENT))
+  }
 }
 
+const isBrowser = typeof window !== 'undefined'
+
 export const setAccessTokenToLS = (access_token: string) => {
+  if (!isBrowser) return
   localStorage.setItem('access_token', access_token)
   dispatchAuthChange()
 }
 
 export const setRefreshTokenToLS = (refresh_token: string) => {
+  if (!isBrowser) return
   localStorage.setItem('refresh_token', refresh_token)
 }
 
 export const clearLS = () => {
+  if (!isBrowser) return
   localStorage.removeItem('access_token')
   localStorage.removeItem('refresh_token')
   localStorage.removeItem('profile')
-  const clearLSEvent = new Event('clearLS')
-  LocalStorageEventTarget.dispatchEvent(clearLSEvent)
-  dispatchAuthChange()
+  if (LocalStorageEventTarget) {
+    const clearLSEvent = new Event('clearLS')
+    LocalStorageEventTarget.dispatchEvent(clearLSEvent)
+    dispatchAuthChange()
+  }
 }
 
-export const getAccessTokenFromLS = () => localStorage.getItem('access_token') || ''
+export const getAccessTokenFromLS = () => {
+  if (!isBrowser) return ''
+  return localStorage.getItem('access_token') || ''
+}
 
-export const getRefreshTokenFromLS = () => localStorage.getItem('refresh_token') || ''
+export const getRefreshTokenFromLS = () => {
+  if (!isBrowser) return ''
+  return localStorage.getItem('refresh_token') || ''
+}
 
 // Fast relogin helpers
 const LAST_PROVIDER_KEY = 'last_provider'
@@ -36,6 +51,7 @@ const LAST_EMAIL_KEY = 'last_email'
 export type AuthProvider = 'google' | 'password' | 'other'
 
 export const setLastAuthContext = (provider: AuthProvider, email?: string) => {
+  if (!isBrowser) return
   try {
     localStorage.setItem(LAST_PROVIDER_KEY, provider)
     if (email) localStorage.setItem(LAST_EMAIL_KEY, email)
@@ -45,10 +61,13 @@ export const setLastAuthContext = (provider: AuthProvider, email?: string) => {
   }
 }
 
-export const getLastProvider = (): AuthProvider | null =>
-  (localStorage.getItem(LAST_PROVIDER_KEY) as AuthProvider | null) || null
+export const getLastProvider = (): AuthProvider | null => {
+  if (!isBrowser) return null
+  return (localStorage.getItem(LAST_PROVIDER_KEY) as AuthProvider | null) || null
+}
 
 export const clearLastProvider = () => {
+  if (!isBrowser) return
   try {
     localStorage.removeItem(LAST_PROVIDER_KEY)
     localStorage.removeItem(LAST_EMAIL_KEY)
@@ -58,17 +77,21 @@ export const clearLastProvider = () => {
 }
 
 export const clearAllAuth = () => {
+  if (!isBrowser) return
   clearLS()
   clearLastProvider()
 }
 
 export const getProfileFromLS = () => {
+  if (!isBrowser) return null
   const result = localStorage.getItem('profile')
   return result ? JSON.parse(result) : null
 }
 
 export const setProfileToLS = (profile: User) => {
+  if (!isBrowser) return
   localStorage.setItem('profile', JSON.stringify(profile))
+  dispatchAuthChange()
 }
 
 const decodeBase64Url = (segment: string) => {

@@ -1,20 +1,75 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router'
 import { clearAllAuth } from '~/utils/auth'
+import { toast } from 'sonner'
 
-// Clears local auth and sends users to relogin quickly
-// Usage: navigate to /logout?from=/current
 export default function LogoutRoute() {
+  const navigate = useNavigate()
+  const [isLoggingOut, setIsLoggingOut] = useState(true)
+
   useEffect(() => {
-    const url = new URL(window.location.href)
-    const from = url.searchParams.get('from') ?? '/'
-    clearAllAuth()
-    window.location.replace(`/relogin?from=${encodeURIComponent(from)}`)
-  }, [])
+    const performLogout = async () => {
+      try {
+        // Clear all authentication data
+        clearAllAuth()
+
+        // Wait a bit for smooth animation
+        await new Promise((resolve) => setTimeout(resolve, 800))
+
+        // Show success toast
+        toast.success('Đăng xuất thành công', {
+          description: 'Hẹn gặp lại bạn!'
+        })
+
+        // Redirect to home page
+        navigate('/', { replace: true })
+      } catch (error) {
+        console.error('Logout error:', error)
+        // Still redirect even if there's an error
+        navigate('/', { replace: true })
+      } finally {
+        setIsLoggingOut(false)
+      }
+    }
+
+    performLogout()
+  }, [navigate])
+
+  if (!isLoggingOut) return null
 
   return (
-    <div className='flex min-h-[60vh] items-center justify-center text-sm text-muted-foreground'>
-      Đang đăng xuất…
+    <div className='fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-emerald-50 to-blue-50 animate-in fade-in duration-300'>
+      <div className='flex flex-col items-center space-y-6 animate-in zoom-in-95 duration-500'>
+        {/* Animated Logo/Icon */}
+        <div className='relative'>
+          <div className='h-20 w-20 rounded-full bg-white shadow-lg flex items-center justify-center'>
+            <div className='h-16 w-16 rounded-full border-4 border-emerald-100'></div>
+            <div className='absolute top-2 left-2 h-16 w-16 animate-spin rounded-full border-4 border-transparent border-t-emerald-500 border-r-emerald-400'></div>
+          </div>
+        </div>
+
+        {/* Text with fade animation */}
+        <div className='text-center space-y-2 animate-in fade-in slide-in-from-bottom-4 duration-700'>
+          <h2 className='text-xl font-semibold text-gray-800'>Đang đăng xuất</h2>
+          <p className='text-sm text-gray-600 animate-pulse'>Vui lòng đợi...</p>
+        </div>
+
+        {/* Progress bar */}
+        <div className='w-48 h-1 bg-gray-200 rounded-full overflow-hidden'>
+          <div className='h-full bg-gradient-to-r from-emerald-500 to-blue-500 animate-[progress_800ms_ease-in-out]'></div>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes progress {
+          from {
+            width: 0%;
+          }
+          to {
+            width: 100%;
+          }
+        }
+      `}</style>
     </div>
   )
 }
-

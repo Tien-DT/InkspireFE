@@ -1,33 +1,41 @@
-import { Outlet, redirect, useLoaderData, useOutletContext } from 'react-router'
+import { Navigate, Outlet, redirect, useLoaderData, useLocation, useOutletContext } from 'react-router'
 import axiosClient from '~/lib/axios'
 import { getAccessTokenFromLS } from '~/utils/auth'
 import { PATH } from '~/constants/path'
-
-export type ProtectedContext = {
-  accessToken: string
-}
-
-export async function clientLoader() {
-  const accessToken = getAccessTokenFromLS()
-  if (!accessToken) {
-    return redirect(PATH.login)
-  }
-
-  axiosClient.defaults.headers.common.Authorization = `Bearer ${accessToken}`
-
-  const data: ProtectedContext = { accessToken }
-  return data
-}
+import { RecruitmentFormProvider } from '~/contexts/RecruitmentFormContext'
+import { useAuth } from '~/contexts/AuthContext'
 
 export default function ProtectedLayout() {
-  const data = useLoaderData() as ProtectedContext
-  return (
-    <div>
-      <Outlet context={data} />
-    </div>
-  )
-}
+  const { isAuthenticated, authReady } = useAuth()
+  const location = useLocation()
 
-export function useProtectedContext() {
-  return useOutletContext<ProtectedContext>()
+  if (!authReady) {
+    return (
+      <div className='min-h-screen flex items-center justify-center bg-background'>
+        <div className='flex flex-col items-center space-y-4'>
+          <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary'></div>
+          <p className='text-sm text-muted-foreground'>Đang kiểm tra phiên đăng nhập...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <Navigate
+        to={PATH.login}
+        replace
+        state={{
+          from: location.pathname,
+          message: 'Vui lòng đăng nhập để tiếp tục'
+        }}
+      />
+    )
+  }
+
+  return (
+    <RecruitmentFormProvider>
+      <Outlet />
+    </RecruitmentFormProvider>
+  )
 }

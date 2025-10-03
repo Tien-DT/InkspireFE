@@ -18,6 +18,8 @@ export default function JobsFreelancer() {
   const pageSize = 10
   const { data: recruitmentData, isLoading, error } = useRecruitments(page, pageSize)
 
+  const skillColors = ['blue', 'purple', 'orange', 'pink', 'green', 'yellow', 'red', 'indigo'] as const
+
   const handlePageChange = (newPage: number) => {
     setSearchParams({ page: newPage.toString() })
   }
@@ -138,8 +140,13 @@ export default function JobsFreelancer() {
                 ? 'Đang tải dữ liệu...'
                 : error
                   ? 'Có lỗi xảy ra'
-                  : `Tìm thấy ${recruitmentData?.items?.length || 0} công việc phù hợp`}
+                  : `Tìm thấy ${recruitmentData?.pagination?.totalCount || 0} công việc phù hợp`}
             </h1>
+            {recruitmentData?.pagination && (
+              <p className='text-sm text-gray-600 mt-2'>
+                Trang {recruitmentData.pagination.currentPage} / {recruitmentData.pagination.totalPages}
+              </p>
+            )}
             <div className='flex items-center justify-between mt-4'>
               <Select>
                 <SelectTrigger className='w-48 bg-white'>
@@ -161,67 +168,104 @@ export default function JobsFreelancer() {
               </div>
             ) : (
               <div className='space-y-6'>
-                {recruitmentData?.items?.map((post) => (
-                  <Card key={post.id} className='hover:shadow-md transition-shadow'>
+                {recruitmentData?.data?.map((post) => (
+                  <Card key={post.id} className='hover:shadow-lg transition-shadow border border-gray-200'>
                     <CardContent className='p-6'>
-                      <div className='flex items-start justify-between mb-4 gap-10'>
-                        <div className='w-2/3 flex flex-col gap-5'>
-                          <div className='flex items-center'>
-                            <h3 className='text-lg font-semibold text-gray-900 mr-3'>{post.title}</h3>
+                      <div className='flex items-start justify-between gap-8'>
+                        {/* Left Content */}
+                        <div className='flex-1'>
+                          {/* Title and Badge */}
+                          <div className='flex items-start gap-3 mb-3'>
+                            <h3 className='text-xl font-semibold text-gray-900 flex-1 hover:text-blue-600 cursor-pointer'>
+                              {post.title}
+                            </h3>
                             {post.status === 1 && (
-                              <Badge variant='secondary' className='bg-orange-100 text-orange-800'>
-                                HOT
+                              <Badge className='bg-yellow-400 text-gray-900 hover:bg-yellow-500 px-3 py-1 text-xs font-semibold'>
+                                Nổi bật
                               </Badge>
                             )}
-                            <Heart className='h-5 w-5 text-gray-400 ml-2 cursor-pointer hover:text-red-500' />
+                            <Heart className='h-5 w-5 text-gray-400 cursor-pointer hover:text-red-500 transition-colors flex-shrink-0' />
                           </div>
-                          <div className='flex items-center text-sm text-gray-600'>
-                            <span className='mr-4'>{post.projectName}</span>
-                            <div className='flex items-center mr-4'>
-                              <span>by {post.userName}</span>
+
+                          {/* Company/User Info */}
+                          <div className='flex items-center gap-2 mb-4'>
+                            <div className='w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold text-sm'>
+                              {post.user.firstName.charAt(0)}
+                            </div>
+                            <span className='text-sm text-gray-700 font-medium'>
+                              {post.user.firstName} {post.user.lastName}
+                            </span>
+                          </div>
+
+                          {/* Description */}
+                          <p className='text-gray-600 text-sm mb-4 line-clamp-2'>{post.description}</p>
+
+                          {/* Categories */}
+                          {post.categories && post.categories.length > 0 && (
+                            <div className='mb-3'>
+                              <div className='flex items-center gap-2 flex-wrap'>
+                                <span className='text-xs font-semibold text-gray-500 uppercase'>Danh mục:</span>
+                                {post.categories.map((category) => (
+                                  <Badge
+                                    key={category.id}
+                                    variant='secondary'
+                                    className='bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-medium px-2.5 py-0.5'
+                                  >
+                                    📁 {category.title}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Skills Tags */}
+                          <div className='mb-4'>
+                            <div className='flex items-center gap-2 flex-wrap'>
+                              <span className='text-xs font-semibold text-gray-500 uppercase'>Kỹ năng:</span>
+                              {post.skills.map((skill, skillIndex) => {
+                                const colorVariant = skillColors[skillIndex % skillColors.length]
+                                return (
+                                  <Badge key={skill.id} variant={colorVariant} className='text-xs font-medium'>
+                                    {skill.name}
+                                  </Badge>
+                                )
+                              })}
                             </div>
                           </div>
-                          <p className='text-gray-700'>{post.description}</p>
-                          <div className='flex flex-wrap gap-2'>
-                            <Badge variant='blue'>Logo Design</Badge>
-                            <Badge variant='purple'>Branding</Badge>
-                            <Badge variant='orange'>Adobe Illustrator</Badge>
-                            <Badge variant='pink'>Photoshop</Badge>
-                            <Badge variant='green'>UI/UX</Badge>
-                          </div>
-                          <div className='flex justify-between items-center text-sm text-gray-600'>
-                            <div className='flex items-center'>
-                              <Clock className='h-4 w-4 mr-1 font-extrabold' />
-                              <span>
-                                <strong>Hết hạn:</strong> {new Date(post.postExpired).toLocaleDateString('vi-VN')}
-                              </span>
+
+                          {/* Footer Info */}
+                          <div className='flex items-center justify-between gap-6 text-sm text-gray-600'>
+                            <div className='flex items-center gap-1'>
+                              <Clock className='h-4 w-4' />
+                              <span>Hạn: {new Date(post.endTime).toLocaleDateString('vi-VN')}</span>
                             </div>
-                            <div className='flex items-center'>
-                              <Users className='h-4 w-4 mr-1 font-extrabold' />
-                              <span>
-                                <strong>Team:</strong> {post.teamSize}
-                              </span>
+                            <div className='flex items-center gap-1'>
+                              <Users className='h-4 w-4' />
+                              <span>{post.teamSize} đề xuất</span>
                             </div>
-                            <div className='flex items-center'>
-                              <Calendar className='h-4 w-4 mr-1 font-extrabold' />
-                              <span>
-                                <strong>Đăng:</strong> {new Date(post.createdAt).toLocaleDateString('vi-VN')}
-                              </span>
+                            <div className='flex items-center gap-1'>
+                              <Calendar className='h-4 w-4' />
+                              <span>Đăng {new Date(post.createdAt).toLocaleDateString('vi-VN')}</span>
                             </div>
                           </div>
                         </div>
-                        <div className='text-right w-1/3'>
-                          <div className='text-2xl font-bold text-green-600 mb-2'>
-                            {post.budget.toLocaleString('vi-VN')} VND
-                          </div>
-                          <div className='text-sm text-gray-600 mb-4'>Giá cố định</div>
 
-                          <div className='flex flex-col gap-1'>
-                            <Button className='w-full bg-black hover:bg-gray-800 text-white mb-2'>
-                              Ứng tuyển ngay
-                            </Button>
-                            <Button className='bg-white w-full text-sm text-gray-600 flex items-center justify-center'>
-                              <Eye className='h-4 w-4 mr-1' />
+                        {/* Right Content - Budget and Actions */}
+                        <div className='flex flex-col justify-between gap-4 min-w-[200px] h-full'>
+                          <div className='text-right'>
+                            <div className='text-2xl font-bold text-green-600 mb-1'>
+                              {(post.budget / 1000000).toFixed(1)}M VND
+                            </div>
+                            <div className='text-sm text-gray-500'>Giá cố định</div>
+                          </div>
+
+                          <div className='flex flex-col gap-2 w-full'>
+                            <Button className='w-full bg-gray-900 hover:bg-gray-800 text-white'>Ứng tuyển ngay</Button>
+                            <Button
+                              variant='outline'
+                              className='w-full text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                            >
+                              <Eye className='h-4 w-4 mr-2' />
                               Xem chi tiết
                             </Button>
                           </div>
@@ -235,10 +279,11 @@ export default function JobsFreelancer() {
           </Suspense>
 
           {/* Pagination */}
-          <div className='flex justify-center'>
+          <div className='flex justify-center mt-8'>
             <PaginationDemo
               currentPage={page}
-              hasNextPage={!!recruitmentData?.items?.length}
+              totalPages={recruitmentData?.pagination?.totalPages ?? 1}
+              hasNextPage={recruitmentData?.pagination?.hasNext ?? false}
               isLoading={isLoading}
               onPageChange={handlePageChange}
             />
