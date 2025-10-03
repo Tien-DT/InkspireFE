@@ -1,5 +1,6 @@
-import { Calendar, Clock, Eye, Filter, Heart, Search, Users } from 'lucide-react'
+import { Calendar, Clock, Eye, Filter, Heart, Search, Users, Upload, FileText } from 'lucide-react'
 import { useSearchParams } from 'react-router'
+import { useState } from 'react'
 import PaginationDemo from '~/components/Pagination'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
@@ -7,7 +8,11 @@ import { Card, CardContent } from '~/components/ui/card'
 import { Checkbox } from '~/components/ui/checkbox'
 import { Input } from '~/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '~/components/ui/dialog'
+import { Textarea } from '~/components/ui/textarea'
 import { useRecruitments } from '~/hooks/useRecruitments'
+import { recruitmentApi } from '~/apis/recruitment.api'
+import { toast } from 'sonner'
 
 import { Suspense } from 'react'
 import { HydrateFallback } from '~/components/ui'
@@ -20,8 +25,85 @@ export default function JobsFreelancer() {
 
   const skillColors = ['blue', 'purple', 'orange', 'pink', 'green', 'yellow', 'red', 'indigo'] as const
 
+  // Application Dialog State
+  const [isApplyDialogOpen, setIsApplyDialogOpen] = useState(false)
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null)
+  const [cvFile, setCvFile] = useState<File | null>(null)
+  const [coverLetter, setCoverLetter] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
   const handlePageChange = (newPage: number) => {
     setSearchParams({ page: newPage.toString() })
+  }
+
+  const handleApplyClick = (jobId: string) => {
+    setSelectedJobId(jobId)
+    setIsApplyDialogOpen(true)
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      // Validate file size (5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Kích thước file không được vượt quá 5MB')
+        return
+      }
+      // Validate file type
+      const allowedTypes = ['.doc', '.docx', '.pdf']
+      const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase()
+      if (!allowedTypes.includes(fileExtension)) {
+        toast.error('Chỉ hỗ trợ file .doc, .docx, .pdf')
+        return
+      }
+      setCvFile(file)
+    }
+  }
+
+  const handleSubmitApplication = async () => {
+    if (!cvFile) {
+      toast.error('Vui lòng chọn CV của bạn')
+      return
+    }
+
+    if (!coverLetter.trim()) {
+      toast.error('Vui lòng viết thư giới thiệu')
+      return
+    }
+
+    if (!selectedJobId) return
+
+    setIsSubmitting(true)
+    try {
+      const formData = new FormData()
+      formData.append('recruitmentPostId', selectedJobId)
+      formData.append('cv', cvFile)
+      formData.append('coverLetter', coverLetter)
+
+      await recruitmentApi.applyToJob(formData)
+
+      toast.success('Nộp hồ sơ ứng tuyển thành công!')
+
+      // Reset form
+      setIsApplyDialogOpen(false)
+      setCvFile(null)
+      setCoverLetter('')
+      setSelectedJobId(null)
+    } catch (error) {
+      console.error('Application error:', error)
+      toast.error('Có lỗi xảy ra khi nộp hồ sơ. Vui lòng thử lại!')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleDialogClose = () => {
+    if (!isSubmitting) {
+      setIsApplyDialogOpen(false)
+      setCvFile(null)
+      setCoverLetter('')
+      setSelectedJobId(null)
+    }
   }
   return (
     <div className='container mx-auto px-4 py-6 space-y-6'>
@@ -142,11 +224,11 @@ export default function JobsFreelancer() {
                   ? 'Có lỗi xảy ra'
                   : `Tìm thấy ${recruitmentData?.pagination?.totalCount || 0} công việc phù hợp`}
             </h1>
-            {recruitmentData?.pagination && (
+            {/* {recruitmentData?.pagination && (
               <p className='text-sm text-gray-600 mt-2'>
                 Trang {recruitmentData.pagination.currentPage} / {recruitmentData.pagination.totalPages}
               </p>
-            )}
+            )} */}
             <div className='flex items-center justify-between mt-4'>
               <Select>
                 <SelectTrigger className='w-48 bg-white'>
@@ -167,15 +249,15 @@ export default function JobsFreelancer() {
                 <p className='text-red-600'>Có lỗi xảy ra: {(error as Error).message}</p>
               </div>
             ) : (
-              <div className='space-y-6'>
+              <div className='space-y-8'>
                 {recruitmentData?.data?.map((post) => (
                   <Card key={post.id} className='hover:shadow-lg transition-shadow border border-gray-200'>
-                    <CardContent className='p-6'>
-                      <div className='flex items-start justify-between gap-8'>
+                    <CardContent className='px-6 py-4'>
+                      <div className='flex items-stretch justify-between gap-8'>
                         {/* Left Content */}
-                        <div className='flex-1'>
+                        <div className='w-3/4 space-y-5 md:space-y-6'>
                           {/* Title and Badge */}
-                          <div className='flex items-start gap-3 mb-3'>
+                          <div className='flex items-start gap-3'>
                             <h3 className='text-xl font-semibold text-gray-900 flex-1 hover:text-blue-600 cursor-pointer'>
                               {post.title}
                             </h3>
@@ -188,7 +270,7 @@ export default function JobsFreelancer() {
                           </div>
 
                           {/* Company/User Info */}
-                          <div className='flex items-center gap-2 mb-4'>
+                          <div className='flex items-center gap-2'>
                             <div className='w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold text-sm'>
                               {post.user.firstName.charAt(0)}
                             </div>
@@ -198,39 +280,35 @@ export default function JobsFreelancer() {
                           </div>
 
                           {/* Description */}
-                          <p className='text-gray-600 text-sm mb-4 line-clamp-2'>{post.description}</p>
+                          <p className='text-gray-600 text-sm line-clamp-2'>{post.description}</p>
 
                           {/* Categories */}
                           {post.categories && post.categories.length > 0 && (
-                            <div className='mb-3'>
-                              <div className='flex items-center gap-2 flex-wrap'>
-                                <span className='text-xs font-semibold text-gray-500 uppercase'>Danh mục:</span>
-                                {post.categories.map((category) => (
-                                  <Badge
-                                    key={category.id}
-                                    variant='secondary'
-                                    className='bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-medium px-2.5 py-0.5'
-                                  >
-                                    📁 {category.title}
-                                  </Badge>
-                                ))}
-                              </div>
+                            <div className='flex items-center gap-2 flex-wrap'>
+                              <span className='text-xs font-semibold text-gray-500 uppercase'>Danh mục:</span>
+                              {post.categories.map((category) => (
+                                <Badge
+                                  key={category.id}
+                                  variant='secondary'
+                                  className='bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-medium px-2.5 py-0.5'
+                                >
+                                  📁 {category.title}
+                                </Badge>
+                              ))}
                             </div>
                           )}
 
                           {/* Skills Tags */}
-                          <div className='mb-4'>
-                            <div className='flex items-center gap-2 flex-wrap'>
-                              <span className='text-xs font-semibold text-gray-500 uppercase'>Kỹ năng:</span>
-                              {post.skills.map((skill, skillIndex) => {
-                                const colorVariant = skillColors[skillIndex % skillColors.length]
-                                return (
-                                  <Badge key={skill.id} variant={colorVariant} className='text-xs font-medium'>
-                                    {skill.name}
-                                  </Badge>
-                                )
-                              })}
-                            </div>
+                          <div className='flex items-center gap-2 flex-wrap'>
+                            <span className='text-xs font-semibold text-gray-500 uppercase'>Kỹ năng:</span>
+                            {post.skills.map((skill, skillIndex) => {
+                              const colorVariant = skillColors[skillIndex % skillColors.length]
+                              return (
+                                <Badge key={skill.id} variant={colorVariant} className='text-xs font-medium'>
+                                  {skill.name}
+                                </Badge>
+                              )
+                            })}
                           </div>
 
                           {/* Footer Info */}
@@ -251,7 +329,7 @@ export default function JobsFreelancer() {
                         </div>
 
                         {/* Right Content - Budget and Actions */}
-                        <div className='flex flex-col justify-between gap-4 min-w-[200px] h-full'>
+                        <div className='w-1/4 flex flex-col justify-between gap-4 min-w-[200px]'>
                           <div className='text-right'>
                             <div className='text-2xl font-bold text-green-600 mb-1'>
                               {(post.budget / 1000000).toFixed(1)}M VND
@@ -260,7 +338,12 @@ export default function JobsFreelancer() {
                           </div>
 
                           <div className='flex flex-col gap-2 w-full'>
-                            <Button className='w-full bg-gray-900 hover:bg-gray-800 text-white'>Ứng tuyển ngay</Button>
+                            <Button
+                              className='w-full bg-gray-900 hover:bg-gray-800 text-white'
+                              onClick={() => handleApplyClick(post.id)}
+                            >
+                              Ứng tuyển ngay
+                            </Button>
                             <Button
                               variant='outline'
                               className='w-full text-gray-600 hover:text-gray-900 hover:bg-gray-50'
@@ -290,6 +373,99 @@ export default function JobsFreelancer() {
           </div>
         </div>
       </div>
+
+      {/* Application Dialog */}
+      <Dialog open={isApplyDialogOpen} onOpenChange={handleDialogClose}>
+        <DialogContent className='sm:max-w-[600px] bg-white'>
+          <DialogHeader>
+            <DialogTitle className='text-2xl font-bold'>Nộp hồ sơ ứng tuyển</DialogTitle>
+            <DialogDescription>Vui lòng tải lên CV và viết thư giới thiệu của bạn</DialogDescription>
+          </DialogHeader>
+
+          <div className='space-y-6 py-4'>
+            {/* CV Upload */}
+            <div className='space-y-3'>
+              <label className='flex items-center text-md font-semibold text-gray-700'>
+                <Upload className='h-4 w-4 mr-2' />
+                Tải lên CV từ máy tính, chọn hoặc kéo thả
+              </label>
+              <p className='text-sm text-gray-500'>Hỗ trợ định dạng .doc, .docx, pdf có kích thước dưới 5MB</p>
+
+              <div className='border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-500 transition-colors cursor-pointer'>
+                <input
+                  type='file'
+                  id='cv-upload'
+                  accept='.doc,.docx,.pdf'
+                  onChange={handleFileChange}
+                  className='hidden'
+                />
+                <label htmlFor='cv-upload' className='cursor-pointer'>
+                  <div className='flex flex-col items-center'>
+                    <div className='w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3'>
+                      <Upload className='h-6 w-6 text-gray-400' />
+                    </div>
+                    {cvFile ? (
+                      <div className='flex items-center gap-2 text-sm'>
+                        <FileText className='h-4 w-4 text-green-600' />
+                        <span className='font-medium text-green-600'>{cvFile.name}</span>
+                      </div>
+                    ) : (
+                      <>
+                        <p className='text-sm font-semibold text-gray-700 mb-1'>
+                          Tải lên CV từ máy tính, chọn hoặc kéo thả
+                        </p>
+                        <p className='text-xs text-gray-500'>Hỗ trợ .doc, .docx, pdf (dưới 5MB)</p>
+                      </>
+                    )}
+                  </div>
+                </label>
+                {cvFile && (
+                  <Button variant='outline' size='sm' className='mt-3' onClick={() => setCvFile(null)}>
+                    Chọn file khác
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {/* Cover Letter */}
+            <div className='space-y-3'>
+              <label className='flex items-center text-md font-semibold text-gray-700'>
+                <FileText className='h-4 w-4 mr-2' />
+                Thư giới thiệu:
+              </label>
+              <p className='text-sm text-gray-500'>
+                Một thư giới thiệu ngắn gọn, chỉn chu sẽ giúp bạn trở nên chuyên nghiệp và gây ấn tượng hơn với nhà
+                tuyển dụng.
+              </p>
+              <Textarea
+                placeholder='Viết giới thiệu ngắn gọn về bản thân (điểm mạnh, điểm yếu) và nêu rõ mong muốn, lý do bạn muốn ứng tuyển cho vị trí này.'
+                rows={6}
+                className='w-full resize-none border-2 focus:border-blue-500'
+                value={coverLetter}
+                onChange={(e) => setCoverLetter(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* Footer Buttons */}
+          <div className='flex gap-3 pt-4 border-t'>
+            <Button
+              className='flex-1 bg-white text-gray-900 hover:bg-gray-50 hover:text-gray-800'
+              onClick={handleDialogClose}
+              disabled={isSubmitting}
+            >
+              Hủy
+            </Button>
+            <Button
+              className='flex-1 bg-gray-900 hover:bg-gray-800 text-white'
+              onClick={handleSubmitApplication}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Đang gửi...' : 'Nộp hồ sơ ứng tuyển'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

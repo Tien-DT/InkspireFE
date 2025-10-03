@@ -9,3 +9,11 @@ export const useRecruitments = (page: number, pageSize: number) => {
     placeholderData: keepPreviousData
   })
 }
+
+export const useUserRecruitments = (page: number, pageSize: number) => {
+  return useQuery<RecruitmentResponse>({
+    queryKey: ['user-recruitments', page, pageSize],
+    queryFn: () => recruitmentApi.getUserRecruitments({ page, pageSize }),
+    placeholderData: keepPreviousData
+  })
+}

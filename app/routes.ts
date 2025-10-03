@@ -12,11 +12,13 @@ export default [
 
     // Protected routes
     layout('./layouts/ProtectedLayout/ProtectedLayout.tsx', [
+      route('profile', './routes/profile.tsx'),
       route('dashboard-freelancer', './routes/dashboard-freelancer.tsx'),
       route('post-project', './routes/post-project.tsx'),
       route('post-new-project', './routes/post-new-project.tsx'),
       route('post-project-confirm', './routes/post-project-confirm.tsx'),
       route('manage-project', './routes/manage-project.tsx'),
+      route('manage-post-project', './routes/manage-post-project.tsx'),
       route('payment', './routes/payment.tsx'),
       route('chat', './routes/chat.tsx'),
       route('banking-qr', './routes/banking-qr.tsx'),
