@@ -1,10 +1,12 @@
-import { Outlet, useMatches } from 'react-router'
+import { Outlet, redirect, useMatches } from 'react-router'
 import { IconLayoutGrid } from '@tabler/icons-react'
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 
 import { JobsShowcase } from '~/components/showcase/jobs-showcase'
 import { cn } from '~/utils/cn'
+import { Link } from 'react-router'
+import { getAccessTokenFromLS } from '~/utils/auth'
 
 type AuthLayoutProps = {
   children: ReactNode
@@ -28,6 +30,13 @@ type AuthPanelProps = {
   brandHref?: string
 }
 
+
+export async function clientLoader() {
+  const token = getAccessTokenFromLS()
+  if (token) return redirect('/')
+  return null
+}
+
 export function AuthLayout({ children, rightPanel = <JobsShowcase />, className }: AuthLayoutProps) {
   return (
     <div className={cn('grid min-h-screen grid-cols-1 lg:min-h-[100svh] lg:grid-cols-2', className)}>
@@ -37,16 +46,16 @@ export function AuthLayout({ children, rightPanel = <JobsShowcase />, className 
   )
 }
 
-export function AuthPanel({ children, footer, className, contentClassName, brandHref = '#' }: AuthPanelProps) {
+export function AuthPanel({ children, footer, className, contentClassName, brandHref = '/' }: AuthPanelProps) {
   return (
     <div className={cn('flex flex-col gap-6 p-6 md:p-10 lg:px-12', className)}>
       <div className='flex justify-center gap-2 md:justify-start'>
-        <a href={brandHref} className='flex items-center gap-2 font-medium text-slate-900'>
+        <Link to={brandHref} className='flex items-center gap-2 font-medium text-slate-900'>
           <div className='flex size-6 items-center justify-center rounded-md bg-emerald-500 text-white'>
             <IconLayoutGrid className='size-4' />
           </div>
           Inkspire
-        </a>
+        </Link>
       </div>
       <div className='flex flex-1 items-center justify-center'>
         <div className={cn('w-full max-w-md space-y-8', contentClassName)}>{children}</div>

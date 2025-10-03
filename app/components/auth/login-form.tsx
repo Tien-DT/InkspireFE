@@ -6,6 +6,7 @@ import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { useLogin } from '~/hooks/useAuth'
 import { GoogleLoginButton } from '~/components/auth/google-login-button'
+import { Link } from 'react-router'
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
@@ -17,7 +18,7 @@ export function LoginForm() {
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    
+
     // Basic validation
     if (!email || !password) {
       return
@@ -39,12 +40,12 @@ export function LoginForm() {
       <form onSubmit={handleSubmit} className='grid gap-6 text-left'>
         <div className='grid gap-3'>
           <Label htmlFor='login-email'>Email</Label>
-          <Input 
-            id='login-email' 
-            type='email' 
-            placeholder='admin@freelancehub.com' 
-            autoComplete='email' 
-            required 
+          <Input
+            id='login-email'
+            type='email'
+            placeholder='admin@freelancehub.com'
+            autoComplete='email'
+            required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             disabled={isPending}
@@ -53,9 +54,9 @@ export function LoginForm() {
         <div className='grid gap-3'>
           <div className='flex items-center'>
             <Label htmlFor='login-password'>Mật khẩu</Label>
-            <a href='#' className='ml-auto text-sm font-medium text-emerald-600 underline-offset-4 hover:underline'>
+            <Link to='/auth/forgot-password' className='ml-auto text-sm font-medium text-emerald-600 underline-offset-4 hover:underline'>
               Quên mật khẩu?
-            </a>
+            </Link>
           </div>
           <div className='relative'>
             <Input
@@ -95,8 +96,8 @@ export function LoginForm() {
             Ghi nhớ đăng nhập
           </Label>
         </div>
-        <Button 
-          type='submit' 
+        <Button
+          type='submit'
           className='w-full rounded-xl bg-emerald-500 text-sm font-semibold text-white hover:bg-emerald-500/90'
           disabled={isPending}
         >
@@ -110,9 +111,9 @@ export function LoginForm() {
       </form>
       <div className='text-center text-sm text-muted-foreground'>
         Chưa có tài khoản?{' '}
-        <a href='/register' className='font-semibold text-emerald-600 underline-offset-4 hover:underline'>
+        <Link to='/register' className='font-semibold text-emerald-600 underline-offset-4 hover:underline'>
           Đăng ký ngay
-        </a>
+        </Link>
       </div>
     </>
   )
