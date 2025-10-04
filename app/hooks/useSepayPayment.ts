@@ -134,7 +134,6 @@ export function useSepayPayment(options: UseSepayPaymentOptions = {}): UseSepayP
   // Refs for intervals
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null)
-  const hasStartedPollingRef = useRef(false) // Track if polling already started
 
   /**
    * Calculate countdown from expiry time
@@ -207,16 +206,31 @@ export function useSepayPayment(options: UseSepayPaymentOptions = {}): UseSepayP
 
         if (status === 'COMPLETED') {
           console.log('[useSepayPayment] Payment COMPLETED - stopping polling')
+          // Stop interval directly
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current)
+            pollingIntervalRef.current = null
+          }
           setIsPolling(false)
           stopCountdown()
           onSuccess?.(response.data)
         } else if (status === 'EXPIRED') {
           console.log('[useSepayPayment] Payment EXPIRED - stopping polling')
+          // Stop interval directly
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current)
+            pollingIntervalRef.current = null
+          }
           setIsPolling(false)
           stopCountdown()
           onExpired?.()
         } else if (status === 'CANCELLED') {
           console.log('[useSepayPayment] Payment CANCELLED - stopping polling')
+          // Stop interval directly
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current)
+            pollingIntervalRef.current = null
+          }
           setIsPolling(false)
           stopCountdown()
           onCancelled?.()
@@ -229,21 +243,21 @@ export function useSepayPayment(options: UseSepayPaymentOptions = {}): UseSepayP
     } catch (err) {
       console.error('[useSepayPayment] Error refreshing payment status:', err)
     }
-  }, [paymentData?.transactionId, onSuccess, onExpired, onCancelled, stopCountdown])
+  }, [paymentData?.transactionId, stopCountdown, onSuccess, onExpired, onCancelled])
 
   /**
    * Start polling payment status
    */
   const startPolling = useCallback(() => {
     if (!autoPolling) return
-    
-    // Prevent multiple polling intervals
+
+    // Prevent creating multiple intervals
     if (pollingIntervalRef.current) {
       console.log('[useSepayPayment] Polling already active, skipping')
       return
     }
 
-    console.log('[useSepayPayment] Starting polling interval')
+    console.log('[useSepayPayment] Starting new polling interval')
     setIsPolling(true)
 
     // Poll immediately
@@ -259,13 +273,12 @@ export function useSepayPayment(options: UseSepayPaymentOptions = {}): UseSepayP
    * Stop polling
    */
   const stopPolling = useCallback(() => {
-    console.log('[useSepayPayment] Stopping polling')
     if (pollingIntervalRef.current) {
+      console.log('[useSepayPayment] Stopping polling interval')
       clearInterval(pollingIntervalRef.current)
       pollingIntervalRef.current = null
     }
     setIsPolling(false)
-    hasStartedPollingRef.current = false
   }, [])
 
   /**
@@ -342,7 +355,6 @@ export function useSepayPayment(options: UseSepayPaymentOptions = {}): UseSepayP
     setPaymentStatus(null)
     setError(null)
     setCountdown(0)
-    hasStartedPollingRef.current = false
   }, [stopPolling, stopCountdown])
 
   /**
@@ -359,12 +371,18 @@ export function useSepayPayment(options: UseSepayPaymentOptions = {}): UseSepayP
    * Auto-start polling when payment is created
    */
   useEffect(() => {
-    if (paymentData && paymentStatus?.status === 'PENDING' && !hasStartedPollingRef.current) {
+    if (paymentData && paymentStatus?.status === 'PENDING') {
       console.log('[useSepayPayment] Payment created, starting auto-polling')
-      hasStartedPollingRef.current = true
       startPolling()
+      
+      // Cleanup: stop polling when effect re-runs or unmounts
+      return () => {
+        console.log('[useSepayPayment] Cleaning up polling')
+        stopPolling()
+      }
     }
-  }, [paymentData, paymentStatus?.status]) // Remove startPolling from deps
+  }, [paymentData?.transactionId, paymentStatus?.status])
+  // Note: Intentionally NOT including startPolling/stopPolling to prevent infinite loops
 
   return {
     paymentData,
