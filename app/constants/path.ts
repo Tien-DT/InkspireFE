@@ -17,6 +17,7 @@ export const PATH = {
   postNewProject: '/post-new-project',
   manageProject: '/manage-project',
   managePostProject: '/manage-post-project',
+  manageApplications: '/manage-applications',
   manageJobs: '/manage-jobs',
   payment: '/payment',
   chat: '/chat',

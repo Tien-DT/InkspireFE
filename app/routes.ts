@@ -19,6 +19,7 @@ export default [
       route('post-project-confirm', './routes/post-project-confirm.tsx'),
       route('manage-project', './routes/manage-project.tsx'),
       route('manage-post-project', './routes/manage-post-project.tsx'),
+      route('manage-applications', './routes/manage-applications.tsx'),
       route('payment', './routes/payment.tsx'),
       route('chat', './routes/chat.tsx'),
       route('banking-qr', './routes/banking-qr.tsx'),
