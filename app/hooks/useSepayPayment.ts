@@ -134,6 +134,7 @@ export function useSepayPayment(options: UseSepayPaymentOptions = {}): UseSepayP
   // Refs for intervals
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const hasStartedPollingRef = useRef(false) // Track if polling already started
 
   /**
    * Calculate countdown from expiry time
@@ -235,12 +236,14 @@ export function useSepayPayment(options: UseSepayPaymentOptions = {}): UseSepayP
    */
   const startPolling = useCallback(() => {
     if (!autoPolling) return
-
-    // Clear existing interval
+    
+    // Prevent multiple polling intervals
     if (pollingIntervalRef.current) {
-      clearInterval(pollingIntervalRef.current)
+      console.log('[useSepayPayment] Polling already active, skipping')
+      return
     }
 
+    console.log('[useSepayPayment] Starting polling interval')
     setIsPolling(true)
 
     // Poll immediately
@@ -256,11 +259,13 @@ export function useSepayPayment(options: UseSepayPaymentOptions = {}): UseSepayP
    * Stop polling
    */
   const stopPolling = useCallback(() => {
+    console.log('[useSepayPayment] Stopping polling')
     if (pollingIntervalRef.current) {
       clearInterval(pollingIntervalRef.current)
       pollingIntervalRef.current = null
     }
     setIsPolling(false)
+    hasStartedPollingRef.current = false
   }, [])
 
   /**
@@ -337,6 +342,7 @@ export function useSepayPayment(options: UseSepayPaymentOptions = {}): UseSepayP
     setPaymentStatus(null)
     setError(null)
     setCountdown(0)
+    hasStartedPollingRef.current = false
   }, [stopPolling, stopCountdown])
 
   /**
@@ -353,11 +359,12 @@ export function useSepayPayment(options: UseSepayPaymentOptions = {}): UseSepayP
    * Auto-start polling when payment is created
    */
   useEffect(() => {
-    if (paymentData && paymentStatus?.status === 'PENDING') {
+    if (paymentData && paymentStatus?.status === 'PENDING' && !hasStartedPollingRef.current) {
       console.log('[useSepayPayment] Payment created, starting auto-polling')
+      hasStartedPollingRef.current = true
       startPolling()
     }
-  }, [paymentData, paymentStatus?.status, startPolling])
+  }, [paymentData, paymentStatus?.status]) // Remove startPolling from deps
 
   return {
     paymentData,
