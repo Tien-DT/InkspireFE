@@ -46,8 +46,12 @@ export const sepayApi = {
    * @returns Payment status details
    */
   getPaymentStatus: async (transactionId: string) => {
+    // Add timestamp to prevent caching
     const response = await axiosClient.get<SepayApiResponse<SepayPaymentStatusResponse>>(
-      `${URL_SEPAY_PAYMENTS}/${transactionId}`
+      `${URL_SEPAY_PAYMENTS}/${transactionId}`,
+      {
+        params: { _t: Date.now() }
+      }
     )
     return response.data
   },
