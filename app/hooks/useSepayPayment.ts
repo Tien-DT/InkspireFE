@@ -188,30 +188,45 @@ export function useSepayPayment(options: UseSepayPaymentOptions = {}): UseSepayP
     if (!paymentData?.transactionId) return
 
     try {
+      console.log('[useSepayPayment] Fetching payment status for:', paymentData.transactionId)
       const response = await sepayApi.getPaymentStatus(paymentData.transactionId)
+      
+      console.log('[useSepayPayment] API response:', {
+        success: response.success,
+        status: response.data?.status,
+        fullData: response.data
+      })
       
       if (response.success && response.data) {
         setPaymentStatus(response.data)
 
         // Handle status changes
         const status = response.data.status
+        console.log('[useSepayPayment] Current status:', status)
 
         if (status === 'COMPLETED') {
+          console.log('[useSepayPayment] Payment COMPLETED - stopping polling')
           setIsPolling(false)
           stopCountdown()
           onSuccess?.(response.data)
         } else if (status === 'EXPIRED') {
+          console.log('[useSepayPayment] Payment EXPIRED - stopping polling')
           setIsPolling(false)
           stopCountdown()
           onExpired?.()
         } else if (status === 'CANCELLED') {
+          console.log('[useSepayPayment] Payment CANCELLED - stopping polling')
           setIsPolling(false)
           stopCountdown()
           onCancelled?.()
+        } else {
+          console.log('[useSepayPayment] Payment still pending:', status)
         }
+      } else {
+        console.warn('[useSepayPayment] API returned success=false or no data')
       }
     } catch (err) {
-      console.error('Error refreshing payment status:', err)
+      console.error('[useSepayPayment] Error refreshing payment status:', err)
     }
   }, [paymentData?.transactionId, onSuccess, onExpired, onCancelled, stopCountdown])
 
@@ -265,7 +280,7 @@ export function useSepayPayment(options: UseSepayPaymentOptions = {}): UseSepayP
           transactionRef: response.data.transactionRef,
           status: response.data.status as SepayTransactionStatus,
           amount: response.data.amount,
-          orderInfo: request.orderInfo,
+          orderInfo: request.OrderInfo, // PascalCase property name
           createdAt: new Date().toISOString(),
           expiresAt: response.data.expiresAt
         })
