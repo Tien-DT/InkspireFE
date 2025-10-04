@@ -1,6 +1,4 @@
-import { Navigate, Outlet, redirect, useLoaderData, useLocation, useOutletContext } from 'react-router'
-import axiosClient from '~/lib/axios'
-import { getAccessTokenFromLS } from '~/utils/auth'
+import { Navigate, Outlet, useLocation } from 'react-router'
 import { PATH } from '~/constants/path'
 import { RecruitmentFormProvider } from '~/contexts/RecruitmentFormContext'
 import { useAuth } from '~/contexts/AuthContext'
