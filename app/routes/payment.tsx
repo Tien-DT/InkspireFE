@@ -17,7 +17,7 @@ export default function payment() {
   const userId = profile?.id || '00000000-0000-0000-0000-000000000001'
 
   // Thông tin đơn hàng
-  const orderAmount = 249000
+  const orderAmount = 4000
   const orderInfo = 'Sản xuất nội dung truyền thông - Giai đoạn 1'
   const orderDescription = 'Viết bài social và kịch bản video đầu tiên truyền tải thông điệp "Cùng Cocoon sống xanh"'
 
