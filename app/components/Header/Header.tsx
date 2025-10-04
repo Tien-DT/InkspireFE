@@ -79,16 +79,19 @@ export function Header() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align='end'>
                     <DropdownMenuItem asChild>
-                    <Link to={PATH.profile} className="flex items-center">
-   <User className='mr-2 h-4 w-4' />
-    Thông tin cá nhân
-   </Link>
+                      <Link to={PATH.profile} className='flex items-center'>
+                        <User className='mr-2 h-4 w-4' />
+                        Thông tin cá nhân
+                      </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem>
                       <Link to={PATH.dashboard}>Dashboard</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem>
                       <Link to={PATH.manageProject}>Quản lý dự án</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Link to={PATH.managePostProject}>Quản lý bài đăng</Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild className='text-destructive'>
