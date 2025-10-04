@@ -61,10 +61,12 @@ export function Header() {
 
                 {/* Messages */}
                 <Button variant='ghost' size='icon' className='relative'>
-                  <MessageSquareDot className='h-5 w-5' />
-                  <Badge variant='destructive' className='absolute -right-1 -top-1 h-4 w-4 p-0 text-[10px]'>
-                    5
-                  </Badge>
+                  <Link to='/chat'>
+                    <MessageSquareDot className='h-5 w-5' />
+                    <Badge variant='destructive' className='absolute -right-1 -top-1 h-4 w-4 p-0 text-[10px]'>
+                      5
+                    </Badge>
+                  </Link>
                 </Button>
 
                 {/* User Menu */}
