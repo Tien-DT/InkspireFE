@@ -8,7 +8,7 @@ import { Card, CardContent } from '~/components/ui/card'
 export default function ManageProject() {
   return (
     <Suspense fallback={<HydrateFallback variant='details' showHeader />}>
-      <div className='container mx-auto px-4 py-6 space-y-6 flex'>
+      <div className='container mx-auto px-4 py-6 space-y-6 flex min-h-screen bg-background'>
         <div className='w-80 bg-white min-h-screen p-6 rounded-lg'>
           <div className='mb-6'>
             <h2 className='text-lg font-semibold text-gray-900 mb-4'>Thông tin dự án</h2>

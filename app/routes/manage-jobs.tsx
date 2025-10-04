@@ -7,10 +7,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 
 export default function ManageJobs() {
   return (
-    <div className='container mx-auto px-4 py-6 space-y-6'>
+    <div className='container mx-auto px-4 py-6 space-y-6 min-h-screen bg-background'>
       <div className='flex items-center justify-between mb-8'>
         <div>
-          <h1 className='text-3xl font-bold text-[#4A9FD8] mb-2'>Quản lý Công việc</h1>
+          <h1 className='text-3xl font-bold text-gradient mb-2'>Quản lý Công việc</h1>
           <p className='text-muted-foreground'>Theo dõi và quản lý tất cả dự án của bạn</p>
         </div>
         <Select defaultValue='all'>

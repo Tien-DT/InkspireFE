@@ -7,9 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~
 
 export default function SearchFreelancer() {
   return (
-    <div className='container mx-auto px-4 py-6 space-y-6'>
+    <div className='container mx-auto px-4 py-6 space-y-6 min-h-screen bg-background'>
       <div className='text-center mb-8'>
-        <h1 className='text-3xl font-bold text-teal-500 mb-2'>Tìm Kiếm Freelancer</h1>
+        <h1 className='text-3xl font-bold text-gradient mb-2'>Tìm Kiếm Freelancer</h1>
         <p className='text-gray-600'>Khám phá hàng nghìn freelancer tài năng cho dự án của bạn</p>
       </div>
 

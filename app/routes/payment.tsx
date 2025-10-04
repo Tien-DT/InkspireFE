@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { CreditCard, Download, Wallet, QrCode } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent } from '~/components/ui/card'
@@ -7,8 +6,9 @@ import { RadioGroup, RadioGroupItem } from '~/components/ui/radio-group'
 import { SepayPayment } from '~/components/payment/sepay-payment'
 import { useAuth } from '~/contexts/AuthContext'
 import type { SepayPaymentRequest } from '~/types/payment.type'
+import { useState } from 'react'
 
-export default function payment() {
+export default function Payment() {
   const [paymentMethod, setPaymentMethod] = useState<'inkpay' | 'sepay'>('sepay')
   const [showSepayPayment, setShowSepayPayment] = useState(false)
 
@@ -66,7 +66,7 @@ export default function payment() {
   }
 
   return (
-    <div className='container mx-auto px-4 py-6 space-y-6 min-h-screen flex mt-20 justify-center'>
+    <div className='container mx-auto px-4 py-6 space-y-6 min-h-screen bg-background flex mt-20 justify-center'>
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-8'>
         {/* Left Section - Current Order */}
         <div className='lg:col-span-2'>
@@ -82,9 +82,7 @@ export default function payment() {
                 </div>
                 <div className='flex-1'>
                   <h3 className='font-semibold text-gray-900 mb-1'>{orderInfo}</h3>
-                  <p className='text-sm text-gray-600 mb-2'>
-                    Mô tả: {orderDescription}
-                  </p>
+                  <p className='text-sm text-gray-600 mb-2'>Mô tả: {orderDescription}</p>
                 </div>
                 <div className='text-right'>
                   <p className='font-semibold text-gray-900'>{orderAmount.toLocaleString('vi-VN')}đ</p>
@@ -98,8 +96,8 @@ export default function payment() {
             <CardContent className='p-6'>
               <h3 className='text-lg font-semibold text-gray-900 mb-4'>Phương thức thanh toán</h3>
 
-              <RadioGroup 
-                value={paymentMethod} 
+              <RadioGroup
+                value={paymentMethod}
                 onValueChange={(value) => setPaymentMethod(value as 'inkpay' | 'sepay')}
                 className='space-y-4'
               >
@@ -159,16 +157,12 @@ export default function payment() {
                 </div>
               </div>
 
-              <Button 
-                className='w-full bg-gray-900 hover:bg-gray-800 text-white mb-3'
-                onClick={handlePayNow}
-                disabled={showSepayPayment}
-              >
+              <Button className='w-full btn-submit mb-3' onClick={handlePayNow} disabled={showSepayPayment}>
                 <CreditCard className='h-4 w-4 mr-2' />
                 Thanh toán ngay
               </Button>
 
-              <Button variant='ghost' className='w-full text-gray-600'>
+              <Button className='w-full btn-cancel'>
                 <Download className='h-4 w-4 mr-2' />
                 Tải xuống hóa đơn
               </Button>

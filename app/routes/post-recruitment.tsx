@@ -142,9 +142,7 @@ export default function PostRecruitmentPage() {
     },
     onError: (error: any) => {
       const message =
-        error?.response?.data?.message ??
-        error?.message ??
-        'Có lỗi xảy ra khi tạo dự án. Vui lòng thử lại.'
+        error?.response?.data?.message ?? error?.message ?? 'Có lỗi xảy ra khi tạo dự án. Vui lòng thử lại.'
 
       toast.error('Không thể đăng dự án', {
         description: message
@@ -157,10 +155,8 @@ export default function PostRecruitmentPage() {
 
   const currencyPreviewLabel =
     currencyOptions.find((option) => option.value === formValues.currency)?.label ?? 'Chưa chọn'
-  const statusPreviewLabel =
-    statusOptions.find((option) => option.value === formValues.status)?.label ?? 'Chưa chọn'
-  const extrasPreviewLabel =
-    extrasOptions.find((option) => option.id === formValues.extras)?.label ?? 'Chưa chọn'
+  const statusPreviewLabel = statusOptions.find((option) => option.value === formValues.status)?.label ?? 'Chưa chọn'
+  const extrasPreviewLabel = extrasOptions.find((option) => option.id === formValues.extras)?.label ?? 'Chưa chọn'
   const deadlinePreviewLabel = formValues.deadline
     ? new Date(formValues.deadline).toLocaleDateString('vi-VN')
     : 'Chưa chọn'
@@ -222,12 +218,14 @@ export default function PostRecruitmentPage() {
 
   return (
     <Form {...form}>
-      <div className='min-h-screen bg-gradient-to-b from-[#e4f1ff] via-white to-white py-12'>
+      <div className='min-h-screen bg-background py-12'>
         <div className='container mx-auto px-4'>
           <div className='max-w-2xl mx-auto text-center'>
             <p className='text-sm font-semibold uppercase tracking-[0.3em] text-sky-500'>Tuyển dụng</p>
             <h1 className='mt-2 text-3xl font-bold text-slate-900 md:text-4xl'>Đăng Tuyển Dụng Mới</h1>
-            <p className='mt-3 text-base text-muted-foreground md:text-lg'>Chia sẻ dự án của bạn với hàng nghìn freelancer tài năng</p>
+            <p className='mt-3 text-base text-muted-foreground md:text-lg'>
+              Chia sẻ dự án của bạn với hàng nghìn freelancer tài năng
+            </p>
           </div>
 
           <div className='mt-10 flex justify-center'>
@@ -243,7 +241,9 @@ export default function PostRecruitmentPage() {
 
                 return (
                   <div key={step.id} className='flex items-center gap-3'>
-                    <div className={`flex h-10 w-10 items-center justify-center rounded-full border-2 text-sm font-semibold ${circleClass}`}>
+                    <div
+                      className={`flex h-10 w-10 items-center justify-center rounded-full border-2 text-sm font-semibold ${circleClass}`}
+                    >
                       {isCompleted ? <CheckCircle2 className='h-5 w-5' /> : step.id}
                     </div>
                     <span className={`text-base font-semibold ${isActive ? 'text-sky-600' : 'text-gray-500'}`}>
@@ -264,7 +264,10 @@ export default function PostRecruitmentPage() {
                     <span className='mr-3 h-3 w-3 rounded-full bg-sky-500'></span>
                     <h2 className='text-2xl font-semibold text-slate-900'>Thông tin cơ bản</h2>
                   </div>
-                  <p className='mb-10 text-sm text-muted-foreground md:text-base'>Bắt đầu bằng cách mô tả mục tiêu, phạm vi và mong muốn của bạn để thu hút freelancer phù hợp ngay từ đầu.</p>
+                  <p className='mb-10 text-sm text-muted-foreground md:text-base'>
+                    Bắt đầu bằng cách mô tả mục tiêu, phạm vi và mong muốn của bạn để thu hút freelancer phù hợp ngay từ
+                    đầu.
+                  </p>
 
                   <form className='space-y-8' onSubmit={handleBasicSubmit}>
                     <FormField
@@ -512,10 +515,10 @@ export default function PostRecruitmentPage() {
                     </div>
 
                     <div className='flex flex-col gap-3 pt-4 md:flex-row md:items-center md:justify-between'>
-                      <Button type='button' variant='outline' className='w-full md:w-auto'>
+                      <Button type='button' className='w-full md:w-auto btn-cancel'>
                         Lưu nháp
                       </Button>
-                      <Button type='submit' className='w-full bg-gray-900 hover:bg-gray-800 md:w-auto'>
+                      <Button type='submit' className='w-full md:w-auto btn-submit'>
                         Tiếp theo
                       </Button>
                     </div>
@@ -529,7 +532,9 @@ export default function PostRecruitmentPage() {
                     <span className='mr-3 h-3 w-3 rounded-full bg-emerald-500'></span>
                     <h2 className='text-2xl font-semibold text-slate-900'>Chi tiết dự án</h2>
                   </div>
-                  <p className='mb-10 text-sm text-muted-foreground md:text-base'>Cung cấp thông tin chuyên sâu về yêu cầu, kỹ năng và kỳ vọng để freelancer nắm rõ phạm vi công việc.</p>
+                  <p className='mb-10 text-sm text-muted-foreground md:text-base'>
+                    Cung cấp thông tin chuyên sâu về yêu cầu, kỹ năng và kỳ vọng để freelancer nắm rõ phạm vi công việc.
+                  </p>
 
                   <form className='space-y-8' onSubmit={form.handleSubmit(onSubmit)}>
                     <FormField
@@ -573,14 +578,18 @@ export default function PostRecruitmentPage() {
                           className='hidden'
                           onChange={handleFileUpload}
                         />
-                        <p className='mt-4 text-xs text-muted-foreground md:text-sm'>Hỗ trợ PDF, DOCX, JPG, PNG. Dung lượng tối đa 10MB/tệp.</p>
+                        <p className='mt-4 text-xs text-muted-foreground md:text-sm'>
+                          Hỗ trợ PDF, DOCX, JPG, PNG. Dung lượng tối đa 10MB/tệp.
+                        </p>
                       </div>
                       {selectedFiles.length > 0 && (
                         <ul className='space-y-2 rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-700'>
                           {selectedFiles.map((file) => (
                             <li key={file.name} className='flex items-center justify-between'>
                               <span className='truncate'>{file.name}</span>
-                              <span className='text-xs text-muted-foreground'>{(file.size / (1024 * 1024)).toFixed(2)} MB</span>
+                              <span className='text-xs text-muted-foreground'>
+                                {(file.size / (1024 * 1024)).toFixed(2)} MB
+                              </span>
                             </li>
                           ))}
                         </ul>
@@ -667,7 +676,9 @@ export default function PostRecruitmentPage() {
                           name='minExperience'
                           render={({ field }) => (
                             <FormItem className='space-y-3'>
-                              <FormLabel className='text-sm font-medium text-slate-600'>Kinh nghiệm tối thiểu</FormLabel>
+                              <FormLabel className='text-sm font-medium text-slate-600'>
+                                Kinh nghiệm tối thiểu
+                              </FormLabel>
                               <Select value={field.value} onValueChange={field.onChange}>
                                 <FormControl>
                                   <SelectTrigger>
@@ -692,7 +703,9 @@ export default function PostRecruitmentPage() {
                           name='teamSize'
                           render={({ field }) => (
                             <FormItem className='space-y-3'>
-                              <FormLabel className='text-sm font-medium text-slate-600'>Quy mô đội ngũ mong muốn</FormLabel>
+                              <FormLabel className='text-sm font-medium text-slate-600'>
+                                Quy mô đội ngũ mong muốn
+                              </FormLabel>
                               <Select value={field.value} onValueChange={field.onChange}>
                                 <FormControl>
                                   <SelectTrigger>
@@ -719,7 +732,9 @@ export default function PostRecruitmentPage() {
                       name='extras'
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className='mb-4 block text-base font-semibold text-slate-900'>Tùy chọn bổ sung</FormLabel>
+                          <FormLabel className='mb-4 block text-base font-semibold text-slate-900'>
+                            Tùy chọn bổ sung
+                          </FormLabel>
                           <FormControl>
                             <RadioGroup value={field.value} onValueChange={field.onChange} className='space-y-4'>
                               {extrasOptions.map((option) => (
@@ -740,14 +755,10 @@ export default function PostRecruitmentPage() {
                     />
 
                     <div className='flex flex-col gap-3 pt-4 md:flex-row md:items-center md:justify-between'>
-                      <Button type='button' variant='outline' className='w-full md:w-auto' onClick={handleBack}>
+                      <Button type='button' className='w-full md:w-auto btn-cancel' onClick={handleBack}>
                         Quay lại
                       </Button>
-                      <Button
-                        type='submit'
-                        className='w-full bg-gray-900 hover:bg-gray-800 md:w-auto'
-                        disabled={isSubmitting}
-                      >
+                      <Button type='submit' className='w-full md:w-auto btn-submit' disabled={isSubmitting}>
                         {isSubmitting ? 'Đang lưu...' : 'Hoàn thành'}
                       </Button>
                     </div>
@@ -762,15 +773,16 @@ export default function PostRecruitmentPage() {
                   </div>
                   <div className='space-y-2'>
                     <h2 className='text-3xl font-semibold text-slate-900'>Tuyệt vời! Dự án của bạn đã sẵn sàng</h2>
-                    <p className='text-base text-muted-foreground'>Chúng tôi sẽ thông báo khi có freelancer phù hợp phản hồi. Bạn có thể quản lý hoặc đăng thêm dự án bất cứ lúc nào.</p>
+                    <p className='text-base text-muted-foreground'>
+                      Chúng tôi sẽ thông báo khi có freelancer phù hợp phản hồi. Bạn có thể quản lý hoặc đăng thêm dự án
+                      bất cứ lúc nào.
+                    </p>
                   </div>
                   <div className='flex flex-col gap-3 md:flex-row'>
                     <Button variant='outline' onClick={handleReset}>
                       Đăng dự án khác
                     </Button>
-                    <Button className='bg-gray-900 hover:bg-gray-800'>
-                      Xem danh sách ứng tuyển
-                    </Button>
+                    <Button className='bg-gray-900 hover:bg-gray-800'>Xem danh sách ứng tuyển</Button>
                   </div>
                 </div>
               )}
@@ -858,7 +870,9 @@ export default function PostRecruitmentPage() {
                   </div>
                   <div>
                     <p className='text-xs uppercase tracking-wide text-muted-foreground'>Yêu cầu</p>
-                    <p className='whitespace-pre-line text-base text-slate-900'>{formValues.requirements || 'Chưa nhập'}</p>
+                    <p className='whitespace-pre-line text-base text-slate-900'>
+                      {formValues.requirements || 'Chưa nhập'}
+                    </p>
                   </div>
                   <div className='grid gap-4 md:grid-cols-2'>
                     <div>

@@ -232,13 +232,11 @@ export default function ManageApplications() {
   }
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50'>
+    <div className='min-h-screen bg-background'>
       <div className='container mx-auto px-4 py-8'>
         {/* Header */}
         <div className='mb-8'>
-          <h1 className='text-4xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent mb-2'>
-            Quản lý ứng tuyển
-          </h1>
+          <h1 className='text-4xl font-bold text-gradient mb-2'>Quản lý ứng tuyển</h1>
           <p className='text-gray-600'>Theo dõi và quản lý các công việc bạn đã ứng tuyển</p>
         </div>
 
@@ -313,11 +311,7 @@ export default function ManageApplications() {
                   key={filter.value}
                   variant={filterStatus === filter.value ? 'default' : 'outline'}
                   onClick={() => setFilterStatus(filter.value as any)}
-                  className={
-                    filterStatus === filter.value
-                      ? 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700'
-                      : ''
-                  }
+                  className={filterStatus === filter.value ? 'btn-submit' : 'btn-cancel'}
                 >
                   {filter.label}
                 </Button>
@@ -413,16 +407,13 @@ export default function ManageApplications() {
                         </div>
 
                         <div className='flex items-center gap-3'>
-                          <Button
-                            onClick={() => handleViewApplication(application)}
-                            className='bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700'
-                          >
+                          <Button onClick={() => handleViewApplication(application)} className='btn-submit'>
                             <Eye className='h-4 w-4 mr-2' />
                             Xem chi tiết
                           </Button>
 
                           {application.status === 'pending' && (
-                            <Button variant='outline' className='text-red-600 hover:text-red-700 hover:bg-red-50'>
+                            <Button className='btn-cancel text-red-600 hover:text-red-700 hover:bg-red-50'>
                               <XCircle className='h-4 w-4 mr-2' />
                               Rút ứng tuyển
                             </Button>
@@ -649,11 +640,11 @@ export default function ManageApplications() {
                     {/* Action Buttons */}
                     {selectedApplication.status === 'pending' && (
                       <div className='flex gap-3 pt-4 border-t'>
-                        <Button variant='outline' className='text-red-600 hover:text-red-700 hover:bg-red-50'>
+                        <Button className='btn-cancel text-red-600 hover:text-red-700 hover:bg-red-50'>
                           <XCircle className='h-4 w-4 mr-2' />
                           Rút ứng tuyển
                         </Button>
-                        <Button className='bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700'>
+                        <Button className='btn-submit'>
                           <FileText className='h-4 w-4 mr-2' />
                           Chỉnh sửa hồ sơ
                         </Button>
