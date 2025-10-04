@@ -288,8 +288,7 @@ export function useSepayPayment(options: UseSepayPaymentOptions = {}): UseSepayP
         // Start countdown
         startCountdown(response.data.expiresAt)
 
-        // Start polling
-        startPolling()
+        // Polling will auto-start via useEffect when paymentData is set
       } else {
         const errorMsg = response.errorMessage || 'Failed to create payment'
         setError(errorMsg)
@@ -302,7 +301,7 @@ export function useSepayPayment(options: UseSepayPaymentOptions = {}): UseSepayP
     } finally {
       setIsLoading(false)
     }
-  }, [startCountdown, startPolling, onFailure])
+  }, [startCountdown, onFailure])
 
   /**
    * Cancel the current payment
@@ -349,6 +348,16 @@ export function useSepayPayment(options: UseSepayPaymentOptions = {}): UseSepayP
       stopCountdown()
     }
   }, [stopPolling, stopCountdown])
+
+  /**
+   * Auto-start polling when payment is created
+   */
+  useEffect(() => {
+    if (paymentData && paymentStatus?.status === 'PENDING') {
+      console.log('[useSepayPayment] Payment created, starting auto-polling')
+      startPolling()
+    }
+  }, [paymentData, paymentStatus?.status, startPolling])
 
   return {
     paymentData,
