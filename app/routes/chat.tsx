@@ -8,39 +8,41 @@ import { VideoCallDialog } from '~/components/call/VideoCallDialog'
 import { IncomingCallDialog } from '~/components/call/IncomingCallDialog'
 import { useChat } from '~/contexts/ChatContext'
 import { useConnectionStatus } from '~/hooks/useChatHelpers'
+import { Card } from '~/components/ui/card'
 
 export default function Chat() {
   const { currentConversation } = useChat()
   const { isConnected, statusText } = useConnectionStatus()
 
   return (
-    <div className='container mx-auto px-4 py-6 space-y-6 flex h-[calc(100vh-64px)]'>
-      {/* Connection Status Banner */}
+    <div className='container mx-auto flex h-[calc(100vh-64px)] flex-col gap-4 px-4 py-6'>
       {!isConnected && (
-        <div className='absolute top-0 left-0 right-0 bg-yellow-500 text-white px-4 py-2 text-center text-sm z-50'>
+        <div className='rounded-md border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-900'>
           {statusText}
         </div>
       )}
 
-      {/* Left Sidebar - Conversation List */}
-      <ConversationList />
+      <Card className='flex h-full min-h-0 flex-col gap-0 border shadow-sm md:flex-row'>
+        <div className='min-h-0 border-b md:w-[320px] md:border-b-0 md:border-r'>
+          <ConversationList />
+        </div>
+        <div className='flex flex-1 flex-col'>
+          <ChatHeader conversation={currentConversation} />
 
-      {/* Right Side - Chat Area */}
-      <div className='flex-1 flex flex-col'>
-        {/* Chat Header */}
-        <ChatHeader conversation={currentConversation} />
+          {currentConversation ? (
+            <>
+              <MessageList />
+              <TypingIndicator />
+              <MessageInput />
+            </>
+          ) : (
+            <div className='flex flex-1 items-center justify-center px-6 text-sm text-muted-foreground'>
+              Chọn một cuộc trò chuyện để bắt đầu.
+            </div>
+          )}
+        </div>
+      </Card>
 
-        {/* Chat Messages */}
-        <MessageList />
-
-        {/* Typing Indicator */}
-        <TypingIndicator />
-
-        {/* Message Input */}
-        {currentConversation && <MessageInput />}
-      </div>
-
-      {/* Call Dialogs */}
       <VideoCallDialog />
       <IncomingCallDialog />
     </div>

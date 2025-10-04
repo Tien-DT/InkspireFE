@@ -24,3 +24,45 @@ export interface User {
   created_at?: string
   updated_at?: string
 }
+
+// API Response type that matches the backend structure
+export interface UserApiResponse {
+  id: string
+  email: string
+  emailVerified: boolean
+  password: string
+  phoneNumber: string
+  firstName: string
+  lastName: string
+  role: number
+  createdAt: string
+  updatedAt?: string
+  status: number
+  wallets: unknown[]
+  receipts: unknown[]
+  transactions: unknown[]
+  userSubscriptions: unknown[]
+  portfolios: unknown[]
+  userSkills: unknown[]
+  ratingsGiven: unknown[]
+  ratingsReceived: unknown[]
+  socialPosts: unknown[]
+  socialPostComments: unknown[]
+  socialPostEmojis: unknown[]
+  conversationMembers: unknown[]
+  messagesSent: unknown[]
+  attachments: unknown[]
+  comics: unknown[]
+  chapterComments: unknown[]
+  notifications: unknown[]
+  projectsAsClient: unknown[]
+  projectUsers: unknown[]
+  recruitmentPosts: unknown[]
+  proposals: unknown[]
+  userCVs: unknown[]
+  userContractsAsFreelancer: unknown[]
+  userContractsAsClient: unknown[]
+  escrowsFunded: unknown[]
+  thirdPartyAuthTokens: unknown[]
+  refreshTokens: unknown[]
+}

@@ -1,8 +1,9 @@
 import { useEffect, useRef } from 'react'
-import { MessageItem } from './MessageItem'
-import { useCurrentMessages } from '~/hooks/useChatHelpers'
 import { format } from 'date-fns'
 import { vi } from 'date-fns/locale'
+import { Separator } from '~/components/ui/separator'
+import { MessageItem } from './MessageItem'
+import { useCurrentMessages } from '~/hooks/useChatHelpers'
 
 export function MessageList() {
   const { messages } = useCurrentMessages()
@@ -50,23 +51,27 @@ export function MessageList() {
 
   if (messages.length === 0) {
     return (
-      <div className='flex-1 overflow-y-auto p-4 bg-white flex items-center justify-center'>
-        <p className='text-gray-500'>Chưa có tin nhắn nào</p>
+      <div className='flex flex-1 items-center justify-center px-6 text-sm text-muted-foreground'>
+        Chưa có tin nhắn nào. Hãy gửi lời chào đầu tiên!
       </div>
     )
   }
 
   return (
-    <div ref={scrollRef} className='flex-1 overflow-y-auto p-4 space-y-4 bg-white'>
+    <div ref={scrollRef} className='flex-1 overflow-y-auto px-6 py-4'>
       {Object.keys(groupedMessages)
         .sort()
         .reverse()
-        .map((date) => (
-          <div key={date}>
-            <div className='text-center mb-4'>
-              <span className='text-sm text-gray-500'>{formatDate(date)}</span>
+        .map((date, idx, arr) => (
+          <div key={date} className='space-y-3'>
+            <div className='flex items-center gap-3'>
+              <Separator className='flex-1' />
+              <span className='text-xs font-medium uppercase tracking-wide text-muted-foreground'>
+                {formatDate(date)}
+              </span>
+              <Separator className='flex-1' />
             </div>
-            <div className='space-y-4'>
+            <div className='space-y-3'>
               {groupedMessages[date]
                 .sort((a, b) => {
                   const dateA = a.sendAt ? new Date(a.sendAt).getTime() : 0
@@ -77,6 +82,7 @@ export function MessageList() {
                   <MessageItem key={message.id} message={message} />
                 ))}
             </div>
+            {idx !== arr.length - 1 && <div className='pt-1' />}
           </div>
         ))}
     </div>

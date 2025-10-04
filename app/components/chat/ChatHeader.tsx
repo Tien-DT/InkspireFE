@@ -15,23 +15,19 @@ export function ChatHeader({ conversation }: ChatHeaderProps) {
   const { profile } = useAuth()
   const { initiateCall, isInCall } = useVideoCall()
 
-  if (!conversation) {
-    return (
-      <div className='bg-white border-b border-gray-200 p-4'>
-        <div className='flex items-center justify-between'>
-          <div className='flex items-center space-x-3'>
-            <p className='text-gray-500'>Chọn một cuộc trò chuyện</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   // Find other member (not current user)
-  const otherMember = conversation.members?.find((m) => m.userId !== profile?.id)
+  const otherMember = conversation?.members?.find((m) => m.userId !== profile?.id)
   const otherUser = otherMember?.user
 
   const { isOnline } = useOnlineStatus(otherUser?.id)
+
+  if (!conversation) {
+    return (
+      <header className='flex h-16 items-center border-b px-6 text-sm text-muted-foreground'>
+        Chọn một cuộc trò chuyện để xem nội dung.
+      </header>
+    )
+  }
 
   const getInitials = () => {
     if (otherUser?.first_name && otherUser?.last_name) {
@@ -86,43 +82,43 @@ export function ChatHeader({ conversation }: ChatHeaderProps) {
   }
 
   return (
-    <div className='bg-white border-b border-gray-200 p-4'>
-      <div className='flex items-center justify-between'>
-        <div className='flex items-center space-x-3'>
-          <Avatar className='w-10 h-10'>
-            <AvatarFallback className='bg-gray-200'>{getInitials()}</AvatarFallback>
-          </Avatar>
-          <div>
-            <h3 className='font-semibold text-gray-900'>{displayName()}</h3>
-            <p className={`text-sm ${isOnline ? 'text-green-600' : 'text-gray-500'}`}>
-              {isOnline ? '● Đang hoạt động' : 'Offline'}
-            </p>
-          </div>
-        </div>
-        <div className='flex items-center space-x-2'>
-          <Button 
-            variant='ghost' 
-            size='icon'
-            onClick={handleVoiceCall}
-            disabled={isInCall}
-            title='Gọi thoại'
-          >
-            <Phone className='h-5 w-5' />
-          </Button>
-          <Button 
-            variant='ghost' 
-            size='icon'
-            onClick={handleVideoCall}
-            disabled={isInCall}
-            title='Gọi video'
-          >
-            <Video className='h-5 w-5' />
-          </Button>
-          <Button variant='ghost' size='icon'>
-            <MoreHorizontal className='h-5 w-5' />
-          </Button>
+    <header className='flex h-16 items-center justify-between gap-4 border-b px-6'>
+      <div className='flex items-center gap-3'>
+        <Avatar className='h-10 w-10'>
+          <AvatarFallback className='bg-muted text-sm font-medium text-foreground'>
+            {getInitials()}
+          </AvatarFallback>
+        </Avatar>
+        <div className='flex flex-col gap-0.5'>
+          <h3 className='text-sm font-semibold text-foreground'>{displayName()}</h3>
+          <p className={`text-xs ${isOnline ? 'text-emerald-600' : 'text-muted-foreground'}`}>
+            {isOnline ? 'Đang hoạt động' : 'Offline'}
+          </p>
         </div>
       </div>
-    </div>
+      <div className='flex items-center gap-1'>
+        <Button
+          variant='ghost'
+          size='icon'
+          onClick={handleVoiceCall}
+          disabled={isInCall}
+          title='Gọi thoại'
+        >
+          <Phone className='h-5 w-5' />
+        </Button>
+        <Button
+          variant='ghost'
+          size='icon'
+          onClick={handleVideoCall}
+          disabled={isInCall}
+          title='Gọi video'
+        >
+          <Video className='h-5 w-5' />
+        </Button>
+        <Button variant='ghost' size='icon' title='Tùy chọn khác'>
+          <MoreHorizontal className='h-5 w-5' />
+        </Button>
+      </div>
+    </header>
   )
 }

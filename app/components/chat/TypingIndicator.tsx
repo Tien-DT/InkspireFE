@@ -6,14 +6,14 @@ export function TypingIndicator() {
   if (!isAnyoneTyping) return null
 
   return (
-    <div className='px-4 py-2 bg-gray-50 border-t border-gray-100'>
-      <div className='flex items-center space-x-2'>
-        <div className='flex space-x-1'>
-          <div className='w-2 h-2 bg-gray-400 rounded-full animate-bounce' style={{ animationDelay: '0ms' }}></div>
-          <div className='w-2 h-2 bg-gray-400 rounded-full animate-bounce' style={{ animationDelay: '150ms' }}></div>
-          <div className='w-2 h-2 bg-gray-400 rounded-full animate-bounce' style={{ animationDelay: '300ms' }}></div>
+    <div className='border-t bg-muted/40 px-6 py-2'>
+      <div className='flex items-center gap-2 text-xs text-muted-foreground'>
+        <div className='flex gap-1'>
+          <span className='h-2 w-2 animate-bounce rounded-full bg-muted-foreground' style={{ animationDelay: '0ms' }} />
+          <span className='h-2 w-2 animate-bounce rounded-full bg-muted-foreground' style={{ animationDelay: '120ms' }} />
+          <span className='h-2 w-2 animate-bounce rounded-full bg-muted-foreground' style={{ animationDelay: '240ms' }} />
         </div>
-        <span className='text-xs text-gray-600'>{typingText}</span>
+        <span>{typingText}</span>
       </div>
     </div>
   )
