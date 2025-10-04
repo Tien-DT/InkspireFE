@@ -23,7 +23,10 @@ export const PATH = {
   bankingQr: '/banking-qr',
 
   // User routes
-  changePassword: '/user/password'
+  changePassword: '/user/password',
+  postRecruitment: '/post-recruitment'
+  // productDetail: ':nameId',
+  // cart: '/cart'
 } as const
 
 export type PathKeys = keyof typeof PATH

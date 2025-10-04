@@ -20,6 +20,7 @@ import { cn } from '~/utils/cn'
 import { useRegister } from '~/hooks/useAuth'
 import { toast } from 'sonner'
 import { ROLE_MAP, type RoleType } from '~/constants/auth.constants'
+import { Link } from 'react-router'
 
 export function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false)
@@ -90,15 +91,11 @@ export function RegisterForm() {
         </p>
       </div>
       <div className='space-y-6'>
-        <Button
-          asChild
-          variant='outline'
-          className='w-full justify-center gap-3 rounded-xl border-muted/40 bg-background text-sm font-semibold shadow-sm hover:bg-muted/60'
-        >
-          <a href='/auth/google' onClick={() => localStorage.setItem('last_provider', 'google')}>
+        <Button asChild variant='outline' className='w-full justify-center gap-3 rounded-xl border-muted/40 bg-background text-sm font-semibold shadow-sm hover:bg-muted/60'>
+          <Link to='/auth/google' onClick={() => localStorage.setItem('last_provider', 'google')}>
             <GoogleIcon className='size-5' />
             Đăng ký với Google
-          </a>
+          </Link>
         </Button>
         <div className='flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.35em] text-muted-foreground'>
           <Separator className='flex-1 bg-muted' />
@@ -282,13 +279,13 @@ export function RegisterForm() {
               />
               <span className='leading-6'>
                 Tôi đồng ý với{' '}
-                <a href='#' className='font-semibold text-emerald-600 underline-offset-4 hover:underline'>
+                <Link to='#' className='font-semibold text-emerald-600 underline-offset-4 hover:underline'>
                   Điều khoản dịch vụ
-                </a>{' '}
+                </Link>{' '}
                 và{' '}
-                <a href='#' className='font-semibold text-emerald-600 underline-offset-4 hover:underline'>
+                <Link to='#' className='font-semibold text-emerald-600 underline-offset-4 hover:underline'>
                   Chính sách bảo mật
-                </a>
+                </Link>
                 .
               </span>
             </label>
@@ -303,9 +300,9 @@ export function RegisterForm() {
         </form>
         <p className='text-center text-sm text-muted-foreground'>
           Đã có tài khoản?{' '}
-          <a href='/login' className='font-semibold text-emerald-600 underline-offset-4 hover:underline'>
+          <Link to='/login' className='font-semibold text-emerald-600 underline-offset-4 hover:underline'>
             Đăng nhập ngay
-          </a>
+          </Link>
         </p>
       </div>
     </>

@@ -1,10 +1,70 @@
-import { CreditCard, Download, Wallet } from 'lucide-react'
+import { useState } from 'react'
+import { CreditCard, Download, Wallet, QrCode } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent } from '~/components/ui/card'
 import { Label } from '~/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '~/components/ui/radio-group'
+import { SepayPayment } from '~/components/payment/sepay-payment'
+import { useAuth } from '~/contexts/AuthContext'
+import type { SepayPaymentRequest } from '~/types/payment.type'
 
 export default function payment() {
+  const [paymentMethod, setPaymentMethod] = useState<'inkpay' | 'sepay'>('sepay')
+  const [showSepayPayment, setShowSepayPayment] = useState(false)
+
+  // Get user from auth context
+  const { profile } = useAuth()
+  const userId = profile?.id || '00000000-0000-0000-0000-000000000001'
+
+  // Thông tin đơn hàng
+  const orderAmount = 249000
+  const orderInfo = 'Sản xuất nội dung truyền thông - Giai đoạn 1'
+  const orderDescription = 'Viết bài social và kịch bản video đầu tiên truyền tải thông điệp "Cùng Cocoon sống xanh"'
+
+  // Tạo payment request cho Sepay
+  const sepayPaymentRequest: SepayPaymentRequest = {
+    UserId: userId,
+    Amount: orderAmount,
+    OrderInfo: orderInfo,
+    Description: orderDescription,
+    ExpiryMinutes: 15
+  }
+
+  // Handle payment success
+  const handlePaymentSuccess = () => {
+    console.log('Payment successful!')
+    // TODO: Navigate to success page or update UI
+    alert('Thanh toán thành công!')
+  }
+
+  // Handle payment failure
+  const handlePaymentFailure = (error: string) => {
+    console.error('Payment failed:', error)
+    alert('Thanh toán thất bại: ' + error)
+  }
+
+  // Handle payment cancelled
+  const handlePaymentCancel = () => {
+    console.log('Payment cancelled')
+    setShowSepayPayment(false)
+  }
+
+  // Handle payment expired
+  const handlePaymentExpired = () => {
+    console.log('Payment expired')
+    alert('Thanh toán đã hết hạn. Vui lòng thử lại.')
+  }
+
+  // Handle "Thanh toán ngay" button
+  const handlePayNow = () => {
+    if (paymentMethod === 'sepay') {
+      setShowSepayPayment(true)
+    } else {
+      // TODO: Handle InkPay payment
+      alert('Chức năng InkPay đang được phát triển')
+    }
+  }
+
   return (
     <div className='container mx-auto px-4 py-6 space-y-6 min-h-screen flex mt-20 justify-center'>
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-8'>
@@ -21,13 +81,13 @@ export default function payment() {
                   <div className='w-8 h-8 bg-gray-400 rounded'></div>
                 </div>
                 <div className='flex-1'>
-                  <h3 className='font-semibold text-gray-900 mb-1'>Sản xuất nội dung truyền thông - Giai đoạn 1</h3>
+                  <h3 className='font-semibold text-gray-900 mb-1'>{orderInfo}</h3>
                   <p className='text-sm text-gray-600 mb-2'>
-                    Mô tả: Viết bài social và kịch bản video đầu tiên truyền tải thông điệp "Cùng Cocoon sống xanh".
+                    Mô tả: {orderDescription}
                   </p>
                 </div>
                 <div className='text-right'>
-                  <p className='font-semibold text-gray-900'>299.000đ</p>
+                  <p className='font-semibold text-gray-900'>{orderAmount.toLocaleString('vi-VN')}đ</p>
                 </div>
               </div>
             </CardContent>
@@ -38,15 +98,40 @@ export default function payment() {
             <CardContent className='p-6'>
               <h3 className='text-lg font-semibold text-gray-900 mb-4'>Phương thức thanh toán</h3>
 
-              <RadioGroup defaultValue='inkpay' className='space-y-4'>
+              <RadioGroup 
+                value={paymentMethod} 
+                onValueChange={(value) => setPaymentMethod(value as 'inkpay' | 'sepay')}
+                className='space-y-4'
+              >
                 <div className='flex items-center space-x-3 p-4 border rounded-lg'>
                   <RadioGroupItem value='inkpay' id='inkpay' />
                   <Wallet className='h-5 w-5 text-blue-600' />
                   <Label htmlFor='inkpay' className='flex-1 cursor-pointer'>
-                    Ví InkPay ( Số dư 1.000.000 )
+                    Ví InkPay ( Số dư 1.000.000đ )
+                  </Label>
+                </div>
+
+                <div className='flex items-center space-x-3 p-4 border rounded-lg'>
+                  <RadioGroupItem value='sepay' id='sepay' />
+                  <QrCode className='h-5 w-5 text-green-600' />
+                  <Label htmlFor='sepay' className='flex-1 cursor-pointer'>
+                    Chuyển khoản ngân hàng qua Sepay (TPBank)
                   </Label>
                 </div>
               </RadioGroup>
+
+              {/* Show Sepay Payment Component */}
+              {showSepayPayment && paymentMethod === 'sepay' && (
+                <div className='mt-6'>
+                  <SepayPayment
+                    paymentRequest={sepayPaymentRequest}
+                    onSuccess={handlePaymentSuccess}
+                    onFailure={handlePaymentFailure}
+                    onCancel={handlePaymentCancel}
+                    onExpired={handlePaymentExpired}
+                  />
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -74,7 +159,11 @@ export default function payment() {
                 </div>
               </div>
 
-              <Button className='w-full bg-gray-900 hover:bg-gray-800 text-white mb-3'>
+              <Button 
+                className='w-full bg-gray-900 hover:bg-gray-800 text-white mb-3'
+                onClick={handlePayNow}
+                disabled={showSepayPayment}
+              >
                 <CreditCard className='h-4 w-4 mr-2' />
                 Thanh toán ngay
               </Button>

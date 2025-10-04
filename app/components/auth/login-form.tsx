@@ -6,6 +6,7 @@ import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { useLogin } from '~/hooks/useAuth'
 import { GoogleLoginButton } from '~/components/auth/google-login-button'
+import { Link } from 'react-router'
 import { LoadingOverlay } from '~/components/auth/LoadingOverlay'
 
 export function LoginForm() {
@@ -57,9 +58,9 @@ export function LoginForm() {
         <div className='grid gap-3'>
           <div className='flex items-center'>
             <Label htmlFor='login-password'>Mật khẩu</Label>
-            <a href='#' className='ml-auto text-sm font-medium text-emerald-600 underline-offset-4 hover:underline'>
+            <Link to='/auth/forgot-password' className='ml-auto text-sm font-medium text-emerald-600 underline-offset-4 hover:underline'>
               Quên mật khẩu?
-            </a>
+            </Link>
           </div>
           <div className='relative'>
             <Input
@@ -121,9 +122,9 @@ export function LoginForm() {
       </form>
       <div className='text-center text-sm text-muted-foreground'>
         Chưa có tài khoản?{' '}
-        <a href='/register' className='font-semibold text-emerald-600 underline-offset-4 hover:underline'>
+        <Link to='/register' className='font-semibold text-emerald-600 underline-offset-4 hover:underline'>
           Đăng ký ngay
-        </a>
+        </Link>
       </div>
     </>
   )
