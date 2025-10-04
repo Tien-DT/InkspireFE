@@ -87,6 +87,12 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
 
     // Handle ICE candidates
     pc.onicecandidate = (event) => {
+      console.log('[WebRTC] onicecandidate event:', {
+        hasCandidate: !!event.candidate,
+        candidate: event.candidate?.candidate,
+        callId: callState.callId
+      })
+      
       if (event.candidate && callState.callId) {
         // Determine target user (the other participant)
         // If I'm the caller, send to receiver; if I'm receiver, send to caller
@@ -95,7 +101,7 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
           ? callState.receiver?.userId 
           : callState.caller?.userId
         
-        console.log('[WebRTC] ICE candidate generated:', {
+        console.log('[WebRTC] Sending ICE candidate:', {
           callId: callState.callId,
           iAmCaller,
           myId: profile?.id,
@@ -109,9 +115,12 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
             targetUserId,
             candidate: event.candidate.toJSON()
           })
+          console.log('[WebRTC] ICE candidate sent to SignalR')
         } else {
           console.error('[WebRTC] Cannot send ICE candidate - no target user!')
         }
+      } else if (!event.candidate) {
+        console.log('[WebRTC] ICE gathering completed (null candidate)')
       }
     }
 
@@ -262,8 +271,33 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
       // Create offer
       const offer = await pc.createOffer()
       await pc.setLocalDescription(offer)
+      
+      console.log('[WebRTC] Offer created, waiting for ICE gathering...')
+      
+      // Wait for ICE gathering to complete (or timeout after 3 seconds)
+      await new Promise<void>((resolve) => {
+        const timeout = setTimeout(() => {
+          console.log('[WebRTC] ICE gathering timeout - proceeding anyway')
+          resolve()
+        }, 3000)
+        
+        if (pc.iceGatheringState === 'complete') {
+          clearTimeout(timeout)
+          resolve()
+        } else {
+          pc.onicegatheringstatechange = () => {
+            console.log('[WebRTC] ICE gathering state:', pc.iceGatheringState)
+            if (pc.iceGatheringState === 'complete') {
+              clearTimeout(timeout)
+              resolve()
+            }
+          }
+        }
+      })
+      
+      console.log('[WebRTC] ICE gathering completed, sending offer...')
 
-      // Send offer via SignalR
+      // Send offer via SignalR with potentially updated SDP (includes ICE candidates)
       const callOffer: CallOffer = {
         callId,
         conversationId,
@@ -278,7 +312,7 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
           userName: receiverName,
           isCaller: false
         },
-        sdp: offer
+        sdp: pc.localDescription!  // Use the final local description with ICE candidates
       }
 
       await signalRChatService.sendCallOffer(callOffer)
@@ -340,12 +374,36 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
       const answer = await pc.createAnswer()
       await pc.setLocalDescription(answer)
       console.log('[WebRTC] Local description set:', answer.type)
+      
+      // Wait for ICE gathering to complete (or timeout after 3 seconds)
+      console.log('[WebRTC] Waiting for ICE gathering...')
+      await new Promise<void>((resolve) => {
+        const timeout = setTimeout(() => {
+          console.log('[WebRTC] ICE gathering timeout - proceeding anyway')
+          resolve()
+        }, 3000)
+        
+        if (pc.iceGatheringState === 'complete') {
+          clearTimeout(timeout)
+          resolve()
+        } else {
+          pc.onicegatheringstatechange = () => {
+            console.log('[WebRTC] ICE gathering state:', pc.iceGatheringState)
+            if (pc.iceGatheringState === 'complete') {
+              clearTimeout(timeout)
+              resolve()
+            }
+          }
+        }
+      })
+      
+      console.log('[WebRTC] ICE gathering completed, sending answer...')
 
-      // Send answer via SignalR
+      // Send answer via SignalR with final SDP (includes ICE candidates)
       const callAnswer: CallAnswer = {
         callId: callState.callId,
         callerId: callState.caller?.userId || '',  // ID of the person who initiated the call
-        sdp: answer
+        sdp: pc.localDescription!  // Use final local description with ICE candidates
       }
 
       console.log('[WebRTC] Sending answer to caller:', callState.caller?.userId)
@@ -522,16 +580,27 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
   }, [])
 
   const handleCallIceCandidate = useCallback(async (data: CallIceCandidate) => {
+    console.log('[WebRTC] ===== RECEIVED ICE CANDIDATE =====')
+    console.log('[WebRTC] CallId:', data.callId)
+    console.log('[WebRTC] Candidate type:', data.candidate.candidate ? 'valid' : 'null')
+    
     if (!peerConnection.current) {
-      console.error('[WebRTC] No peer connection found for ICE candidate')
+      console.error('[WebRTC] No peer connection found for ICE candidate - discarding')
       return
     }
 
+    console.log('[WebRTC] Peer connection state:', {
+      connectionState: peerConnection.current.connectionState,
+      iceConnectionState: peerConnection.current.iceConnectionState,
+      signalingState: peerConnection.current.signalingState
+    })
+
     try {
       await peerConnection.current.addIceCandidate(new RTCIceCandidate(data.candidate))
-      console.log('[WebRTC] Added ICE candidate')
+      console.log('[WebRTC] ===== ICE CANDIDATE ADDED SUCCESSFULLY =====')
     } catch (error) {
-      console.error('[WebRTC] Failed to add ICE candidate:', error)
+      console.error('[WebRTC] ===== FAILED TO ADD ICE CANDIDATE =====')
+      console.error('[WebRTC] Error:', error)
     }
   }, [])
 
