@@ -15,32 +15,33 @@ export enum SepayTransactionStatus {
 
 /**
  * Request model for creating a Sepay payment
+ * Note: Using PascalCase to match BE model (BE doesn't use camelCase)
  */
 export interface SepayPaymentRequest {
   /**
    * User ID initiating the payment
    */
-  userId: string
+  UserId: string
 
   /**
    * Payment amount in VND
    */
-  amount: number
+  Amount: number
 
   /**
    * Order information/description
    */
-  orderInfo: string
+  OrderInfo: string
 
   /**
    * Additional description (optional)
    */
-  description?: string
+  Description?: string
 
   /**
    * Payment expiry time in minutes (default: 15 minutes)
    */
-  expiryMinutes?: number
+  ExpiryMinutes?: number
 }
 
 /**

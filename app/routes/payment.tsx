@@ -5,14 +5,16 @@ import { Card, CardContent } from '~/components/ui/card'
 import { Label } from '~/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '~/components/ui/radio-group'
 import { SepayPayment } from '~/components/payment/sepay-payment'
+import { useAuth } from '~/contexts/AuthContext'
 import type { SepayPaymentRequest } from '~/types/payment.type'
 
 export default function payment() {
   const [paymentMethod, setPaymentMethod] = useState<'inkpay' | 'sepay'>('sepay')
   const [showSepayPayment, setShowSepayPayment] = useState(false)
 
-  // Mock user ID - thay bằng user thực từ auth context
-  const userId = '00000000-0000-0000-0000-000000000001'
+  // Get user from auth context
+  const { profile } = useAuth()
+  const userId = profile?.id || '00000000-0000-0000-0000-000000000001'
 
   // Thông tin đơn hàng
   const orderAmount = 249000
@@ -21,11 +23,11 @@ export default function payment() {
 
   // Tạo payment request cho Sepay
   const sepayPaymentRequest: SepayPaymentRequest = {
-    userId: userId,
-    amount: orderAmount,
-    orderInfo: orderInfo,
-    description: orderDescription,
-    expiryMinutes: 15
+    UserId: userId,
+    Amount: orderAmount,
+    OrderInfo: orderInfo,
+    Description: orderDescription,
+    ExpiryMinutes: 15
   }
 
   // Handle payment success
