@@ -14,6 +14,7 @@
  */
 
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router'
 import { Check, Copy, QrCode, X, RefreshCw, Loader2, Clock } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
@@ -102,6 +103,7 @@ export function SepayPayment({
 }: SepayPaymentProps) {
   const [copiedRef, setCopiedRef] = useState(false)
   const [copiedAccount, setCopiedAccount] = useState(false)
+  const navigate = useNavigate()
 
   // Use Sepay payment hook
   const {
@@ -113,12 +115,20 @@ export function SepayPayment({
     isPolling,
     createPayment,
     cancelPayment,
-    reset
+    reset,
+    refreshStatus
   } = useSepayPayment({
     autoPolling: true,
     pollingInterval: 5000,
-    onSuccess: () => {
+    onSuccess: (statusData) => {
+      // Show success alert
+      alert(`🎉 Thanh toán thành công!\n\nSố tiền: ${formatCurrency(statusData.amount)}\nMã giao dịch: ${statusData.transactionRef}`)
+      
+      // Call parent callback
       onSuccess?.()
+      
+      // Navigate to home page
+      navigate('/')
     },
     onFailure: (err) => {
       onFailure?.(err)
@@ -131,10 +141,25 @@ export function SepayPayment({
     }
   })
 
+  const [isManualChecking, setIsManualChecking] = useState(false)
+
   // Create payment on mount
   useEffect(() => {
     createPayment(paymentRequest)
   }, []) // Only run once on mount
+
+  /**
+   * Handle manual check
+   */
+  const handleManualCheck = async () => {
+    setIsManualChecking(true)
+    try {
+      await refreshStatus()
+    } finally {
+      // Keep spinner for 500ms for better UX
+      setTimeout(() => setIsManualChecking(false), 500)
+    }
+  }
 
   /**
    * Handle retry
@@ -244,15 +269,44 @@ export function SepayPayment({
 
         {/* Countdown Timer */}
         {isPending && (
-          <div className="flex items-center justify-center space-x-2 text-lg">
-            <Clock className="h-5 w-5 text-orange-500" />
-            <span className="font-mono font-semibold text-orange-600">
-              {formatCountdown(countdown)}
-            </span>
-            <span className="text-gray-600">còn lại</span>
-            {isPolling && (
-              <Loader2 className="h-4 w-4 animate-spin text-blue-500 ml-2" />
-            )}
+          <div className="space-y-3">
+            <div className="flex items-center justify-center space-x-2 text-lg">
+              <Clock className="h-5 w-5 text-orange-500" />
+              <span className="font-mono font-semibold text-orange-600">
+                {formatCountdown(countdown)}
+              </span>
+              <span className="text-gray-600">còn lại</span>
+              {isPolling && (
+                <Loader2 className="h-4 w-4 animate-spin text-blue-500 ml-2" />
+              )}
+            </div>
+
+            {/* Manual Check Button */}
+            <div className="flex justify-center">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleManualCheck}
+                disabled={isManualChecking}
+                className="text-blue-600 border-blue-300 hover:bg-blue-50"
+              >
+                {isManualChecking ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Đang kiểm tra...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Kiểm tra thanh toán
+                  </>
+                )}
+              </Button>
+            </div>
+
+            <p className="text-xs text-center text-gray-500">
+              Hệ thống tự động kiểm tra mỗi 5 giây
+            </p>
           </div>
         )}
 
