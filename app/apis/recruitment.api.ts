@@ -58,7 +58,7 @@ export const recruitmentApi = {
         }>
       }>
     }>(`${URL_RECRUITMENT_POSTS_BY_USER}/${userId}`)
-    // console.log("recruitment: ",response.data)
+    console.log('recruitment: ', response.data)
     return response.data
   },
 

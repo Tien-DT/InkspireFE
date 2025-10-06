@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Mail, Phone, MapPin, Star, DollarSign, Clock, Edit, Plus, Image, Eye, Trash2 } from 'lucide-react'
 import { Card, CardContent, CardHeader } from '~/components/ui/card'
 import { Badge } from '~/components/ui/badge'
@@ -9,74 +9,112 @@ import { Input } from '~/components/ui/input'
 import { Textarea } from '~/components/ui/textarea'
 import { Label } from '~/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
+import { useUserProfile } from '~/hooks/useUser'
+import { getProfileFromLS } from '~/utils/auth'
 
-// Mock data
-const mockUserProfile = {
-  name: 'Nguyễn Văn An',
-  title: 'Senior Logo & Brand Identity Designer',
-  avatar: '',
-  rating: 4.8,
-  reviewCount: 127,
-  location: 'Hà Nội, Việt Nam',
-  email: 'nguyenvanan@gmail.com',
-  phone: '0912345678',
-  bio: 'Tôi là một designer chuyên nghiệp với hơn 5 năm kinh nghiệm trong lĩnh vực thiết kế logo và brand identity. Đã từng làm việc với nhiều startup cũng như các thương hiệu lớn. Tôi tin vào việc truyền tải thông điệp thương hiệu mạnh mẽ thông qua những thiết kế đơn giản nhưng ấn tượng và ghi nhớ. Chuyên môn của tôi bao gồm thiết kế logo, xây dựng bộ nhận diện thương hiệu và các tài liệu marketing.',
-  priceRange: '500.000 - 800.000 VND',
-  status: '6 dự án đã nhận',
-  skills: [
-    'Logo Design',
-    'Brand Identity',
-    'Adobe Illustrator',
-    'Figma',
-    'Photoshop',
-    'Typography',
-    'Color Theory',
-    'Vector Graphics'
-  ],
-  portfolio: [
-    {
-      id: 1,
-      title: 'Logo thiết kế cho startup AI',
-      category: 'Logo Design',
-      description: 'Thiết kế logo hiện đại cho các công ty công nghệ AI',
-      image: ''
-    },
-    {
-      id: 2,
-      title: 'Brand identity cho chuỗi cafe',
-      category: 'Brand Identity',
-      description: 'Hệ thống nhận diện thương hiệu hoàn chỉnh cho chuỗi cafe',
-      image: ''
-    },
-    {
-      id: 3,
-      title: 'Logo cho ứng dụng fintech',
-      category: 'Logo Design',
-      description: 'Logo tối giản cho ứng dụng tài chính',
-      image: ''
-    },
-    {
-      id: 4,
-      title: 'Thiết kế logo thương mại điện tử',
-      category: 'Logo Design',
-      description: 'Logo năng động cho nền tảng thương mại điện tử',
-      image: ''
-    }
-  ]
-}
+// Mock portfolio data - will be replaced with API later
+const mockPortfolio = [
+  {
+    id: 1,
+    title: 'Logo thiết kế cho startup AI',
+    category: 'Logo Design',
+    description: 'Thiết kế logo hiện đại cho các công ty công nghệ AI',
+    image: ''
+  },
+  {
+    id: 2,
+    title: 'Brand identity cho chuỗi cafe',
+    category: 'Brand Identity',
+    description: 'Hệ thống nhận diện thương hiệu hoàn chỉnh cho chuỗi cafe',
+    image: ''
+  },
+  {
+    id: 3,
+    title: 'Logo cho ứng dụng fintech',
+    category: 'Logo Design',
+    description: 'Logo tối giản cho ứng dụng tài chính',
+    image: ''
+  },
+  {
+    id: 4,
+    title: 'Thiết kế logo thương mại điện tử',
+    category: 'Logo Design',
+    description: 'Logo năng động cho nền tảng thương mại điện tử',
+    image: ''
+  }
+]
 
 export default function Profile() {
   const [activeTab, setActiveTab] = useState<'intro' | 'portfolio' | 'reviews'>('intro')
-  const [hasProfile, setHasProfile] = useState(true)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-  const [profileData, setProfileData] = useState(mockUserProfile)
-  const [portfolioItems, setPortfolioItems] = useState(mockUserProfile.portfolio)
   const [editingTab, setEditingTab] = useState<'profile' | 'portfolio'>('profile')
+  const [portfolioItems, setPortfolioItems] = useState(mockPortfolio)
+
+  // Get current user from localStorage
+  const currentUser = getProfileFromLS()
+  const userId = currentUser?.id
+
+  // Fetch user profile from API
+  const { data: userProfileData, isLoading, error } = useUserProfile(userId)
+
+  // Profile data from API or defaults - memoized to prevent re-creation
+  const profileData = useMemo(() => {
+    if (!userProfileData?.data) return null
+
+    return {
+      name: `${userProfileData.data.firstName} ${userProfileData.data.lastName}`,
+      title: 'Freelancer', // TODO: Add title field to backend
+      avatar: '',
+      rating: 4.8, // TODO: Add rating from backend
+      reviewCount: 0, // TODO: Add review count from backend
+      location: 'Việt Nam', // TODO: Add location field to backend
+      email: userProfileData.data.email,
+      phone: userProfileData.data.phoneNumber || '',
+      bio: '', // TODO: Add bio field to backend
+      priceRange: '500.000 - 800.000 VND', // TODO: Add price range to backend
+      status: userProfileData.data.role === 1 ? 'Designer' : 'Developer', // TODO: Improve status mapping
+      skills: [] as string[], // TODO: Add skills from backend
+      portfolio: mockPortfolio
+    }
+  }, [userProfileData])
+
+  // Editable form state
+  const [editFormData, setEditFormData] = useState({
+    name: '',
+    title: '',
+    bio: '',
+    email: '',
+    phone: '',
+    location: '',
+    priceRange: '',
+    status: '',
+    skills: ''
+  })
+
+  // Update form when profile data loads
+  useEffect(() => {
+    if (profileData) {
+      setEditFormData({
+        name: profileData.name,
+        title: profileData.title,
+        bio: profileData.bio,
+        email: profileData.email,
+        phone: profileData.phone,
+        location: profileData.location,
+        priceRange: profileData.priceRange,
+        status: profileData.status,
+        skills: profileData.skills.join(', ')
+      })
+    }
+  }, [profileData])
+
+  const hasProfile = !!profileData
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault()
+    // TODO: Call API to update profile
+    console.log('Save profile:', profileData)
     setIsEditDialogOpen(false)
-    setHasProfile(true)
   }
 
   const handleAddPortfolio = () => {
@@ -92,8 +130,48 @@ export default function Profile() {
   }
 
   const handleSavePortfolio = () => {
-    setProfileData({ ...profileData, portfolio: portfolioItems })
+    // TODO: Call API to save portfolio
+    console.log('Save portfolio:', portfolioItems)
     setIsEditDialogOpen(false)
+  }
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className='min-h-screen bg-background flex items-center justify-center'>
+        <div className='text-center'>
+          <div className='inline-block animate-spin rounded-full h-12 w-12 border-4 border-solid border-blue-600 border-r-transparent mb-4'></div>
+          <p className='text-gray-600'>Đang tải thông tin profile...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className='min-h-screen bg-background flex items-center justify-center'>
+        <Card className='max-w-md mx-4'>
+          <CardContent className='py-12 text-center'>
+            <div className='h-16 w-16 rounded-full bg-red-100 mx-auto flex items-center justify-center mb-4'>
+              <svg className='h-8 w-8 text-red-600' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={2}
+                  d='M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+                />
+              </svg>
+            </div>
+            <h3 className='text-xl font-bold text-gray-900 mb-2'>Có lỗi xảy ra</h3>
+            <p className='text-gray-600 mb-4'>Không thể tải thông tin profile. Vui lòng thử lại sau.</p>
+            <Button onClick={() => window.location.reload()} className='btn-submit'>
+              Tải lại trang
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   if (!hasProfile) {
@@ -134,7 +212,7 @@ export default function Profile() {
 
         <div className='grid lg:grid-cols-[350px_1fr] gap-6'>
           <div className='space-y-6'>
-            <Card className='overflow-hidden'>
+            <Card className='overflow-hidden py-0'>
               <CardContent className='p-0'>
                 <div className='bg-section p-8 text-center'>
                   <div className='flex justify-center mb-4'>
@@ -246,10 +324,10 @@ export default function Profile() {
             <Card>
               <CardContent className='p-0'>
                 <div className='flex border-b'>
-                  {['intro', 'portfolio', 'reviews'].map((tab) => (
+                  {(['intro', 'portfolio', 'reviews'] as const).map((tab) => (
                     <button
                       key={tab}
-                      onClick={() => setActiveTab(tab as any)}
+                      onClick={() => setActiveTab(tab)}
                       className={`flex-1 py-4 px-6 font-medium transition-colors ${activeTab === tab ? 'border-b-2 border-blue-600 text-blue-600 bg-blue-50' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'}`}
                     >
                       {tab === 'intro' ? 'Giới thiệu' : tab === 'portfolio' ? 'Portfolio' : 'Lịch sử & Đánh giá'}
@@ -329,7 +407,7 @@ export default function Profile() {
 
             <Tabs
               value={editingTab}
-              onValueChange={(v) => setEditingTab(v as any)}
+              onValueChange={(v) => setEditingTab(v as 'profile' | 'portfolio')}
               className='flex-1 flex flex-col min-h-0 overflow-hidden'
             >
               <div className='px-6 pt-4 pb-2 shrink-0 bg-white border-b'>
@@ -348,8 +426,8 @@ export default function Profile() {
                         <Label htmlFor='name'>Họ và tên *</Label>
                         <Input
                           id='name'
-                          value={profileData.name}
-                          onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
+                          value={editFormData.name}
+                          onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
                           required
                         />
                       </div>
@@ -357,8 +435,8 @@ export default function Profile() {
                         <Label htmlFor='title'>Chức danh *</Label>
                         <Input
                           id='title'
-                          value={profileData.title}
-                          onChange={(e) => setProfileData({ ...profileData, title: e.target.value })}
+                          value={editFormData.title}
+                          onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
                           required
                         />
                       </div>
@@ -367,8 +445,8 @@ export default function Profile() {
                       <Label htmlFor='bio'>Giới thiệu bản thân *</Label>
                       <Textarea
                         id='bio'
-                        value={profileData.bio}
-                        onChange={(e) => setProfileData({ ...profileData, bio: e.target.value })}
+                        value={editFormData.bio}
+                        onChange={(e) => setEditFormData({ ...editFormData, bio: e.target.value })}
                         rows={5}
                         required
                       />
@@ -382,8 +460,8 @@ export default function Profile() {
                         <Input
                           id='email'
                           type='email'
-                          value={profileData.email}
-                          onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
+                          value={editFormData.email}
+                          onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
                           required
                         />
                       </div>
@@ -392,8 +470,8 @@ export default function Profile() {
                         <Input
                           id='phone'
                           type='tel'
-                          value={profileData.phone}
-                          onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+                          value={editFormData.phone}
+                          onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
                         />
                       </div>
                     </div>
@@ -401,8 +479,8 @@ export default function Profile() {
                       <Label htmlFor='location'>Địa điểm</Label>
                       <Input
                         id='location'
-                        value={profileData.location}
-                        onChange={(e) => setProfileData({ ...profileData, location: e.target.value })}
+                        value={editFormData.location}
+                        onChange={(e) => setEditFormData({ ...editFormData, location: e.target.value })}
                       />
                     </div>
                   </div>
@@ -413,16 +491,16 @@ export default function Profile() {
                         <Label htmlFor='price'>Mức giá theo giờ</Label>
                         <Input
                           id='price'
-                          value={profileData.priceRange}
-                          onChange={(e) => setProfileData({ ...profileData, priceRange: e.target.value })}
+                          value={editFormData.priceRange}
+                          onChange={(e) => setEditFormData({ ...editFormData, priceRange: e.target.value })}
                         />
                       </div>
                       <div>
                         <Label htmlFor='status'>Tình trạng công việc</Label>
                         <Input
                           id='status'
-                          value={profileData.status}
-                          onChange={(e) => setProfileData({ ...profileData, status: e.target.value })}
+                          value={editFormData.status}
+                          onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value })}
                         />
                       </div>
                     </div>
@@ -433,10 +511,8 @@ export default function Profile() {
                       <Label htmlFor='skills'>Danh sách kỹ năng (phân cách bằng dấu phẩy)</Label>
                       <Textarea
                         id='skills'
-                        value={profileData.skills.join(', ')}
-                        onChange={(e) =>
-                          setProfileData({ ...profileData, skills: e.target.value.split(',').map((s) => s.trim()) })
-                        }
+                        value={editFormData.skills}
+                        onChange={(e) => setEditFormData({ ...editFormData, skills: e.target.value })}
                         rows={3}
                       />
                     </div>
@@ -548,10 +624,13 @@ export default function Profile() {
                     </div>
                   )}
                   <div className='flex justify-end gap-3 pt-4 border-t sticky bottom-0 bg-white'>
-                    <Button type='button' className='btn-cancel' onClick={() => setIsEditDialogOpen(false)}>
+                    <Button type='button' variant='outline' onClick={() => setIsEditDialogOpen(false)}>
                       Hủy
                     </Button>
-                    <Button onClick={handleSavePortfolio} className='btn-submit'>
+                    <Button
+                      onClick={handleSavePortfolio}
+                      className='bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700'
+                    >
                       Lưu Portfolio
                     </Button>
                   </div>
