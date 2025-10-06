@@ -579,7 +579,7 @@ export default function PostRecruitmentPage() {
                           onChange={handleFileUpload}
                         />
                         <p className='mt-4 text-xs text-muted-foreground md:text-sm'>
-                          Hỗ trợ PDF, DOCX, JPG, PNG. Dung lượng tối đa 10MB/tệp.
+                          Hỗ trợ PDF. Dung lượng tối đa 10MB/tệp.
                         </p>
                       </div>
                       {selectedFiles.length > 0 && (
