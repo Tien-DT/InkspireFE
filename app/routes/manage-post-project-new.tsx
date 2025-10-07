@@ -1,12 +1,13 @@
 import { Plus } from 'lucide-react'
 import { Suspense, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 import { HydrateFallback } from '~/components/ui'
 import { Button } from '~/components/ui/button'
 import { PATH } from '~/constants/path'
 import { useUserRecruitmentsByUserId, useRecruitmentApplications } from '~/hooks/useRecruitments'
 import { getProfileFromLS } from '~/utils/auth'
-import { ProjectCard, ProjectDetailsDialog, EmptyProjectsState, Pagination } from '~/components/manage-post-project'
+import { ProjectCard, ProjectDetailsDialog, EmptyProjectsState } from '~/components/manage-post-project'
+import PaginationDemo from '~/components/Pagination'
 import { AuthErrorBoundary } from '~/components/errors'
 
 interface UserRecruitmentPost {
@@ -28,7 +29,8 @@ function ManagePostProjectPage() {
   const profile = getProfileFromLS()
   const { data, isLoading, error } = useUserRecruitmentsByUserId(profile?.id)
 
-  const [currentPage, setCurrentPage] = useState(1)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const currentPage = Number(searchParams.get('page')) || 1
   const pageSize = 5
   const [selectedPost, setSelectedPost] = useState<UserRecruitmentPost | null>(null)
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
@@ -45,6 +47,10 @@ function ManagePostProjectPage() {
   const startIndex = (currentPage - 1) * pageSize
   const endIndex = startIndex + pageSize
   const currentPosts = recruitmentPosts.slice(startIndex, endIndex)
+
+  const handlePageChange = (newPage: number) => {
+    setSearchParams({ page: newPage.toString() })
+  }
 
   const handleViewPost = (post: UserRecruitmentPost) => {
     setSelectedPost(post)
@@ -119,7 +125,13 @@ function ManagePostProjectPage() {
               ))}
             </div>
 
-            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+            <div className='mt-8'>
+              <PaginationDemo
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+            </div>
           </>
         )}
 

@@ -1,28 +1,29 @@
 import { Briefcase } from 'lucide-react'
 import { Card, CardContent } from '~/components/ui/card'
+import { Skeleton } from '~/components/ui/skeleton'
 
 export function JobListLoading() {
   return (
     <div className='space-y-8'>
       {[...Array(3)].map((_, index) => (
-        <Card key={index} className='border border-gray-200 animate-pulse'>
+        <Card key={index} className='border border-gray-200'>
           <CardContent className='px-6 py-4'>
             <div className='flex items-stretch justify-between gap-8'>
               <div className='w-3/4 space-y-5'>
-                <div className='h-6 bg-gray-200 rounded w-3/4'></div>
-                <div className='h-8 bg-gray-200 rounded-full w-32'></div>
-                <div className='h-4 bg-gray-200 rounded w-full'></div>
-                <div className='h-4 bg-gray-200 rounded w-2/3'></div>
+                <Skeleton className='h-6 w-3/4' />
+                <Skeleton className='h-8 rounded-full w-32' />
+                <Skeleton className='h-4 w-full' />
+                <Skeleton className='h-4 w-2/3' />
                 <div className='flex gap-2'>
-                  <div className='h-6 bg-gray-200 rounded w-20'></div>
-                  <div className='h-6 bg-gray-200 rounded w-24'></div>
-                  <div className='h-6 bg-gray-200 rounded w-16'></div>
+                  <Skeleton className='h-6 w-20' />
+                  <Skeleton className='h-6 w-24' />
+                  <Skeleton className='h-6 w-16' />
                 </div>
               </div>
               <div className='w-1/4 flex flex-col justify-between gap-4'>
-                <div className='h-8 bg-gray-200 rounded w-full'></div>
-                <div className='h-10 bg-gray-200 rounded w-full'></div>
-                <div className='h-10 bg-gray-200 rounded w-full'></div>
+                <Skeleton className='h-8 w-full' />
+                <Skeleton className='h-10 w-full' />
+                <Skeleton className='h-10 w-full' />
               </div>
             </div>
           </CardContent>
