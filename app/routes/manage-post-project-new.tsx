@@ -1,6 +1,10 @@
+import { isAxiosError } from 'axios'
 import { Plus } from 'lucide-react'
 import { Suspense, useState } from 'react'
+import { useMutation } from '@tanstack/react-query'
 import { Link, useSearchParams } from 'react-router'
+import { toast } from 'sonner'
+
 import { HydrateFallback } from '~/components/ui'
 import { Button } from '~/components/ui/button'
 import { PATH } from '~/constants/path'
@@ -9,6 +13,18 @@ import { getProfileFromLS } from '~/utils/auth'
 import { ProjectCard, ProjectDetailsDialog, EmptyProjectsState } from '~/components/manage-post-project'
 import PaginationDemo from '~/components/Pagination'
 import { AuthErrorBoundary } from '~/components/errors'
+import { projectApi } from '~/apis/project.api'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '~/components/ui/alert-dialog'
+import { ProjectStatus, type Application } from '~/types/recruitment.type'
 
 interface UserRecruitmentPost {
   id: string
@@ -34,12 +50,62 @@ function ManagePostProjectPage() {
   const pageSize = 5
   const [selectedPost, setSelectedPost] = useState<UserRecruitmentPost | null>(null)
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
+  const [pendingApplicationId, setPendingApplicationId] = useState<string | null>(null)
+  const [confirmState, setConfirmState] = useState<{
+    isOpen: boolean
+    application: Application | null
+  }>({ isOpen: false, application: null })
 
   const {
     data: applicationsData,
     isLoading: applicationsLoading,
-    error: applicationsError
+    error: applicationsError,
+    refetch: refetchApplications
   } = useRecruitmentApplications(selectedPost?.id, { page: 1, pageSize: 100 })
+
+  type AcceptApplicantVariables = {
+    recruitmentPostId: string
+    freelancerId: string
+    status: ProjectStatus
+    applicantName: string
+  }
+
+  const getApplicantDisplayName = (application: Application) => {
+    const nameParts = [application.user?.firstName, application.user?.lastName].filter((part): part is string =>
+      Boolean(part)
+    )
+    return nameParts.join(' ') || application.user?.email || 'ứng viên'
+  }
+
+  const acceptApplicantMutation = useMutation({
+    mutationFn: ({ recruitmentPostId, freelancerId, status }: AcceptApplicantVariables) =>
+      projectApi.updateProjectByRecruitment(recruitmentPostId, { recruitmentPostId, freelancerId, status }),
+    onSuccess: (response, variables) => {
+      setConfirmState({ isOpen: false, application: null })
+      void refetchApplications()
+      const responseMessage = (response as { message?: string } | undefined)?.message
+      toast.success('Chấp nhận ứng viên thành công', {
+        description:
+          responseMessage ??
+          (variables.applicantName
+            ? `Ứng viên ${variables.applicantName} đã được chấp nhận cho dự án của bạn.`
+            : 'Ứng viên đã được chấp nhận cho dự án của bạn.')
+      })
+    },
+    onError: (error: unknown) => {
+      const axiosMessage = isAxiosError(error) ? error.response?.data?.message : undefined
+      const message =
+        axiosMessage ??
+        (error instanceof Error ? error.message : 'Có lỗi xảy ra khi chấp nhận ứng viên. Vui lòng thử lại.')
+
+      toast.error('Không thể chấp nhận ứng viên', {
+        description: message
+      })
+    },
+    onSettled: () => {
+      setPendingApplicationId(null)
+    }
+  })
 
   const applications = applicationsData?.data?.items || []
   const recruitmentPosts = data?.data || []
@@ -57,14 +123,54 @@ function ManagePostProjectPage() {
     setIsViewDialogOpen(true)
   }
 
-  const handleAcceptApplicant = (applicantId: string) => {
-    // TODO: Call API to update application status
-    console.log('Accept applicant:', applicantId)
+  const handleAcceptApplicant = (application: Application) => {
+    if (!selectedPost) {
+      toast.error('Không tìm thấy bài đăng tuyển dụng hiện tại. Vui lòng thử lại.')
+      return
+    }
+
+    setConfirmState({ isOpen: true, application })
   }
 
-  const handleRejectApplicant = (applicantId: string) => {
+  const handleRejectApplicant = (application: Application) => {
     // TODO: Call API to update application status
-    console.log('Reject applicant:', applicantId)
+    console.log('Reject applicant:', application.id)
+  }
+
+  const handleConfirmDialogOpenChange = (open: boolean) => {
+    setConfirmState((prev) => ({
+      isOpen: open,
+      application: open ? prev.application : null
+    }))
+  }
+
+  const handleConfirmAccept = () => {
+    if (!selectedPost) {
+      toast.error('Không tìm thấy bài đăng tuyển dụng hiện tại. Vui lòng thử lại.')
+      setConfirmState({ isOpen: false, application: null })
+      return
+    }
+
+    if (acceptApplicantMutation.isPending) return
+
+    const application = confirmState.application
+    if (!application) return
+
+    const freelancerId = application.user?.id ?? application.userId
+    if (!freelancerId) {
+      toast.error('Không tìm thấy thông tin freelancer cho ứng viên này.')
+      return
+    }
+
+    const applicantDisplayName = getApplicantDisplayName(application)
+
+    setPendingApplicationId(application.id)
+    acceptApplicantMutation.mutate({
+      recruitmentPostId: selectedPost.id,
+      freelancerId,
+      status: ProjectStatus.CLOSED,
+      applicantName: applicantDisplayName
+    })
   }
 
   if (isLoading) {
@@ -126,11 +232,7 @@ function ManagePostProjectPage() {
             </div>
 
             <div className='mt-8'>
-              <PaginationDemo
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={handlePageChange}
-              />
+              <PaginationDemo currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
             </div>
           </>
         )}
@@ -144,7 +246,27 @@ function ManagePostProjectPage() {
           applicationsError={applicationsError}
           onAcceptApplicant={handleAcceptApplicant}
           onRejectApplicant={handleRejectApplicant}
+          acceptingApplicantId={pendingApplicationId}
         />
+
+        <AlertDialog open={confirmState.isOpen} onOpenChange={handleConfirmDialogOpenChange}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Xác nhận chấp nhận ứng viên</AlertDialogTitle>
+              <AlertDialogDescription>
+                {confirmState.application
+                  ? `Bạn có chắc là chấp nhận ứng viên ${getApplicantDisplayName(confirmState.application)} không?`
+                  : 'Bạn có chắc là chấp nhận ứng viên này không?'}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={acceptApplicantMutation.isPending}>Thoát</AlertDialogCancel>
+              <AlertDialogAction onClick={handleConfirmAccept} disabled={acceptApplicantMutation.isPending}>
+                {acceptApplicantMutation.isPending ? 'Đang xử lý...' : 'Có'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </Suspense>
   )

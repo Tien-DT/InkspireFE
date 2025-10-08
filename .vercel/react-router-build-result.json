@@ -40,6 +40,12 @@
         "parentId": "layouts/MainLayout/MainLayout",
         "file": "./layouts/ProtectedLayout/ProtectedLayout.tsx"
       },
+      "routes/profile": {
+        "id": "routes/profile",
+        "parentId": "layouts/ProtectedLayout/ProtectedLayout",
+        "file": "./routes/profile.tsx",
+        "path": "profile"
+      },
       "routes/dashboard-freelancer": {
         "id": "routes/dashboard-freelancer",
         "parentId": "layouts/ProtectedLayout/ProtectedLayout",
@@ -58,11 +64,35 @@
         "file": "./routes/post-new-project.tsx",
         "path": "post-new-project"
       },
-      "routes/manage-project": {
-        "id": "routes/manage-project",
+      "routes/post-project-confirm": {
+        "id": "routes/post-project-confirm",
         "parentId": "layouts/ProtectedLayout/ProtectedLayout",
-        "file": "./routes/manage-project.tsx",
-        "path": "manage-project"
+        "file": "./routes/post-project-confirm.tsx",
+        "path": "post-project-confirm"
+      },
+      "routes/manage-projects": {
+        "id": "routes/manage-projects",
+        "parentId": "layouts/ProtectedLayout/ProtectedLayout",
+        "file": "./routes/manage-projects.tsx",
+        "path": "manage-projects"
+      },
+      "routes/project-detail": {
+        "id": "routes/project-detail",
+        "parentId": "layouts/ProtectedLayout/ProtectedLayout",
+        "file": "./routes/project-detail.tsx",
+        "path": "project-detail/:projectId"
+      },
+      "routes/manage-post-project-new": {
+        "id": "routes/manage-post-project-new",
+        "parentId": "layouts/ProtectedLayout/ProtectedLayout",
+        "file": "./routes/manage-post-project-new.tsx",
+        "path": "manage-post-project"
+      },
+      "routes/manage-applications-new": {
+        "id": "routes/manage-applications-new",
+        "parentId": "layouts/ProtectedLayout/ProtectedLayout",
+        "file": "./routes/manage-applications-new.tsx",
+        "path": "manage-applications"
       },
       "routes/payment": {
         "id": "routes/payment",
@@ -110,13 +140,31 @@
         "parentId": "layouts/auth-layout",
         "file": "./routes/register/register-page.tsx",
         "path": "register"
+      },
+      "routes/logout": {
+        "id": "routes/logout",
+        "parentId": "root",
+        "file": "./routes/logout.tsx",
+        "path": "logout"
+      },
+      "routes/relogin": {
+        "id": "routes/relogin",
+        "parentId": "root",
+        "file": "./routes/relogin.tsx",
+        "path": "relogin"
+      },
+      "routes/auth/google": {
+        "id": "routes/auth/google",
+        "parentId": "root",
+        "file": "./routes/auth/google.tsx",
+        "path": "auth/google"
       }
     }
   },
   "reactRouterConfig": {
-    "appDirectory": "C:/Users/funny/OneDrive/Documents/GitHub/InkspireFE/app",
+    "appDirectory": "D:/WorkSpace/inkspire/app",
     "basename": "/",
-    "buildDirectory": "C:/Users/funny/OneDrive/Documents/GitHub/InkspireFE/build",
+    "buildDirectory": "D:/WorkSpace/inkspire/build",
     "future": {
       "unstable_middleware": false,
       "unstable_optimizeDeps": false,
@@ -164,6 +212,12 @@
         "parentId": "layouts/MainLayout/MainLayout",
         "file": "./layouts/ProtectedLayout/ProtectedLayout.tsx"
       },
+      "routes/profile": {
+        "id": "routes/profile",
+        "parentId": "layouts/ProtectedLayout/ProtectedLayout",
+        "file": "./routes/profile.tsx",
+        "path": "profile"
+      },
       "routes/dashboard-freelancer": {
         "id": "routes/dashboard-freelancer",
         "parentId": "layouts/ProtectedLayout/ProtectedLayout",
@@ -182,11 +236,35 @@
         "file": "./routes/post-new-project.tsx",
         "path": "post-new-project"
       },
-      "routes/manage-project": {
-        "id": "routes/manage-project",
+      "routes/post-project-confirm": {
+        "id": "routes/post-project-confirm",
         "parentId": "layouts/ProtectedLayout/ProtectedLayout",
-        "file": "./routes/manage-project.tsx",
-        "path": "manage-project"
+        "file": "./routes/post-project-confirm.tsx",
+        "path": "post-project-confirm"
+      },
+      "routes/manage-projects": {
+        "id": "routes/manage-projects",
+        "parentId": "layouts/ProtectedLayout/ProtectedLayout",
+        "file": "./routes/manage-projects.tsx",
+        "path": "manage-projects"
+      },
+      "routes/project-detail": {
+        "id": "routes/project-detail",
+        "parentId": "layouts/ProtectedLayout/ProtectedLayout",
+        "file": "./routes/project-detail.tsx",
+        "path": "project-detail/:projectId"
+      },
+      "routes/manage-post-project-new": {
+        "id": "routes/manage-post-project-new",
+        "parentId": "layouts/ProtectedLayout/ProtectedLayout",
+        "file": "./routes/manage-post-project-new.tsx",
+        "path": "manage-post-project"
+      },
+      "routes/manage-applications-new": {
+        "id": "routes/manage-applications-new",
+        "parentId": "layouts/ProtectedLayout/ProtectedLayout",
+        "file": "./routes/manage-applications-new.tsx",
+        "path": "manage-applications"
       },
       "routes/payment": {
         "id": "routes/payment",
@@ -234,6 +312,24 @@
         "parentId": "layouts/auth-layout",
         "file": "./routes/register/register-page.tsx",
         "path": "register"
+      },
+      "routes/logout": {
+        "id": "routes/logout",
+        "parentId": "root",
+        "file": "./routes/logout.tsx",
+        "path": "logout"
+      },
+      "routes/relogin": {
+        "id": "routes/relogin",
+        "parentId": "root",
+        "file": "./routes/relogin.tsx",
+        "path": "relogin"
+      },
+      "routes/auth/google": {
+        "id": "routes/auth/google",
+        "parentId": "root",
+        "file": "./routes/auth/google.tsx",
+        "path": "auth/google"
       }
     },
     "routeDiscovery": {
@@ -271,6 +367,10 @@
                 "file": "./layouts/ProtectedLayout/ProtectedLayout.tsx",
                 "children": [
                   {
+                    "file": "./routes/profile.tsx",
+                    "path": "profile"
+                  },
+                  {
                     "file": "./routes/dashboard-freelancer.tsx",
                     "path": "dashboard-freelancer"
                   },
@@ -283,8 +383,24 @@
                     "path": "post-new-project"
                   },
                   {
-                    "file": "./routes/manage-project.tsx",
-                    "path": "manage-project"
+                    "file": "./routes/post-project-confirm.tsx",
+                    "path": "post-project-confirm"
+                  },
+                  {
+                    "file": "./routes/manage-projects.tsx",
+                    "path": "manage-projects"
+                  },
+                  {
+                    "file": "./routes/project-detail.tsx",
+                    "path": "project-detail/:projectId"
+                  },
+                  {
+                    "file": "./routes/manage-post-project-new.tsx",
+                    "path": "manage-post-project"
+                  },
+                  {
+                    "file": "./routes/manage-applications-new.tsx",
+                    "path": "manage-applications"
                   },
                   {
                     "file": "./routes/payment.tsx",
@@ -322,6 +438,18 @@
                 "path": "register"
               }
             ]
+          },
+          {
+            "file": "./routes/logout.tsx",
+            "path": "logout"
+          },
+          {
+            "file": "./routes/relogin.tsx",
+            "path": "relogin"
+          },
+          {
+            "file": "./routes/auth/google.tsx",
+            "path": "auth/google"
           }
         ]
       }

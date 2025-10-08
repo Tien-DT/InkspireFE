@@ -7,23 +7,11 @@ import { format } from 'date-fns'
 import { vi } from 'date-fns/locale'
 import { ProjectStatus } from '~/types/recruitment.type'
 import { ApplicantCard } from './ApplicantCard'
+import type { Application as RecruitmentApplication } from '~/types/recruitment.type'
 
 interface Skill {
   id: string
   name: string
-}
-
-interface Application {
-  id: string
-  status: number
-  coverLetter: string
-  cvFileUrl: string
-  createdAt: string
-  user: {
-    firstName: string
-    lastName: string
-    email: string
-  }
 }
 
 interface ProjectDetailsDialogProps {
@@ -40,11 +28,12 @@ interface ProjectDetailsDialogProps {
     status: number
     skills: Skill[]
   } | null
-  applications: Application[]
+  applications: RecruitmentApplication[]
   applicationsLoading: boolean
   applicationsError: Error | null
-  onAcceptApplicant?: (applicantId: string) => void
-  onRejectApplicant?: (applicantId: string) => void
+  onAcceptApplicant?: (application: RecruitmentApplication) => void
+  onRejectApplicant?: (application: RecruitmentApplication) => void
+  acceptingApplicantId?: string | null
 }
 
 const statusConfig = {
@@ -96,7 +85,8 @@ export function ProjectDetailsDialog({
   applicationsLoading,
   applicationsError,
   onAcceptApplicant,
-  onRejectApplicant
+  onRejectApplicant,
+  acceptingApplicantId
 }: ProjectDetailsDialogProps) {
   if (!project) return null
 
@@ -222,8 +212,9 @@ export function ProjectDetailsDialog({
                   <ApplicantCard
                     key={application.id}
                     application={application}
-                    onAccept={() => onAcceptApplicant?.(application.id)}
-                    onReject={() => onRejectApplicant?.(application.id)}
+                    onAccept={() => onAcceptApplicant?.(application)}
+                    onReject={() => onRejectApplicant?.(application)}
+                    isProcessing={acceptingApplicantId === application.id}
                   />
                 ))}
               </div>

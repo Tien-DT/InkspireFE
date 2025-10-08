@@ -27,7 +27,6 @@ function JobsFreelancerPage() {
 
   const jobs = useMemo(() => recruitmentData?.data || [], [recruitmentData?.data])
   const totalCount = useMemo(() => recruitmentData?.pagination?.totalCount || 0, [recruitmentData?.pagination])
-
   const handlePageChange = (newPage: number) => {
     setSearchParams({ page: newPage.toString() })
   }
@@ -92,11 +91,18 @@ function JobsFreelancerPage() {
       setSelectedJobId(null)
     } catch (error) {
       console.error('Application error:', error)
-      const errorMessage =
-        (error as { response?: { data?: { message?: string } }; message?: string })?.response?.data?.message ||
-        (error as Error)?.message
 
-      if (errorMessage?.includes('upload') || errorMessage?.includes('CV')) {
+      // Extract error message from response
+      const errorData = (error as { response?: { data?: string | { message?: string } } })?.response?.data
+      const errorMessage =
+        typeof errorData === 'string'
+          ? errorData
+          : (errorData as { message?: string })?.message || (error as Error)?.message
+
+      // Handle specific error cases
+      if (errorMessage?.includes('already applied')) {
+        toast.error('Bạn đã ứng tuyển vào công việc này rồi!')
+      } else if (errorMessage?.includes('upload') || errorMessage?.includes('CV')) {
         toast.error('Lỗi khi tải CV lên. Vui lòng thử lại!')
       } else {
         toast.error('Có lỗi xảy ra khi nộp hồ sơ. Vui lòng thử lại!')
@@ -128,31 +134,29 @@ function JobsFreelancerPage() {
               {isLoading ? 'Đang tải dữ liệu...' : error ? 'Có lỗi xảy ra' : `Tìm thấy ${totalCount} công việc phù hợp`}
             </h1>
           </div>
-
           {/* Loading State */}
           {isLoading && <JobListLoading />}
-
           {/* Error State */}
           {error && <JobListError error={error as Error} onRetry={() => refetch()} />}
-
           {/* Empty State */}
           {!isLoading && !error && jobs.length === 0 && <JobListEmpty />}
 
           {/* Job Cards */}
           {!isLoading && !error && jobs.length > 0 && (
             <div className='space-y-8'>
-              {jobs.map((job: Job) => (
-                <JobCard
-                  key={job.id}
-                  job={job}
-                  onApplyClick={handleApplyClick}
-                  onViewDetail={handleViewDetail}
-                  skillColors={skillColors}
-                />
-              ))}
+              {jobs
+                .filter((job: Job) => Number(job.status) === 1)
+                .map((job: Job) => (
+                  <JobCard
+                    key={job.id}
+                    job={job}
+                    onApplyClick={handleApplyClick}
+                    onViewDetail={handleViewDetail}
+                    skillColors={skillColors}
+                  />
+                ))}
             </div>
           )}
-
           {/* Pagination */}
           {!isLoading && !error && jobs.length > 0 && (
             <div className='mt-8'>

@@ -1,7 +1,7 @@
 /**
  * SepayPayment Component
  * Display QR code and payment information for Sepay payment
- * 
+ *
  * Features:
  * - QR code display
  * - Countdown timer
@@ -15,10 +15,18 @@
 
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
-import { Check, Copy, QrCode, X, RefreshCw, Loader2, Clock } from 'lucide-react'
+import { Check, Copy, QrCode, X, RefreshCw, Loader2, Clock, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { Badge } from '~/components/ui/badge'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '~/components/ui/dialog'
 import { useSepayPayment } from '~/hooks/useSepayPayment'
 import type { SepayPaymentRequest } from '~/types/payment.type'
 import { cn } from '~/lib/utils'
@@ -103,6 +111,11 @@ export function SepayPayment({
 }: SepayPaymentProps) {
   const [copiedRef, setCopiedRef] = useState(false)
   const [copiedAccount, setCopiedAccount] = useState(false)
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false)
+  const [showErrorDialog, setShowErrorDialog] = useState(false)
+  const [showExpiredDialog, setShowExpiredDialog] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
+  const [successData, setSuccessData] = useState<{ amount: number; transactionRef: string } | null>(null)
   const navigate = useNavigate()
 
   // Use Sepay payment hook
@@ -121,19 +134,22 @@ export function SepayPayment({
     autoPolling: true,
     pollingInterval: 5000,
     onSuccess: (statusData) => {
-      // Show success alert
-      alert(`🎉 Thanh toán thành công!\n\nSố tiền: ${formatCurrency(statusData.amount)}\nMã giao dịch: ${statusData.transactionRef}`)
-      
-      // Call parent callback
-      onSuccess?.()
-      
-      // Navigate to home page
-      navigate('/')
+      // Show success dialog
+      setSuccessData({
+        amount: statusData.amount,
+        transactionRef: statusData.transactionRef
+      })
+      setShowSuccessDialog(true)
     },
     onFailure: (err) => {
+      // Show error dialog
+      setErrorMessage(err)
+      setShowErrorDialog(true)
       onFailure?.(err)
     },
     onExpired: () => {
+      // Show expired dialog
+      setShowExpiredDialog(true)
       onExpired?.()
     },
     onCancelled: () => {
@@ -146,6 +162,7 @@ export function SepayPayment({
   // Create payment on mount
   useEffect(() => {
     createPayment(paymentRequest)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []) // Only run once on mount
 
   /**
@@ -190,20 +207,16 @@ export function SepayPayment({
     }
 
     const config = statusConfig[paymentStatus.status]
-    return (
-      <Badge className={cn(config.className, 'text-white')}>
-        {config.label}
-      </Badge>
-    )
+    return <Badge className={cn(config.className, 'text-white')}>{config.label}</Badge>
   }
 
   // Loading state
   if (isLoading && !paymentData) {
     return (
       <Card className={className}>
-        <CardContent className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
-          <span className="ml-3 text-gray-600">Đang tạo thanh toán...</span>
+        <CardContent className='flex items-center justify-center py-12'>
+          <Loader2 className='h-8 w-8 animate-spin text-gray-500' />
+          <span className='ml-3 text-gray-600'>Đang tạo thanh toán...</span>
         </CardContent>
       </Card>
     )
@@ -213,13 +226,13 @@ export function SepayPayment({
   if (error && !paymentData) {
     return (
       <Card className={className}>
-        <CardContent className="py-8">
-          <div className="text-center">
-            <X className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Lỗi tạo thanh toán</h3>
-            <p className="text-gray-600 mb-4">{error}</p>
+        <CardContent className='py-8'>
+          <div className='text-center'>
+            <X className='h-12 w-12 text-red-500 mx-auto mb-4' />
+            <h3 className='text-lg font-semibold text-gray-900 mb-2'>Lỗi tạo thanh toán</h3>
+            <p className='text-gray-600 mb-4'>{error}</p>
             <Button onClick={handleRetry}>
-              <RefreshCw className="h-4 w-4 mr-2" />
+              <RefreshCw className='h-4 w-4 mr-2' />
               Thử lại
             </Button>
           </div>
@@ -238,201 +251,296 @@ export function SepayPayment({
   const isCancelled = paymentStatus?.status === 'CANCELLED'
   const isExpired = paymentStatus?.status === 'EXPIRED'
 
+  /**
+   * Handle success dialog close
+   */
+  const handleSuccessClose = () => {
+    setShowSuccessDialog(false)
+    onSuccess?.()
+    navigate('/')
+  }
+
+  /**
+   * Handle error dialog close
+   */
+  const handleErrorClose = () => {
+    setShowErrorDialog(false)
+  }
+
+  /**
+   * Handle expired dialog close
+   */
+  const handleExpiredClose = () => {
+    setShowExpiredDialog(false)
+  }
+
   return (
-    <Card className={className}>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center">
-            <QrCode className="h-5 w-5 mr-2" />
-            <span>Thanh toán qua Sepay</span>
-          </div>
-          {getStatusBadge()}
-        </CardTitle>
-      </CardHeader>
-
-      <CardContent className="space-y-6">
-        {/* QR Code */}
-        {isPending && (
-          <div className="flex flex-col items-center">
-            <div className="bg-white p-4 rounded-lg shadow-sm border">
-              <img
-                src={paymentData.qrCodeUrl}
-                alt="QR Code"
-                className="w-64 h-64"
-              />
+    <>
+      {/* Success Dialog */}
+      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <DialogContent className='sm:max-w-md bg-white'>
+          <DialogHeader>
+            <div className='flex flex-col items-center text-center'>
+              <div className='w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4'>
+                <CheckCircle2 className='h-10 w-10 text-green-600' />
+              </div>
+              <DialogTitle className='text-2xl font-bold text-gray-900 mb-2'>Thanh toán thành công!</DialogTitle>
+              <DialogDescription className='text-gray-600'>
+                Giao dịch của bạn đã được xác nhận và xử lý thành công
+              </DialogDescription>
             </div>
-            <p className="text-sm text-gray-600 mt-3 text-center">
-              Quét mã QR bằng ứng dụng ngân hàng để thanh toán
-            </p>
-          </div>
-        )}
+          </DialogHeader>
 
-        {/* Countdown Timer */}
-        {isPending && (
-          <div className="space-y-3">
-            <div className="flex items-center justify-center space-x-2 text-lg">
-              <Clock className="h-5 w-5 text-orange-500" />
-              <span className="font-mono font-semibold text-orange-600">
-                {formatCountdown(countdown)}
-              </span>
-              <span className="text-gray-600">còn lại</span>
-              {isPolling && (
-                <Loader2 className="h-4 w-4 animate-spin text-blue-500 ml-2" />
-              )}
+          {successData && (
+            <div className='bg-green-50 border border-green-200 rounded-lg p-4 space-y-2'>
+              <div className='flex justify-between items-center'>
+                <span className='text-sm text-gray-600'>Số tiền:</span>
+                <span className='font-bold text-lg text-green-700'>{formatCurrency(successData.amount)}</span>
+              </div>
+              <div className='flex justify-between items-center'>
+                <span className='text-sm text-gray-600'>Mã giao dịch:</span>
+                <span className='font-mono text-sm text-gray-900'>{successData.transactionRef}</span>
+              </div>
             </div>
-
-            {/* Manual Check Button */}
-            <div className="flex justify-center">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleManualCheck}
-                disabled={isManualChecking}
-                className="text-blue-600 border-blue-300 hover:bg-blue-50"
-              >
-                {isManualChecking ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Đang kiểm tra...
-                  </>
-                ) : (
-                  <>
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Kiểm tra thanh toán
-                  </>
-                )}
-              </Button>
-            </div>
-
-            <p className="text-xs text-center text-gray-500">
-              Hệ thống tự động kiểm tra mỗi 5 giây
-            </p>
-          </div>
-        )}
-
-        {/* Success Message */}
-        {isCompleted && (
-          <div className="text-center py-4">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-              <Check className="h-8 w-8 text-green-600" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Thanh toán thành công!
-            </h3>
-            <p className="text-gray-600">
-              Giao dịch của bạn đã được xác nhận
-            </p>
-          </div>
-        )}
-
-        {/* Payment Details */}
-        <div className="space-y-3 bg-gray-50 rounded-lg p-4">
-          <h4 className="font-semibold text-gray-900">Thông tin thanh toán</h4>
-
-          {/* Amount */}
-          <div className="flex justify-between items-center">
-            <span className="text-gray-600">Số tiền:</span>
-            <span className="font-semibold text-lg text-gray-900">
-              {formatCurrency(paymentData.amount)}
-            </span>
-          </div>
-
-          {/* Transaction Ref */}
-          <div className="flex justify-between items-center">
-            <span className="text-gray-600">Mã giao dịch:</span>
-            <div className="flex items-center space-x-2">
-              <span className="font-mono text-sm text-gray-900">
-                {paymentData.transactionRef}
-              </span>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => copyToClipboard(paymentData.transactionRef, setCopiedRef)}
-              >
-                {copiedRef ? (
-                  <Check className="h-4 w-4 text-green-600" />
-                ) : (
-                  <Copy className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
-          </div>
-
-          {/* Bank Name */}
-          <div className="flex justify-between items-center">
-            <span className="text-gray-600">Ngân hàng:</span>
-            <span className="font-semibold text-gray-900">{paymentData.bankName}</span>
-          </div>
-
-          {/* Account Number */}
-          <div className="flex justify-between items-center">
-            <span className="text-gray-600">Số tài khoản:</span>
-            <div className="flex items-center space-x-2">
-              <span className="font-mono text-gray-900">
-                {paymentData.accountNumber}
-              </span>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => copyToClipboard(paymentData.accountNumber, setCopiedAccount)}
-              >
-                {copiedAccount ? (
-                  <Check className="h-4 w-4 text-green-600" />
-                ) : (
-                  <Copy className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
-          </div>
-
-          {/* Account Name */}
-          <div className="flex justify-between items-center">
-            <span className="text-gray-600">Chủ tài khoản:</span>
-            <span className="font-semibold text-gray-900">{paymentData.accountName}</span>
-          </div>
-        </div>
-
-        {/* Important Note */}
-        {isPending && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-sm text-blue-900 font-semibold mb-1">
-              ⚠️ Quan trọng: Nội dung chuyển khoản
-            </p>
-            <p className="text-sm text-blue-800">
-              Vui lòng nhập chính xác nội dung: <br />
-              <span className="font-mono font-bold">
-                {paymentData.transferContent}
-              </span>
-            </p>
-          </div>
-        )}
-
-        {/* Action Buttons */}
-        <div className="flex space-x-3">
-          {isPending && (
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={handleCancel}
-              disabled={isLoading}
-            >
-              <X className="h-4 w-4 mr-2" />
-              Hủy thanh toán
-            </Button>
           )}
 
-          {(isCancelled || isExpired) && (
+          <DialogFooter className='sm:justify-center'>
             <Button
-              className="flex-1"
-              onClick={handleRetry}
+              onClick={handleSuccessClose}
+              className='w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white'
             >
-              <RefreshCw className="h-4 w-4 mr-2" />
+              Hoàn tất
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Error Dialog */}
+      <Dialog open={showErrorDialog} onOpenChange={setShowErrorDialog}>
+        <DialogContent className='sm:max-w-md'>
+          <DialogHeader>
+            <div className='flex flex-col items-center text-center'>
+              <div className='w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4'>
+                <AlertCircle className='h-10 w-10 text-red-600' />
+              </div>
+              <DialogTitle className='text-2xl font-bold text-gray-900 mb-2'>Thanh toán thất bại</DialogTitle>
+              <DialogDescription className='text-gray-600'>Đã xảy ra lỗi trong quá trình thanh toán</DialogDescription>
+            </div>
+          </DialogHeader>
+
+          <div className='bg-red-50 border border-red-200 rounded-lg p-4'>
+            <p className='text-sm text-red-800 text-center'>{errorMessage || 'Vui lòng thử lại hoặc liên hệ hỗ trợ'}</p>
+          </div>
+
+          <DialogFooter className='sm:justify-center gap-2'>
+            <Button variant='outline' onClick={handleErrorClose} className='flex-1'>
+              Đóng
+            </Button>
+            <Button
+              onClick={() => {
+                handleErrorClose()
+                handleRetry()
+              }}
+              className='flex-1 bg-blue-600 hover:bg-blue-700'
+            >
+              <RefreshCw className='h-4 w-4 mr-2' />
               Thử lại
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Expired Dialog */}
+      <Dialog open={showExpiredDialog} onOpenChange={setShowExpiredDialog}>
+        <DialogContent className='sm:max-w-md'>
+          <DialogHeader>
+            <div className='flex flex-col items-center text-center'>
+              <div className='w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mb-4'>
+                <Clock className='h-10 w-10 text-orange-600' />
+              </div>
+              <DialogTitle className='text-2xl font-bold text-gray-900 mb-2'>Hết thời gian thanh toán</DialogTitle>
+              <DialogDescription className='text-gray-600'>
+                Phiên thanh toán đã hết hạn. Vui lòng tạo giao dịch mới
+              </DialogDescription>
+            </div>
+          </DialogHeader>
+
+          <div className='bg-orange-50 border border-orange-200 rounded-lg p-4'>
+            <p className='text-sm text-orange-800 text-center'>Mỗi giao dịch có thời hạn 15 phút để đảm bảo an toàn</p>
+          </div>
+
+          <DialogFooter className='sm:justify-center gap-2'>
+            <Button variant='outline' onClick={handleExpiredClose} className='flex-1'>
+              Đóng
+            </Button>
+            <Button
+              onClick={() => {
+                handleExpiredClose()
+                handleRetry()
+              }}
+              className='flex-1 bg-orange-600 hover:bg-orange-700'
+            >
+              <RefreshCw className='h-4 w-4 mr-2' />
+              Tạo giao dịch mới
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Main Payment Card */}
+      <Card className={className}>
+        <CardHeader>
+          <CardTitle className='flex items-center justify-between'>
+            <div className='flex items-center'>
+              <QrCode className='h-5 w-5 mr-2' />
+              <span>Thanh toán qua Sepay</span>
+            </div>
+            {getStatusBadge()}
+          </CardTitle>
+        </CardHeader>
+
+        <CardContent className='space-y-6'>
+          {/* QR Code */}
+          {isPending && (
+            <div className='flex flex-col items-center'>
+              <div className='bg-white p-4 rounded-lg shadow-sm border'>
+                <img src={paymentData.qrCodeUrl} alt='QR Code' className='w-64 h-64' />
+              </div>
+              <p className='text-sm text-gray-600 mt-3 text-center'>Quét mã QR bằng ứng dụng ngân hàng để thanh toán</p>
+            </div>
           )}
-        </div>
-      </CardContent>
-    </Card>
+
+          {/* Countdown Timer */}
+          {isPending && (
+            <div className='space-y-3'>
+              <div className='flex items-center justify-center space-x-2 text-lg'>
+                <Clock className='h-5 w-5 text-orange-500' />
+                <span className='font-mono font-semibold text-orange-600'>{formatCountdown(countdown)}</span>
+                <span className='text-gray-600'>còn lại</span>
+                {isPolling && <Loader2 className='h-4 w-4 animate-spin text-blue-500 ml-2' />}
+              </div>
+
+              {/* Manual Check Button */}
+              <div className='flex justify-center'>
+                <Button
+                  variant='outline'
+                  size='sm'
+                  onClick={handleManualCheck}
+                  disabled={isManualChecking}
+                  className='text-blue-600 border-blue-300 hover:bg-blue-50'
+                >
+                  {isManualChecking ? (
+                    <>
+                      <Loader2 className='h-4 w-4 mr-2 animate-spin' />
+                      Đang kiểm tra...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className='h-4 w-4 mr-2' />
+                      Kiểm tra thanh toán
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              <p className='text-xs text-center text-gray-500'>Hệ thống tự động kiểm tra mỗi 5 giây</p>
+            </div>
+          )}
+
+          {/* Success Message */}
+          {isCompleted && (
+            <div className='text-center py-4'>
+              <div className='inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4'>
+                <Check className='h-8 w-8 text-green-600' />
+              </div>
+              <h3 className='text-lg font-semibold text-gray-900 mb-2'>Thanh toán thành công!</h3>
+              <p className='text-gray-600'>Giao dịch của bạn đã được xác nhận</p>
+            </div>
+          )}
+
+          {/* Payment Details */}
+          <div className='space-y-3 bg-gray-50 rounded-lg p-4'>
+            <h4 className='font-semibold text-gray-900'>Thông tin thanh toán</h4>
+
+            {/* Amount */}
+            <div className='flex justify-between items-center'>
+              <span className='text-gray-600'>Số tiền:</span>
+              <span className='font-semibold text-lg text-gray-900'>{formatCurrency(paymentData.amount)}</span>
+            </div>
+
+            {/* Transaction Ref */}
+            <div className='flex justify-between items-center'>
+              <span className='text-gray-600'>Mã giao dịch:</span>
+              <div className='flex items-center space-x-2'>
+                <span className='font-mono text-sm text-gray-900'>{paymentData.transactionRef}</span>
+                <Button
+                  size='sm'
+                  variant='ghost'
+                  onClick={() => copyToClipboard(paymentData.transactionRef, setCopiedRef)}
+                >
+                  {copiedRef ? <Check className='h-4 w-4 text-green-600' /> : <Copy className='h-4 w-4' />}
+                </Button>
+              </div>
+            </div>
+
+            {/* Bank Name */}
+            <div className='flex justify-between items-center'>
+              <span className='text-gray-600'>Ngân hàng:</span>
+              <span className='font-semibold text-gray-900'>{paymentData.bankName}</span>
+            </div>
+
+            {/* Account Number */}
+            <div className='flex justify-between items-center'>
+              <span className='text-gray-600'>Số tài khoản:</span>
+              <div className='flex items-center space-x-2'>
+                <span className='font-mono text-gray-900'>{paymentData.accountNumber}</span>
+                <Button
+                  size='sm'
+                  variant='ghost'
+                  onClick={() => copyToClipboard(paymentData.accountNumber, setCopiedAccount)}
+                >
+                  {copiedAccount ? <Check className='h-4 w-4 text-green-600' /> : <Copy className='h-4 w-4' />}
+                </Button>
+              </div>
+            </div>
+
+            {/* Account Name */}
+            <div className='flex justify-between items-center'>
+              <span className='text-gray-600'>Chủ tài khoản:</span>
+              <span className='font-semibold text-gray-900'>{paymentData.accountName}</span>
+            </div>
+          </div>
+
+          {/* Important Note */}
+          {isPending && (
+            <div className='bg-blue-50 border border-blue-200 rounded-lg p-4'>
+              <p className='text-sm text-blue-900 font-semibold mb-1'>⚠️ Quan trọng: Nội dung chuyển khoản</p>
+              <p className='text-sm text-blue-800'>
+                Vui lòng nhập chính xác nội dung: <br />
+                <span className='font-mono font-bold'>{paymentData.transferContent}</span>
+              </p>
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className='flex space-x-3'>
+            {isPending && (
+              <Button variant='outline' className='flex-1' onClick={handleCancel} disabled={isLoading}>
+                <X className='h-4 w-4 mr-2' />
+                Hủy thanh toán
+              </Button>
+            )}
+
+            {(isCancelled || isExpired) && (
+              <Button className='flex-1' onClick={handleRetry}>
+                <RefreshCw className='h-4 w-4 mr-2' />
+                Thử lại
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </>
   )
 }
 

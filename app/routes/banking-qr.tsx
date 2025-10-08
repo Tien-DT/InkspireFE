@@ -1,90 +1,195 @@
-import React, { useEffect, useState } from 'react'
+import { ArrowLeft, CheckCircle2, XCircle, Clock } from 'lucide-react'
+import { useNavigate, useSearchParams } from 'react-router'
+import { useState } from 'react'
+import { Button } from '~/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '~/components/ui/dialog'
+import { SepayPayment } from '~/components/payment/sepay-payment'
+import { useAuth } from '~/contexts/AuthContext'
+import type { SepayPaymentRequest } from '~/types/payment.type'
 
 export default function BankingQR() {
-  const [timeLeft, setTimeLeft] = useState(28 * 60 + 39) // 28:39 in seconds
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const { profile } = useAuth()
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0))
-    }, 1000)
+  // Dialog states
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false)
+  const [showFailureDialog, setShowFailureDialog] = useState(false)
+  const [showExpiredDialog, setShowExpiredDialog] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
 
-    return () => clearInterval(timer)
-  }, [])
+  // Get payment info from URL params
+  const amount = Number(searchParams.get('amount')) || 0
+  const orderInfo = searchParams.get('orderInfo') || 'Nạp tiền vào ví InkPay'
+  const description = searchParams.get('description') || orderInfo
+  const userId = profile?.id || '00000000-0000-0000-0000-000000000001'
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins}:${secs.toString().padStart(2, '0')}`
+  // Tạo payment request cho Sepay
+  const sepayPaymentRequest: SepayPaymentRequest = {
+    UserId: userId,
+    Amount: amount,
+    OrderInfo: orderInfo,
+    Description: description,
+    ExpiryMinutes: 15
   }
+
+  // Handle payment success
+  const handlePaymentSuccess = () => {
+    console.log('Payment successful!')
+    setShowSuccessDialog(true)
+  }
+
+  // Handle payment failure
+  const handlePaymentFailure = (error: string) => {
+    console.error('Payment failed:', error)
+    setErrorMessage(error)
+    setShowFailureDialog(true)
+  }
+
+  // Handle payment cancelled
+  const handlePaymentCancel = () => {
+    console.log('Payment cancelled')
+    navigate('/payment')
+  }
+
+  // Handle payment expired
+  const handlePaymentExpired = () => {
+    console.log('Payment expired')
+    setShowExpiredDialog(true)
+  }
+
+  // Close success dialog and navigate
+  const handleCloseSuccess = () => {
+    setShowSuccessDialog(false)
+    navigate('/payment')
+  }
+
+  // Close expired dialog and navigate
+  const handleCloseExpired = () => {
+    setShowExpiredDialog(false)
+    navigate('/payment')
+  }
+
   return (
-    <div className='container mx-auto px-4 py-6 space-y-6 min-h-screen my-20'>
-      <div className='bg-white rounded-lg p-8 text-white min-h-[500px]'>
-        <div className='flex items-start justify-between'>
-          <div className='flex-1'>
+    <>
+      {/* Success Dialog */}
+      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <DialogContent className='sm:max-w-md'>
+          <DialogHeader>
+            <div className='flex flex-col items-center text-center'>
+              <div className='w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4'>
+                <CheckCircle2 className='h-10 w-10 text-green-600' />
+              </div>
+              <DialogTitle className='text-2xl font-bold text-gray-900 mb-2'>Thanh toán thành công!</DialogTitle>
+              <DialogDescription className='text-gray-600'>Số dư ví của bạn đã được cập nhật</DialogDescription>
+            </div>
+          </DialogHeader>
+          <DialogFooter className='sm:justify-center'>
+            <Button
+              onClick={handleCloseSuccess}
+              className='w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white'
+            >
+              Về trang ví
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Failure Dialog */}
+      <Dialog open={showFailureDialog} onOpenChange={setShowFailureDialog}>
+        <DialogContent className='sm:max-w-md'>
+          <DialogHeader>
+            <div className='flex flex-col items-center text-center'>
+              <div className='w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4'>
+                <XCircle className='h-10 w-10 text-red-600' />
+              </div>
+              <DialogTitle className='text-2xl font-bold text-gray-900 mb-2'>Thanh toán thất bại</DialogTitle>
+              <DialogDescription className='text-gray-600'>
+                {errorMessage || 'Đã xảy ra lỗi trong quá trình thanh toán'}
+              </DialogDescription>
+            </div>
+          </DialogHeader>
+          <DialogFooter className='sm:justify-center'>
+            <Button
+              onClick={() => setShowFailureDialog(false)}
+              className='w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white'
+            >
+              Thử lại
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Expired Dialog */}
+      <Dialog open={showExpiredDialog} onOpenChange={setShowExpiredDialog}>
+        <DialogContent className='sm:max-w-md'>
+          <DialogHeader>
+            <div className='flex flex-col items-center text-center'>
+              <div className='w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mb-4'>
+                <Clock className='h-10 w-10 text-orange-600' />
+              </div>
+              <DialogTitle className='text-2xl font-bold text-gray-900 mb-2'>Thanh toán đã hết hạn</DialogTitle>
+              <DialogDescription className='text-gray-600'>
+                Phiên thanh toán đã hết hạn. Vui lòng thực hiện lại giao dịch.
+              </DialogDescription>
+            </div>
+          </DialogHeader>
+          <DialogFooter className='sm:justify-center'>
+            <Button
+              onClick={handleCloseExpired}
+              className='w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white'
+            >
+              Về trang ví
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <div className='container mx-auto px-4 py-6 space-y-6 min-h-screen my-20'>
+        <div className='max-w-5xl mx-auto'>
+          {/* Back Button */}
+          <Button variant='ghost' onClick={() => navigate('/payment')} className='mb-6 hover:bg-gray-100'>
+            <ArrowLeft className='h-4 w-4 mr-2' />
+            Quay lại
+          </Button>
+
+          <div className='bg-white rounded-2xl p-8 shadow-lg border border-gray-200'>
             {/* Header with Icon */}
-            <div className='flex items-center mb-6'>
-              <div className='w-8 h-8 bg-blue-500 rounded mr-3 flex items-center justify-center'>
-                <div className='w-4 h-4 bg-white rounded-sm'></div>
+            <div className='flex items-center mb-6 pb-6 border-b border-gray-200'>
+              <div className='w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg mr-4 flex items-center justify-center shadow-md'>
+                <div className='w-6 h-6 bg-white rounded-sm'></div>
               </div>
-              <h1 className='text-xl font-semibold text-gray-900 text-black'>Chuyển khoản ngân hàng</h1>
-            </div>
-
-            {/* Subtitle */}
-            <p className='text-cyan-400 mb-8 text-sm'>Chú ý: nhập chính xác nội dung bên dưới</p>
-            <div className='flex gap-10'>
-              {/* Left Side - Banking Details */}
-
-              <div className='space-y-6 w-2/3 border border-dashed rounded-2xl p-10'>
-                <div className='flex justify-between items-center border-b border-dashed p-2'>
-                  <span className='text-gray-900'>Ngân hàng</span>
-                  <span className='font-semibold text-gray-900'>ACB</span>
-                </div>
-
-                <div className='flex justify-between items-center border-b border-dashed p-2'>
-                  <span className='text-gray-900'>Số tài khoản</span>
-                  <span className='font-semibold text-gray-900'>42982717</span>
-                </div>
-
-                <div className='flex justify-between items-center border-b border-dashed p-2'>
-                  <span className='text-gray-900'>Chủ tài khoản</span>
-                  <span className='font-semibold text-gray-900'>LE DUC KHANH</span>
-                </div>
-
-                <div className='flex justify-between items-center border-b border-dashed p-2'>
-                  <span className='text-gray-900'>Số tiền</span>
-                  <span className='font-semibold text-gray-900'>100.000 vnđ</span>
-                </div>
-
-                <div className='flex justify-between items-center border-b border-dashed p-2'>
-                  <span className='text-gray-900'>Nội dung</span>
-                  <span className='font-semibold text-gray-900'>aeky906</span>
-                </div>
-              </div>
-
-              {/* Right Side - QR Code and Timer */}
-              <div className='flex flex-col items-center w-1/3 border border-dashed rounded-2xl p-10'>
-                {/* QR Code */}
-                <div className='bg-white p-4 rounded-lg mb-4 shadow-lg flex-1 w-full h-full'>
-                  <div className=' bg-white flex items-center justify-center'>
-                    {/* QR Code Pattern - Simplified representation */}
-                    <div className='grid grid-cols-8 gap-px w-full h-full'>
-                      {Array.from({ length: 64 }, (_, i) => (
-                        <div key={i} className={`w-full h-full ${Math.random() > 0.5 ? 'bg-black' : 'bg-white'}`} />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Timer */}
-                <div className='text-center'>
-                  <p className='text-gray-900 text-sm mb-2'>Thời gian còn lại</p>
-                  <div className='text-3xl font-bold text-gray-900'>{formatTime(timeLeft)}</div>
-                </div>
+              <div>
+                <h1 className='text-2xl font-bold text-gray-900'>Chuyển khoản ngân hàng</h1>
+                <p className='text-sm text-gray-600 mt-1'>Quét mã QR hoặc chuyển khoản thủ công</p>
               </div>
             </div>
+
+            {/* Alert */}
+            <div className='bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8'>
+              <p className='text-blue-800 text-sm font-medium'>
+                ⚠️ Chú ý: Nhập chính xác nội dung chuyển khoản bên dưới để hệ thống tự động xác nhận
+              </p>
+            </div>
+
+            {/* Sepay Payment Component */}
+            <SepayPayment
+              paymentRequest={sepayPaymentRequest}
+              onSuccess={handlePaymentSuccess}
+              onFailure={handlePaymentFailure}
+              onCancel={handlePaymentCancel}
+              onExpired={handlePaymentExpired}
+            />
           </div>
         </div>
       </div>
-    </div>
+    </>
   )
 }

@@ -2,32 +2,23 @@ import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent } from '~/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
-import { Calendar, CheckCircle, FileText, Mail, XCircle } from 'lucide-react'
+import { Calendar, CheckCircle, FileText, Loader2, Mail, XCircle } from 'lucide-react'
 import { format } from 'date-fns'
 import { vi } from 'date-fns/locale'
+import type { Application as RecruitmentApplication } from '~/types/recruitment.type'
 
 interface ApplicantCardProps {
-  application: {
-    id: string
-    status: number
-    coverLetter: string
-    cvFileUrl: string
-    createdAt: string
-    user: {
-      firstName: string
-      lastName: string
-      email: string
-    }
-  }
+  application: RecruitmentApplication
   onAccept?: () => void
   onReject?: () => void
+  isProcessing?: boolean
 }
 
 const formatDate = (dateString: string) => {
   return format(new Date(dateString), 'dd/MM/yyyy', { locale: vi })
 }
 
-export function ApplicantCard({ application, onAccept, onReject }: ApplicantCardProps) {
+export function ApplicantCard({ application, onAccept, onReject, isProcessing }: ApplicantCardProps) {
   const getStatusBadge = (status: number) => {
     switch (status) {
       case 2:
@@ -91,9 +82,18 @@ export function ApplicantCard({ application, onAccept, onReject }: ApplicantCard
               {application.status === 1 && (
                 <div className='flex gap-2'>
                   {onAccept && (
-                    <Button size='sm' className='bg-green-600 hover:bg-green-700 gap-2' onClick={onAccept}>
-                      <CheckCircle className='h-4 w-4' />
-                      Chấp nhận
+                    <Button
+                      size='sm'
+                      className='bg-green-600 hover:bg-green-700 gap-2'
+                      onClick={onAccept}
+                      disabled={isProcessing}
+                    >
+                      {isProcessing ? (
+                        <Loader2 className='h-4 w-4 animate-spin' />
+                      ) : (
+                        <CheckCircle className='h-4 w-4' />
+                      )}
+                      {isProcessing ? 'Đang xử lý...' : 'Chấp nhận'}
                     </Button>
                   )}
                   {onReject && (

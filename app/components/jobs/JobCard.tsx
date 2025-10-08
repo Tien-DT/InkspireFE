@@ -1,4 +1,4 @@
-import { Calendar, Clock, Eye, Heart, Users } from 'lucide-react'
+import { Calendar, Clock, Eye, Heart } from 'lucide-react'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent } from '~/components/ui/card'
@@ -49,7 +49,9 @@ export function JobCard({ job, onApplyClick, onViewDetail, skillColors = DEFAULT
             </div>
 
             {/* Description */}
-            <p className='text-gray-600 text-sm sm:text-[15px] line-clamp-3 sm:line-clamp-2'>{job.description}</p>
+            <p className='text-gray-600 text-sm sm:text-[15px] line-clamp-3 sm:line-clamp-2 break-all overflow-hidden'>
+              {job.description}
+            </p>
 
             {/* Categories */}
             {job.categories?.length > 0 && (
@@ -96,10 +98,10 @@ export function JobCard({ job, onApplyClick, onViewDetail, skillColors = DEFAULT
                 <Clock className='h-4 w-4 shrink-0' />
                 <span>Hạn: {new Date(job.endTime).toLocaleDateString('vi-VN')}</span>
               </div>
-              <div className='flex items-center gap-1'>
+              {/* <div className='flex items-center gap-1'>
                 <Users className='h-4 w-4 shrink-0' />
                 <span>{job.teamSize} đề xuất</span>
-              </div>
+              </div> */}
               <div className='flex items-center gap-1'>
                 <Calendar className='h-4 w-4 shrink-0' />
                 <span>Đăng {new Date(job.createdAt).toLocaleDateString('vi-VN')}</span>

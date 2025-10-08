@@ -95,7 +95,7 @@ export function Header() {
                       <Link to={PATH.dashboard}>Dashboard</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem>
-                      <Link to={PATH.manageProject}>Quản lý dự án</Link>
+                      <Link to={PATH.manageProjects}>Quản lý dự án</Link>
                     </DropdownMenuItem>
                     {isClient && (
                       <DropdownMenuItem>
