@@ -22,6 +22,16 @@ export interface UpdateProjectByRecruitmentPayload {
   status?: ProjectStatus
 }
 
+export interface UpdateProjectPayload {
+  status?: number
+  title?: string
+  description?: string
+  category?: string
+  budgetMin?: number
+  budgetMax?: number
+  deadline?: string
+}
+
 export interface Project {
   id: string
   title: string
@@ -118,6 +128,11 @@ export const projectApi = {
 
   updateProjectByRecruitment: async (recruitmentPostId: string, body: UpdateProjectByRecruitmentPayload) => {
     const response = await axiosClient.patch(`${URL_PROJECTS}/by-recruitment/${recruitmentPostId}`, body)
+    return response.data
+  },
+
+  updateProject: async (projectId: string, payload: UpdateProjectPayload): Promise<ProjectResponse> => {
+    const response = await axiosClient.patch<ProjectResponse>(`${URL_PROJECTS}/${projectId}`, payload)
     return response.data
   },
 

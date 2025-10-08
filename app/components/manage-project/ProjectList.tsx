@@ -2,7 +2,11 @@ import { ProjectCard } from '~/components/manage-project/ProjectCard'
 import { useProjects } from '~/hooks/useProjects'
 import type { Project } from '~/apis/project.api'
 
-export function ProjectList() {
+interface ProjectListProps {
+  activeTab: string
+}
+
+export function ProjectList({ activeTab }: ProjectListProps) {
   const { data, isLoading, error } = useProjects()
 
   if (isLoading) {
@@ -25,20 +29,40 @@ export function ProjectList() {
     )
   }
 
-  const projects = data?.data || []
+  const allProjects = data?.data || []
 
-  if (projects.length === 0) {
+  // Filter projects based on active tab
+  const filteredProjects = allProjects
+    .filter((project: Project) => {
+      if (activeTab === 'all') return true
+      if (activeTab === 'pending') return project.status === 1
+      if (activeTab === 'active') return project.status === 2
+      if (activeTab === 'completed') return project.status === 3
+      return true
+    })
+    // Sort by createdAt, newest first
+    .sort((a: Project, b: Project) => {
+      const dateA = new Date(a.createdAt).getTime()
+      const dateB = new Date(b.createdAt).getTime()
+      return dateB - dateA // Descending order (newest first)
+    })
+
+  if (filteredProjects.length === 0) {
     return (
       <div className='bg-gray-50 border border-gray-200 rounded-lg p-8 text-center'>
         <h3 className='text-lg font-semibold text-gray-900 mb-2'>Chưa có dự án nào</h3>
-        <p className='text-gray-600'>Bạn chưa có dự án nào trong danh sách.</p>
+        <p className='text-gray-600'>
+          {activeTab === 'all'
+            ? 'Bạn chưa có dự án nào trong danh sách.'
+            : `Không có dự án nào trong tab "${activeTab === 'pending' ? 'Chờ duyệt' : activeTab === 'active' ? 'Đang hoạt động' : 'Hoàn thành'}".`}
+        </p>
       </div>
     )
   }
 
   return (
     <div className='space-y-4'>
-      {projects.map((project: Project) => (
+      {filteredProjects.map((project: Project) => (
         <ProjectCard key={project.id} project={project} />
       ))}
     </div>

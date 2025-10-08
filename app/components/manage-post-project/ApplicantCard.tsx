@@ -81,21 +81,6 @@ export function ApplicantCard({ application, onAccept, onReject, isProcessing }:
 
               {application.status === 1 && (
                 <div className='flex gap-2'>
-                  {onAccept && (
-                    <Button
-                      size='sm'
-                      className='bg-green-600 hover:bg-green-700 gap-2'
-                      onClick={onAccept}
-                      disabled={isProcessing}
-                    >
-                      {isProcessing ? (
-                        <Loader2 className='h-4 w-4 animate-spin' />
-                      ) : (
-                        <CheckCircle className='h-4 w-4' />
-                      )}
-                      {isProcessing ? 'Đang xử lý...' : 'Chấp nhận'}
-                    </Button>
-                  )}
                   {onReject && (
                     <Button
                       size='sm'
@@ -105,6 +90,21 @@ export function ApplicantCard({ application, onAccept, onReject, isProcessing }:
                     >
                       <XCircle className='h-4 w-4' />
                       Từ chối
+                    </Button>
+                  )}
+                  {onAccept && (
+                    <Button
+                      size='sm'
+                      className='bg-black hover:bg-black/90 gap-2'
+                      onClick={onAccept}
+                      disabled={isProcessing}
+                    >
+                      {isProcessing ? (
+                        <Loader2 className='h-4 w-4 animate-spin' />
+                      ) : (
+                        <CheckCircle className='h-4 w-4' />
+                      )}
+                      {isProcessing ? 'Đang xử lý...' : 'Chấp nhận'}
                     </Button>
                   )}
                 </div>

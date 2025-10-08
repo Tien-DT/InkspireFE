@@ -90,6 +90,9 @@ export function ProjectDetailsDialog({
 }: ProjectDetailsDialogProps) {
   if (!project) return null
 
+  // Disable applicants tab when status is CLOSED (2) - accepted an applicant
+  const isProjectClosed = project.status === ProjectStatus.CLOSED
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='!max-w-[95vw] !w-[95vw] h-[92vh] flex flex-col p-0 gap-0 overflow-hidden bg-white'>
@@ -102,8 +105,8 @@ export function ProjectDetailsDialog({
           <div className='px-6 pt-4 shrink-0'>
             <TabsList className='grid w-full grid-cols-2'>
               <TabsTrigger value='details'>Thông tin chi tiết</TabsTrigger>
-              <TabsTrigger value='applicants'>
-                Ứng viên ({applicationsLoading ? '...' : applications.length})
+              <TabsTrigger value='applicants' disabled={isProjectClosed}>
+                Ứng viên ({applicationsLoading ? '...' : applications.length}){isProjectClosed && ' (Đã đóng)'}
               </TabsTrigger>
             </TabsList>
           </div>

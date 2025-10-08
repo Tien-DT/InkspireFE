@@ -15,15 +15,13 @@ import PaginationDemo from '~/components/Pagination'
 import { AuthErrorBoundary } from '~/components/errors'
 import { projectApi } from '~/apis/project.api'
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle
-} from '~/components/ui/alert-dialog'
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '~/components/ui/dialog'
 import { ProjectStatus, type Application } from '~/types/recruitment.type'
 
 interface UserRecruitmentPost {
@@ -43,7 +41,7 @@ interface UserRecruitmentPost {
 
 function ManagePostProjectPage() {
   const profile = getProfileFromLS()
-  const { data, isLoading, error } = useUserRecruitmentsByUserId(profile?.id)
+  const { data, isLoading, error, refetch: refetchPosts } = useUserRecruitmentsByUserId(profile?.id)
 
   const [searchParams, setSearchParams] = useSearchParams()
   const currentPage = Number(searchParams.get('page')) || 1
@@ -81,8 +79,10 @@ function ManagePostProjectPage() {
     mutationFn: ({ recruitmentPostId, freelancerId, status }: AcceptApplicantVariables) =>
       projectApi.updateProjectByRecruitment(recruitmentPostId, { recruitmentPostId, freelancerId, status }),
     onSuccess: (response, variables) => {
+      console.log('Accept applicant response:', response)
       setConfirmState({ isOpen: false, application: null })
       void refetchApplications()
+      void refetchPosts() // Refresh the posts list to update status
       const responseMessage = (response as { message?: string } | undefined)?.message
       toast.success('Chấp nhận ứng viên thành công', {
         description:
@@ -249,24 +249,69 @@ function ManagePostProjectPage() {
           acceptingApplicantId={pendingApplicationId}
         />
 
-        <AlertDialog open={confirmState.isOpen} onOpenChange={handleConfirmDialogOpenChange}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Xác nhận chấp nhận ứng viên</AlertDialogTitle>
-              <AlertDialogDescription>
-                {confirmState.application
-                  ? `Bạn có chắc là chấp nhận ứng viên ${getApplicantDisplayName(confirmState.application)} không?`
-                  : 'Bạn có chắc là chấp nhận ứng viên này không?'}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel disabled={acceptApplicantMutation.isPending}>Thoát</AlertDialogCancel>
-              <AlertDialogAction onClick={handleConfirmAccept} disabled={acceptApplicantMutation.isPending}>
-                {acceptApplicantMutation.isPending ? 'Đang xử lý...' : 'Có'}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <Dialog open={confirmState.isOpen} onOpenChange={handleConfirmDialogOpenChange}>
+          <DialogContent className='sm:max-w-md bg-white'>
+            <DialogHeader className='mb-5'>
+              <div className='flex flex-col items-center text-center'>
+                <div className='w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4'>
+                  <svg
+                    className='w-8 h-8 text-blue-600'
+                    fill='none'
+                    stroke='currentColor'
+                    viewBox='0 0 24 24'
+                    xmlns='http://www.w3.org/2000/svg'
+                  >
+                    <path
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
+                      strokeWidth={2}
+                      d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
+                    />
+                  </svg>
+                </div>
+                <DialogTitle className='text-2xl font-bold text-gray-900 mb-2'>Xác nhận chấp nhận ứng viên</DialogTitle>
+                <DialogDescription className='text-gray-600'>
+                  {confirmState.application ? (
+                    <>
+                      Bạn có chắc chắn muốn chấp nhận ứng viên{' '}
+                      <span className='font-semibold text-gray-900'>
+                        {getApplicantDisplayName(confirmState.application)}
+                      </span>{' '}
+                      cho dự án này không?
+                      <br />
+                    </>
+                  ) : (
+                    'Bạn có chắc chắn muốn chấp nhận ứng viên này không?'
+                  )}
+                </DialogDescription>
+              </div>
+            </DialogHeader>
+            <DialogFooter className='flex-row gap-3 sm:justify-between'>
+              <Button
+                variant='outline'
+                onClick={() => handleConfirmDialogOpenChange(false)}
+                disabled={acceptApplicantMutation.isPending}
+                className='flex-1'
+              >
+                Hủy bỏ
+              </Button>
+              <Button
+                onClick={handleConfirmAccept}
+                disabled={acceptApplicantMutation.isPending}
+                className='flex-1 bg-black hover:bg-black/90 text-white'
+              >
+                {acceptApplicantMutation.isPending ? (
+                  <>
+                    <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2'></div>
+                    Đang xử lý...
+                  </>
+                ) : (
+                  'Chấp nhận'
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </Suspense>
   )
