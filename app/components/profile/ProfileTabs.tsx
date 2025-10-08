@@ -1,11 +1,6 @@
-import { Card, CardContent } from '~/components/ui/card'
+import { TabsList, TabsTrigger } from '~/components/ui/tabs'
 
 type TabType = 'intro' | 'portfolio' | 'reviews'
-
-interface ProfileTabsProps {
-  activeTab: TabType
-  onTabChange: (tab: TabType) => void
-}
 
 const TABS: Array<{ value: TabType; label: string }> = [
   { value: 'intro', label: 'Giới thiệu' },
@@ -13,26 +8,18 @@ const TABS: Array<{ value: TabType; label: string }> = [
   { value: 'reviews', label: 'Lịch sử & Đánh giá' }
 ]
 
-export function ProfileTabs({ activeTab, onTabChange }: ProfileTabsProps) {
+export function ProfileTabs() {
   return (
-    <Card>
-      <CardContent className='p-0'>
-        <div className='flex border-b'>
-          {TABS.map((tab) => (
-            <button
-              key={tab.value}
-              onClick={() => onTabChange(tab.value)}
-              className={`flex-1 py-4 px-6 font-medium transition-colors ${
-                activeTab === tab.value
-                  ? 'border-b-2 border-blue-600 text-blue-600 bg-blue-50'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+    <TabsList className='inline-flex h-11 items-center justify-start rounded-lg bg-muted p-1 text-muted-foreground w-full'>
+      {TABS.map((tab) => (
+        <TabsTrigger
+          key={tab.value}
+          value={tab.value}
+          className='inline-flex items-center justify-center whitespace-nowrap rounded-md px-6 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-white data-[state=active]:text-foreground data-[state=active]:shadow-sm'
+        >
+          {tab.label}
+        </TabsTrigger>
+      ))}
+    </TabsList>
   )
 }

@@ -33,7 +33,9 @@ interface ProjectDetailsDialogProps {
   applicationsError: Error | null
   onAcceptApplicant?: (application: RecruitmentApplication) => void
   onRejectApplicant?: (application: RecruitmentApplication) => void
+  onSendMessage?: (application: RecruitmentApplication) => void
   acceptingApplicantId?: string | null
+  sendingMessageToId?: string | null
 }
 
 const statusConfig = {
@@ -86,7 +88,9 @@ export function ProjectDetailsDialog({
   applicationsError,
   onAcceptApplicant,
   onRejectApplicant,
-  acceptingApplicantId
+  onSendMessage,
+  acceptingApplicantId,
+  sendingMessageToId
 }: ProjectDetailsDialogProps) {
   if (!project) return null
 
@@ -217,7 +221,9 @@ export function ProjectDetailsDialog({
                     application={application}
                     onAccept={() => onAcceptApplicant?.(application)}
                     onReject={() => onRejectApplicant?.(application)}
+                    onSendMessage={() => onSendMessage?.(application)}
                     isProcessing={acceptingApplicantId === application.id}
+                    isSendingMessage={sendingMessageToId === application.id}
                   />
                 ))}
               </div>

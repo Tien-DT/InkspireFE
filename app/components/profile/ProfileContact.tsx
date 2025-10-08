@@ -1,4 +1,4 @@
-import { Mail, Phone, MapPin } from 'lucide-react'
+import { Mail, Phone, MapPin, Loader2 } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 
 interface ProfileContactProps {
@@ -7,9 +7,17 @@ interface ProfileContactProps {
   phone: string
   onSendMessage?: () => void
   onViewFullProfile?: () => void
+  isSendingMessage?: boolean
 }
 
-export function ProfileContact({ location, email, phone, onSendMessage, onViewFullProfile }: ProfileContactProps) {
+export function ProfileContact({
+  location,
+  email,
+  phone,
+  onSendMessage,
+  onViewFullProfile,
+  isSendingMessage
+}: ProfileContactProps) {
   return (
     <div className='p-6 space-y-4'>
       <h2 className='text-lg font-semibold text-gray-900 mb-4'>Thông tin liên hệ</h2>
@@ -36,9 +44,18 @@ export function ProfileContact({ location, email, phone, onSendMessage, onViewFu
           </div>
         </div>
       </div>
-      <Button className='w-full btn-submit mt-6' onClick={onSendMessage}>
-        <Mail className='h-4 w-4 mr-2' />
-        Gửi tin nhắn
+      <Button className='w-full btn-submit mt-6' onClick={onSendMessage} disabled={isSendingMessage}>
+        {isSendingMessage ? (
+          <>
+            <Loader2 className='h-4 w-4 mr-2 animate-spin' />
+            Đang xử lý...
+          </>
+        ) : (
+          <>
+            <Mail className='h-4 w-4 mr-2' />
+            Gửi tin nhắn
+          </>
+        )}
       </Button>
       <Button className='w-full btn-cancel' onClick={onViewFullProfile}>
         Xem hồ sơ đầy đủ

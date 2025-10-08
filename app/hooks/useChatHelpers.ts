@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useChat } from '~/contexts/ChatContext'
+import type { Conversation } from '~/types/chat.type'
 
 /**
  * Hook for managing message input with typing indicators
@@ -109,23 +110,14 @@ export function useTypingIndicators() {
  * Hook for managing conversation selection and auto-join
  */
 export function useConversationSelect() {
-  const { currentConversation, setCurrentConversation, joinConversation, leaveConversation } =
-    useChat()
+  const { currentConversation, setCurrentConversation } = useChat()
 
   const selectConversation = useCallback(
-    async (conversationId: string, conversation: any) => {
-      // Leave current conversation
-      if (currentConversation) {
-        await leaveConversation(currentConversation.id)
-      }
-
-      // Set new conversation
+    async (_conversationId: string, conversation: Conversation) => {
+      // Simply set the conversation - useEffect in ChatContext will handle join/leave/loadMessages
       setCurrentConversation(conversation)
-
-      // Join new conversation
-      await joinConversation(conversationId)
     },
-    [currentConversation, setCurrentConversation, joinConversation, leaveConversation]
+    [setCurrentConversation]
   )
 
   return {
@@ -169,13 +161,14 @@ export function useOnlineStatus(userId: string | null | undefined) {
 /**
  * Hook for auto-scrolling message list
  */
-export function useAutoScroll(dependency: any[]) {
+export function useAutoScroll(dependency: unknown[]) {
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, dependency)
 
   return scrollRef

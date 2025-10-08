@@ -1,5 +1,4 @@
 import { DollarSign, Clock } from 'lucide-react'
-import { Card, CardHeader, CardContent } from '~/components/ui/card'
 import { Badge } from '~/components/ui/badge'
 
 interface ProfilePricingProps {
@@ -9,11 +8,9 @@ interface ProfilePricingProps {
 
 export function ProfilePricing({ priceRange, status }: ProfilePricingProps) {
   return (
-    <Card>
-      <CardHeader>
-        <h3 className='text-lg font-semibold text-gray-900'>Mức giá & Sẵn sàng</h3>
-      </CardHeader>
-      <CardContent className='space-y-4'>
+    <div className='space-y-4 p-8'>
+      <h3 className='text-lg font-semibold text-gray-900'>Mức giá & Sẵn sàng</h3>
+      <div className='space-y-4'>
         <div className='flex items-start gap-3'>
           <DollarSign className='h-5 w-5 text-green-600 mt-0.5 shrink-0' />
           <div>
@@ -25,10 +22,10 @@ export function ProfilePricing({ priceRange, status }: ProfilePricingProps) {
           <Clock className='h-5 w-5 text-blue-600 mt-0.5 shrink-0' />
           <div>
             <p className='text-sm text-gray-500'>Tình trạng</p>
-            <Badge className='bg-yellow-100 text-yellow-800 hover:bg-yellow-100 mt-1'>{status}</Badge>
+            <Badge className='bg-green-100 text-green-800 hover:bg-green-100 mt-1 font-medium'>{status}</Badge>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

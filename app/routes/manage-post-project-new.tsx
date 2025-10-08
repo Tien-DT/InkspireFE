@@ -2,7 +2,7 @@ import { isAxiosError } from 'axios'
 import { Plus } from 'lucide-react'
 import { Suspense, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
-import { Link, useSearchParams } from 'react-router'
+import { Link, useSearchParams, useNavigate } from 'react-router'
 import { toast } from 'sonner'
 
 import { HydrateFallback } from '~/components/ui'
@@ -14,6 +14,7 @@ import { ProjectCard, ProjectDetailsDialog, EmptyProjectsState } from '~/compone
 import PaginationDemo from '~/components/Pagination'
 import { AuthErrorBoundary } from '~/components/errors'
 import { projectApi } from '~/apis/project.api'
+import { useChat } from '~/contexts/ChatContext'
 import {
   Dialog,
   DialogContent,
@@ -41,6 +42,8 @@ interface UserRecruitmentPost {
 
 function ManagePostProjectPage() {
   const profile = getProfileFromLS()
+  const navigate = useNavigate()
+  const { createNewConversation } = useChat()
   const { data, isLoading, error, refetch: refetchPosts } = useUserRecruitmentsByUserId(profile?.id)
 
   const [searchParams, setSearchParams] = useSearchParams()
@@ -49,6 +52,7 @@ function ManagePostProjectPage() {
   const [selectedPost, setSelectedPost] = useState<UserRecruitmentPost | null>(null)
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
   const [pendingApplicationId, setPendingApplicationId] = useState<string | null>(null)
+  const [sendingMessageToId, setSendingMessageToId] = useState<string | null>(null)
   const [confirmState, setConfirmState] = useState<{
     isOpen: boolean
     application: Application | null
@@ -135,6 +139,34 @@ function ManagePostProjectPage() {
   const handleRejectApplicant = (application: Application) => {
     // TODO: Call API to update application status
     console.log('Reject applicant:', application.id)
+  }
+
+  const handleSendMessage = async (application: Application) => {
+    const freelancerId = application.user?.id || application.userId
+    if (!freelancerId) {
+      toast.error('Không tìm thấy thông tin freelancer')
+      return
+    }
+
+    console.log('[handleSendMessage] Creating conversation with freelancerId:', freelancerId)
+
+    try {
+      setSendingMessageToId(application.id)
+
+      // Use ChatContext to create conversation (handles caching, state management)
+      const conversation = await createNewConversation(freelancerId)
+      console.log('[handleSendMessage] Conversation created:', conversation)
+
+      toast.success('Tạo cuộc trò chuyện thành công')
+      navigate('/chat')
+    } catch (error) {
+      console.error('[handleSendMessage] Failed to create conversation:', error)
+      toast.error('Không thể tạo cuộc trò chuyện', {
+        description: 'Vui lòng thử lại sau.'
+      })
+    } finally {
+      setSendingMessageToId(null)
+    }
   }
 
   const handleConfirmDialogOpenChange = (open: boolean) => {
@@ -246,7 +278,9 @@ function ManagePostProjectPage() {
           applicationsError={applicationsError}
           onAcceptApplicant={handleAcceptApplicant}
           onRejectApplicant={handleRejectApplicant}
+          onSendMessage={handleSendMessage}
           acceptingApplicantId={pendingApplicationId}
+          sendingMessageToId={sendingMessageToId}
         />
 
         <Dialog open={confirmState.isOpen} onOpenChange={handleConfirmDialogOpenChange}>

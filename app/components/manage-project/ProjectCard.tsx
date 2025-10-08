@@ -1,11 +1,14 @@
-import { Clock, Calendar, DollarSign, Eye, MessageSquare, Upload } from 'lucide-react'
+import { Clock, Calendar, DollarSign, Eye, MessageSquare, Upload, Loader2 } from 'lucide-react'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { Card } from '~/components/ui/card'
 import type { Project } from '~/apis/project.api'
 import { format, formatDistanceToNow } from 'date-fns'
 import { vi } from 'date-fns/locale'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
+import { useState } from 'react'
+import { useChat } from '~/contexts/ChatContext'
+import { toast } from 'sonner'
 
 interface ProjectCardProps {
   project: Project
@@ -51,11 +54,41 @@ const getTimeAgo = (dateString: string) => {
 }
 
 export function ProjectCard({ project }: ProjectCardProps) {
+  const navigate = useNavigate()
+  const { createNewConversation } = useChat()
+  const [isCreatingChat, setIsCreatingChat] = useState(false)
+
   const statusInfo = getStatusInfo(project.status)
   const budget =
     project.budgetMin && project.budgetMax
       ? `${formatCurrency(project.budgetMin)} - ${formatCurrency(project.budgetMax)}`
       : formatCurrency(project.budgetMin || project.budgetMax)
+
+  const handleChatWithFreelancer = async () => {
+    if (!project.freelancerId) {
+      toast.error('Không tìm thấy freelancer', {
+        description: 'Dự án chưa có freelancer được chấp nhận.'
+      })
+      return
+    }
+
+    try {
+      setIsCreatingChat(true)
+
+      // Use ChatContext to create conversation (handles caching, state management)
+      await createNewConversation(project.freelancerId)
+
+      toast.success('Tạo cuộc trò chuyện thành công')
+      navigate('/chat')
+    } catch (error) {
+      console.error('Failed to create conversation:', error)
+      toast.error('Không thể tạo cuộc trò chuyện', {
+        description: 'Vui lòng thử lại sau.'
+      })
+    } finally {
+      setIsCreatingChat(false)
+    }
+  }
 
   return (
     <Card className='p-6'>
@@ -122,9 +155,23 @@ export function ProjectCard({ project }: ProjectCardProps) {
               Xem chi tiết
             </Link>
           </Button>
-          <Button variant='outline' className='w-full bg-transparent'>
-            <MessageSquare className='h-4 w-4 mr-2' />
-            Nhắn tin
+          <Button
+            variant='outline'
+            className='w-full bg-transparent'
+            onClick={handleChatWithFreelancer}
+            disabled={!project.freelancerId || isCreatingChat}
+          >
+            {isCreatingChat ? (
+              <>
+                <Loader2 className='h-4 w-4 mr-2 animate-spin' />
+                Đang tạo...
+              </>
+            ) : (
+              <>
+                <MessageSquare className='h-4 w-4 mr-2' />
+                Nhắn tin với ứng viên
+              </>
+            )}
           </Button>
           <Button variant='outline' className='w-full bg-transparent'>
             <Upload className='h-4 w-4 mr-2' />

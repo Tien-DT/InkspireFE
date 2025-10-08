@@ -12,8 +12,6 @@ import { toast } from 'sonner'
 import type {
   CallState,
   CallType,
-  CallStatus,
-  CallParticipant,
   CallOffer,
   CallAnswer,
   CallIceCandidate

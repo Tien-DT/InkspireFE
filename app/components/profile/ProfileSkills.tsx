@@ -1,4 +1,3 @@
-import { Card, CardHeader, CardContent } from '~/components/ui/card'
 import { Badge } from '~/components/ui/badge'
 
 interface ProfileSkillsProps {
@@ -19,31 +18,23 @@ const SKILL_COLORS = [
 export function ProfileSkills({ skills }: ProfileSkillsProps) {
   if (skills.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <h3 className='text-lg font-semibold text-gray-900'>Kỹ năng</h3>
-        </CardHeader>
-        <CardContent>
-          <p className='text-sm text-gray-500 text-center py-4'>Chưa có kỹ năng nào được thêm</p>
-        </CardContent>
-      </Card>
+      <div className='space-y-4  p-8'>
+        <h3 className='text-lg font-semibold text-gray-900'>Kỹ năng</h3>
+        <p className='text-sm text-gray-500 text-center py-4'>Chưa có kỹ năng nào được thêm</p>
+      </div>
     )
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <h3 className='text-lg font-semibold text-gray-900'>Kỹ năng</h3>
-      </CardHeader>
-      <CardContent>
-        <div className='flex flex-wrap gap-2'>
-          {skills.map((skill, index) => (
-            <Badge key={skill} className={`${SKILL_COLORS[index % SKILL_COLORS.length]} hover:opacity-80 font-medium`}>
-              {skill}
-            </Badge>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+    <div className='space-y-4 p-8'>
+      <h3 className='text-lg font-semibold text-gray-900'>Kỹ năng</h3>
+      <div className='flex flex-wrap gap-2'>
+        {skills.map((skill, index) => (
+          <Badge key={skill} className={`${SKILL_COLORS[index % SKILL_COLORS.length]} hover:opacity-80 font-medium`}>
+            {skill}
+          </Badge>
+        ))}
+      </div>
+    </div>
   )
 }

@@ -1,19 +1,5 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-  useMemo,
-  type ReactNode
-} from 'react'
-import type {
-  Conversation,
-  Message,
-  ChatMessageResponse,
-  SendMessageRequest,
-  TypingUser
-} from '~/types/chat.type'
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode } from 'react'
+import type { Conversation, Message, ChatMessageResponse, SendMessageRequest, TypingUser } from '~/types/chat.type'
 import { MessageStatus } from '~/types/chat.type'
 import { chatApi } from '~/apis/chat.api'
 import { signalRChatService } from '~/lib/signalr'
@@ -62,7 +48,7 @@ interface ChatProviderProps {
 
 export const ChatProvider = ({ children }: ChatProviderProps) => {
   const { isAuthenticated, profile } = useAuth()
-  
+
   // State
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null)
@@ -75,11 +61,11 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
   // Get current user ID from profile or JWT
   const currentUserId = useMemo(() => {
     if (profile?.id) return profile.id
-    
+
     // Try to extract from JWT
     const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
     if (!token) return null
-    
+
     const payload = parseJwtPayload(token)
     return payload?.sub || null
   }, [profile])
@@ -107,7 +93,7 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
     // Load from localStorage first
     const storedConversations = chatStorage.getConversations()
     const storedMessages = chatStorage.getAllMessages()
-    
+
     setConversations(storedConversations)
     setMessages(storedMessages)
 
@@ -121,7 +107,39 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
       // Cleanup
       signalRChatService.disconnect()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated])
+
+  // ===== Auto-join and load messages when conversation changes =====
+  useEffect(() => {
+    if (!currentConversation || !isConnected) return
+
+    const conversationId = currentConversation.id
+
+    // Join conversation for real-time updates
+    const joinAndLoad = async () => {
+      try {
+        await signalRChatService.joinConversation(conversationId)
+        console.log('[ChatContext] Joined conversation:', conversationId)
+
+        // Load messages if not already loaded
+        if (!messages[conversationId] || messages[conversationId].length === 0) {
+          await loadMessages(conversationId)
+        }
+      } catch (error) {
+        console.error('[ChatContext] Failed to join conversation:', error)
+      }
+    }
+
+    void joinAndLoad()
+
+    // Cleanup: leave conversation when switching or unmounting
+    return () => {
+      void signalRChatService.leaveConversation(conversationId)
+      console.log('[ChatContext] Left conversation:', conversationId)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentConversation?.id, isConnected])
 
   // ===== SignalR Initialization =====
   const initializeSignalR = useCallback(async () => {
@@ -145,6 +163,7 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
       console.error('[ChatContext] SignalR connection failed:', error)
       setIsConnected(false)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // ===== SignalR Event Handlers =====
@@ -164,9 +183,9 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
     setMessages((prev) => {
       const conversationMessages = prev[message.conversationId] || []
       const exists = conversationMessages.some((m) => m.id === message.id)
-      
+
       if (exists) return prev
-      
+
       const updated = [msg, ...conversationMessages]
       return { ...prev, [message.conversationId]: updated }
     })
@@ -210,7 +229,7 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
       const newMessages = { ...prev }
       Object.keys(newMessages).forEach((conversationId) => {
         newMessages[conversationId] = newMessages[conversationId].filter((m) => m.id !== messageId)
-        
+
         // Remove from storage
         const msg = prev[conversationId]?.find((m) => m.id === messageId)
         if (msg) {
@@ -221,29 +240,32 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
     })
   }, [])
 
-  const handleUserTyping = useCallback((userId: string, userName: string) => {
-    if (!currentConversation) return
-    
-    setTypingUsers((prev) => {
-      const exists = prev.some((u) => u.userId === userId && u.conversationId === currentConversation.id)
-      if (exists) return prev
-      
-      return [
-        ...prev,
-        {
-          userId,
-          userName,
-          conversationId: currentConversation.id,
-          timestamp: Date.now()
-        }
-      ]
-    })
+  const handleUserTyping = useCallback(
+    (userId: string, userName: string) => {
+      if (!currentConversation) return
 
-    // Auto-remove after 3 seconds
-    setTimeout(() => {
-      setTypingUsers((prev) => prev.filter((u) => u.userId !== userId))
-    }, 3000)
-  }, [currentConversation])
+      setTypingUsers((prev) => {
+        const exists = prev.some((u) => u.userId === userId && u.conversationId === currentConversation.id)
+        if (exists) return prev
+
+        return [
+          ...prev,
+          {
+            userId,
+            userName,
+            conversationId: currentConversation.id,
+            timestamp: Date.now()
+          }
+        ]
+      })
+
+      // Auto-remove after 3 seconds
+      setTimeout(() => {
+        setTypingUsers((prev) => prev.filter((u) => u.userId !== userId))
+      }, 3000)
+    },
+    [currentConversation]
+  )
 
   const handleUserStoppedTyping = useCallback((userId: string) => {
     setTypingUsers((prev) => prev.filter((u) => u.userId !== userId))
@@ -266,9 +288,7 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
     try {
       const response = await chatApi.getConversationById(conversationId)
       if (response.success && response.data) {
-        setConversations((prev) =>
-          prev.map((conv) => (conv.id === conversationId ? response.data : conv))
-        )
+        setConversations((prev) => prev.map((conv) => (conv.id === conversationId ? response.data : conv)))
       }
     } catch (error) {
       console.error('[ChatContext] Failed to reload conversation:', error)
@@ -341,42 +361,62 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
     }
   }, [])
 
-  const createNewConversation = useCallback(async (userId: string) => {
-    try {
-      setIsLoading(true)
-      const response = await chatApi.createConversationWithUser(userId)
-      const newConversation = response.data
+  const createNewConversation = useCallback(
+    async (userId: string) => {
+      try {
+        setIsLoading(true)
 
-      // Add to conversations list
-      setConversations((prev) => [newConversation, ...prev])
+        // Check if conversation already exists with this user
+        const existingConversation = conversations.find((conv) =>
+          conv.members?.some((member) => member.userId === userId)
+        )
 
-      // Set as current conversation
-      setCurrentConversation(newConversation)
+        if (existingConversation) {
+          console.log('[ChatContext] Conversation already exists, switching to it:', existingConversation.id)
+          setCurrentConversation(existingConversation)
+          return existingConversation
+        }
 
-      // Join conversation via SignalR
-      await signalRChatService.joinConversation(newConversation.id)
+        // Create new conversation
+        const response = await chatApi.createConversationWithUser(userId)
+        const newConversation = response.data
 
-      // Load messages (probably empty)
-      await loadMessages(newConversation.id)
+        // Add to conversations list (check if not already added by backend)
+        setConversations((prev) => {
+          const exists = prev.some((c) => c.id === newConversation.id)
+          if (exists) return prev
+          return [newConversation, ...prev]
+        })
 
-      return newConversation
-    } catch (error) {
-      console.error('[ChatContext] Failed to create conversation:', error)
-      throw error
-    } finally {
-      setIsLoading(false)
-    }
-  }, [loadMessages])
+        // Save to localStorage
+        chatStorage.saveConversations([newConversation, ...conversations])
 
-  const joinConversation = useCallback(async (conversationId: string) => {
-    try {
-      await signalRChatService.joinConversation(conversationId)
-      // Load messages for this conversation
-      await loadMessages(conversationId)
-    } catch (error) {
-      console.error('[ChatContext] Failed to join conversation:', error)
-    }
-  }, [loadMessages])
+        // Set as current conversation (useEffect will auto-join and load messages)
+        setCurrentConversation(newConversation)
+
+        return newConversation
+      } catch (error) {
+        console.error('[ChatContext] Failed to create conversation:', error)
+        throw error
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [conversations]
+  )
+
+  const joinConversation = useCallback(
+    async (conversationId: string) => {
+      try {
+        await signalRChatService.joinConversation(conversationId)
+        // Load messages for this conversation
+        await loadMessages(conversationId)
+      } catch (error) {
+        console.error('[ChatContext] Failed to join conversation:', error)
+      }
+    },
+    [loadMessages]
+  )
 
   const leaveConversation = useCallback(async (conversationId: string) => {
     try {

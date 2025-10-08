@@ -13,6 +13,7 @@ export default [
     // Protected routes
     layout('./layouts/ProtectedLayout/ProtectedLayout.tsx', [
       route('profile', './routes/profile.tsx'),
+      route('user-profile/:userId', './routes/user-profile.tsx'),
       route('dashboard-freelancer', './routes/dashboard-freelancer.tsx'),
       route('post-project', './routes/post-project.tsx'),
       route('post-new-project', './routes/post-new-project.tsx'),

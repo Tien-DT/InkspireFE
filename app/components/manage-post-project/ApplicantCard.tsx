@@ -2,23 +2,33 @@ import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent } from '~/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
-import { Calendar, CheckCircle, FileText, Loader2, Mail, XCircle } from 'lucide-react'
+import { Calendar, CheckCircle, FileText, Loader2, Mail, XCircle, MessageSquare } from 'lucide-react'
 import { format } from 'date-fns'
 import { vi } from 'date-fns/locale'
+import { Link } from 'react-router'
 import type { Application as RecruitmentApplication } from '~/types/recruitment.type'
 
 interface ApplicantCardProps {
   application: RecruitmentApplication
   onAccept?: () => void
   onReject?: () => void
+  onSendMessage?: () => void
   isProcessing?: boolean
+  isSendingMessage?: boolean
 }
 
 const formatDate = (dateString: string) => {
   return format(new Date(dateString), 'dd/MM/yyyy', { locale: vi })
 }
 
-export function ApplicantCard({ application, onAccept, onReject, isProcessing }: ApplicantCardProps) {
+export function ApplicantCard({
+  application,
+  onAccept,
+  onReject,
+  onSendMessage,
+  isProcessing,
+  isSendingMessage
+}: ApplicantCardProps) {
   const getStatusBadge = (status: number) => {
     switch (status) {
       case 2:
@@ -30,23 +40,29 @@ export function ApplicantCard({ application, onAccept, onReject, isProcessing }:
     }
   }
 
+  const freelancerId = application.user?.id || application.userId
+
   return (
     <Card className='hover:shadow-md transition-shadow'>
       <CardContent className='p-6'>
         <div className='flex items-start gap-4'>
-          <Avatar className='h-16 w-16'>
-            <AvatarImage src={undefined} alt={`${application.user.firstName} ${application.user.lastName}`} />
-            <AvatarFallback className='bg-gradient-to-br from-blue-500 to-purple-600 text-white text-lg'>
-              {application.user.firstName?.charAt(0) || application.user.email.charAt(0)}
-            </AvatarFallback>
-          </Avatar>
+          <Link to={`/user-profile/${freelancerId}`} className='flex-shrink-0'>
+            <Avatar className='h-16 w-16 cursor-pointer hover:ring-2 hover:ring-blue-500 transition-all'>
+              <AvatarImage src={undefined} alt={`${application.user.firstName} ${application.user.lastName}`} />
+              <AvatarFallback className='bg-gradient-to-br from-blue-500 to-purple-600 text-white text-lg'>
+                {application.user.firstName?.charAt(0) || application.user.email.charAt(0)}
+              </AvatarFallback>
+            </Avatar>
+          </Link>
 
           <div className='flex-1'>
             <div className='flex items-start justify-between mb-3'>
               <div>
-                <h4 className='text-lg font-bold text-gray-900'>
-                  {application.user.firstName} {application.user.lastName}
-                </h4>
+                <Link to={`/user-profile/${freelancerId}`}>
+                  <h4 className='text-lg font-bold text-gray-900 cursor-pointer hover:text-blue-600 transition-colors'>
+                    {application.user.firstName} {application.user.lastName}
+                  </h4>
+                </Link>
                 <p className='text-sm text-gray-500'>{application.user.email}</p>
               </div>
               {getStatusBadge(application.status)}
@@ -69,15 +85,33 @@ export function ApplicantCard({ application, onAccept, onReject, isProcessing }:
             </div>
 
             <div className='flex items-center justify-between'>
-              <Button
-                variant='outline'
-                size='sm'
-                className='gap-2'
-                onClick={() => window.open(application.cvFileUrl, '_blank')}
-              >
-                <FileText className='h-4 w-4' />
-                Xem CV
-              </Button>
+              <div className='flex gap-2'>
+                <Button
+                  variant='outline'
+                  size='sm'
+                  className='gap-2'
+                  onClick={() => window.open(application.cvFileUrl, '_blank')}
+                >
+                  <FileText className='h-4 w-4' />
+                  Xem CV
+                </Button>
+                {onSendMessage && (
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    className='gap-2'
+                    onClick={onSendMessage}
+                    disabled={isSendingMessage}
+                  >
+                    {isSendingMessage ? (
+                      <Loader2 className='h-4 w-4 animate-spin' />
+                    ) : (
+                      <MessageSquare className='h-4 w-4' />
+                    )}
+                    {isSendingMessage ? 'Đang tạo...' : 'Gửi tin nhắn'}
+                  </Button>
+                )}
+              </div>
 
               {application.status === 1 && (
                 <div className='flex gap-2'>

@@ -53,11 +53,9 @@ const MOCK_PORTFOLIO: PortfolioItem[] = [
   }
 ]
 
-type TabType = 'intro' | 'portfolio' | 'reviews'
 type EditTabType = 'profile' | 'portfolio'
 
 function ProfilePage() {
-  const [activeTab, setActiveTab] = useState<TabType>('intro')
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [editingTab, setEditingTab] = useState<EditTabType>('profile')
   const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>(MOCK_PORTFOLIO)
@@ -178,23 +176,33 @@ function ProfilePage() {
                   onSendMessage={() => console.log('Send message')}
                   onViewFullProfile={() => console.log('View full profile')}
                 />
+
+                <ProfilePricing priceRange={profileData.priceRange} status={profileData.status} />
+
+                <ProfileSkills skills={profileData.skills} />
               </CardContent>
             </Card>
-
-            <ProfilePricing priceRange={profileData.priceRange} status={profileData.status} />
-
-            <ProfileSkills skills={profileData.skills} />
           </div>
 
           {/* Right Content */}
           <div className='space-y-6'>
-            <ProfileTabs activeTab={activeTab} onTabChange={setActiveTab} />
+            <Card className='border-0 shadow-sm'>
+              <Tabs defaultValue='intro' className='w-full'>
+                <ProfileTabs />
 
-            {activeTab === 'intro' && <ProfileIntroTab bio={profileData.bio} />}
+                <TabsContent value='intro' className='mt-0 p-6'>
+                  <ProfileIntroTab bio={profileData.bio} />
+                </TabsContent>
 
-            {activeTab === 'portfolio' && <ProfilePortfolioTab portfolio={profileData.portfolio} />}
+                <TabsContent value='portfolio' className='mt-0 p-6'>
+                  <ProfilePortfolioTab portfolio={profileData.portfolio} />
+                </TabsContent>
 
-            {activeTab === 'reviews' && <ProfileReviewsTab />}
+                <TabsContent value='reviews' className='mt-0 p-6'>
+                  <ProfileReviewsTab />
+                </TabsContent>
+              </Tabs>
+            </Card>
           </div>
         </div>
 
