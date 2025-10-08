@@ -3,6 +3,8 @@ import type { ReactNode } from 'react'
 import { Button } from '~/components/ui/button'
 import { motion } from 'framer-motion'
 import { fadeInUp } from '../animation'
+import { Link } from 'react-router'
+import { PATH } from '~/constants/path'
 
 interface HeroSectionProps {
   title: ReactNode
@@ -40,16 +42,20 @@ export function HeroSection({
         </p>
         <div className='flex flex-col sm:flex-row gap-4 justify-center'>
           <Button size='lg' variant='default'>
-            <Users />
-            {primaryLabel}
+            <Link to={PATH.jobsFreelancer} className='flex items-center gap-2'>
+              <Users />
+              {primaryLabel}
+            </Link>
           </Button>
           <Button
             size='lg'
             variant='outline'
             className='border-white text-white hover:bg-white hover:text-cyan-600 bg-transparent'
           >
-            <CircleFadingArrowUp />
-            {secondaryLabel}
+            <Link to={PATH.postProject} className='flex items-center gap-2'>
+              <CircleFadingArrowUp />
+              {secondaryLabel}
+            </Link>
           </Button>
         </div>
         {isHero && tagline && (

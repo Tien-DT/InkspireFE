@@ -59,8 +59,8 @@ export const useLogin = () => {
       // Small delay for smooth transition
       await new Promise((resolve) => setTimeout(resolve, 500))
 
-      // Redirect to dashboard or home
-      navigate('/dashboard-freelancer')
+      // Redirect to homepage
+      navigate('/')
     },
     onError: (error: unknown) => {
       // Handle different error cases

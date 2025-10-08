@@ -2,9 +2,10 @@ import { Link } from 'react-router'
 import { Button } from '~/components/ui/button'
 import logo from '~/assets/logo.svg'
 import { Input } from '~/components/ui/input'
-import { BellDot, MessageSquareDot, Search, User } from 'lucide-react'
+import { BellDot, MessageSquareDot, Search, User, Wallet } from 'lucide-react'
 import { PATH } from '~/constants/path'
 import { useAuth } from '~/contexts/AuthContext'
+import { useWallet } from '~/hooks/useWallet'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,10 +19,30 @@ import { UserRole } from '~/types/user.type'
 
 export function Header() {
   const { userName, isAuthenticated, authReady, profile } = useAuth()
+  const { data: wallet } = useWallet(profile?.id, isAuthenticated)
 
   // Determine if user is a client (CLIENT role) or freelancer (other roles)
   const isClient = profile?.role === UserRole.CLIENT
   const isFreelancer = profile?.role !== undefined && profile?.role !== UserRole.CLIENT
+
+  // Format currency
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND'
+    }).format(amount)
+  }
+
+  // Get initials from user name (same as ProfileHeader)
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+  }
+
+  const userInitials = userName ? getInitials(userName) : 'U'
 
   return (
     <header className='bg-white border-b border-border'>
@@ -74,13 +95,26 @@ export function Header() {
                   </Link>
                 </Button>
 
+                {/* Wallet */}
+                <Link
+                  to={PATH.payment}
+                  className='flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg border border-emerald-200'
+                >
+                  <Wallet className='h-4 w-4 text-emerald-600' />
+                  <span className='text-sm font-semibold text-emerald-700'>
+                    {wallet ? formatCurrency(wallet.balance) : '0 ₫'}
+                  </span>
+                </Link>
+
                 {/* User Menu */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant='ghost' className='relative h-8 w-8 rounded-full'>
-                      <Avatar className='h-8 w-8'>
+                    <Button variant='ghost' className='relative h-10 w-10 rounded-full p-0'>
+                      <Avatar className='h-10 w-10 border-2 border-white shadow-lg ring-2 ring-purple-100'>
                         <AvatarImage src='' alt={userName || 'User'} />
-                        <AvatarFallback>{(userName || 'U').charAt(0).toUpperCase()}</AvatarFallback>
+                        <AvatarFallback className='bg-gradient-to-br from-purple-500 to-pink-600 text-white text-sm font-bold'>
+                          {userInitials}
+                        </AvatarFallback>
                       </Avatar>
                     </Button>
                   </DropdownMenuTrigger>
