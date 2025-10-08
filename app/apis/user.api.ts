@@ -1,18 +1,34 @@
 import axiosClient from '~/lib/axios'
-import type { UserApiResponse } from '~/types/user.type'
 
-// ===== API URLs =====
-const BASE_URL = '/api'
+// API endpoints
+const URL_GET_USER_BY_ID = '/api/users'
 
-export const URL_USERS = `${BASE_URL}/users`
+// Response types
+export interface UserProfileResponse {
+  success: boolean
+  message: string
+  data: {
+    id: string
+    email: string
+    username: string
+    firstName: string
+    lastName: string
+    phoneNumber: string
+    role: number
+    status: number
+    createdAt: string
+  }
+}
 
-// ===== User API =====
+// API methods
 export const userApi = {
   /**
-   * Get all users
+   * Get user profile by userId
+   * @param userId - User ID
+   * @returns User profile data
    */
-  getAllUsers: async () => {
-    const response = await axiosClient.get<UserApiResponse[]>(URL_USERS)
+  getUserById: async (userId: string): Promise<UserProfileResponse> => {
+    const response = await axiosClient.get<UserProfileResponse>(`${URL_GET_USER_BY_ID}/${userId}`)
     return response.data
   }
 }

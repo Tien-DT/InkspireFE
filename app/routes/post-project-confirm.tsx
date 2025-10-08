@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { Badge } from '~/components/ui/badge'
+import { AuthErrorBoundary } from '~/components/errors'
 import { useRecruitmentForm } from '~/contexts/RecruitmentFormContext'
 import { useAuth } from '~/contexts/AuthContext'
 import { recruitmentApi } from '~/apis/recruitment.api'
@@ -12,7 +13,7 @@ import { toast } from 'sonner'
 import { format } from 'date-fns'
 import { getAccessTokenFromLS, parseJwtPayload } from '~/utils/auth'
 
-export default function PostProjectConfirm() {
+function PostProjectConfirmPage() {
   const navigate = useNavigate()
   const { step1Data, getCombinedData, resetForm, setCurrentStep } = useRecruitmentForm()
   const { profile } = useAuth()
@@ -27,23 +28,6 @@ export default function PostProjectConfirm() {
   useEffect(() => {
     setCurrentStep(2)
 
-    // Debug: Check profile on mount
-    console.log('=== POST PROJECT CONFIRM MOUNTED ===')
-    console.log('Profile from context:', profile)
-    console.log('Profile ID:', profile?.id)
-    const token = getAccessTokenFromLS()
-    console.log('Access Token:', token ? 'exists' : 'none')
-    if (token) {
-      const payload = parseJwtPayload(token)
-      console.log('Token Payload:', payload)
-      const userId =
-        payload?.['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] ||
-        payload?.sub ||
-        payload?.userId ||
-        payload?.id
-      console.log('User ID from token:', userId)
-    }
-
     const fetchData = async () => {
       try {
         const [categoriesRes, skillsRes] = await Promise.all([
@@ -54,6 +38,7 @@ export default function PostProjectConfirm() {
         setSkills(skillsRes.data)
       } catch (error) {
         console.error('Failed to fetch data:', error)
+        toast.error('Không thể tải dữ liệu. Vui lòng thử lại.')
       }
     }
 
@@ -97,10 +82,6 @@ export default function PostProjectConfirm() {
         (payload?.id as string)
     }
 
-    // Debug: Log to check
-    console.log('Profile:', profile)
-    console.log('User ID:', userId)
-
     if (!userId) {
       toast.error('Vui lòng đăng nhập để đăng dự án')
       navigate('/login')
@@ -110,13 +91,10 @@ export default function PostProjectConfirm() {
     setIsSubmitting(true)
 
     try {
-      // Add userId to the request
       const dataWithUserId = {
         ...combinedData,
         userId: userId
       }
-
-      console.log('Submitting data:', dataWithUserId)
 
       await recruitmentApi.createRecruitment(dataWithUserId)
       setIsSuccess(true)
@@ -271,5 +249,13 @@ export default function PostProjectConfirm() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function PostProjectConfirm() {
+  return (
+    <AuthErrorBoundary autoRedirectToLogin={true}>
+      <PostProjectConfirmPage />
+    </AuthErrorBoundary>
   )
 }

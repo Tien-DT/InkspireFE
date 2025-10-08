@@ -15,7 +15,7 @@ export const PATH = {
   dashboard: '/dashboard-freelancer',
   postProject: '/post-project',
   postNewProject: '/post-new-project',
-  manageProject: '/manage-project',
+  manageProjects: '/manage-projects',
   managePostProject: '/manage-post-project',
   manageApplications: '/manage-applications',
   manageJobs: '/manage-jobs',

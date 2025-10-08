@@ -5,9 +5,8 @@ export enum UserStatus {
 }
 
 export enum UserRole {
-  CLIENT = 0,
-  DESIGNER = 1,
-  DEVELOPER = 2,
+  CLIENT = 1,
+  FREELANCER = 2,
   MARKETER = 3,
   PROJECT_MANAGER = 4
 }
