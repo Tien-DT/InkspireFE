@@ -120,3 +120,33 @@ export interface RecruitmentResponse {
   data: RecruitmentPost[]
   pagination: PaginationInfo
 }
+
+// Application / Applicant Types
+export interface Application {
+  id: string
+  userId: string
+  recruitmentPostId: string
+  cvFileUrl: string
+  coverLetter: string
+  createdAt: string
+  updatedAt: string
+  status: number
+  user: {
+    id: string
+    firstName: string
+    lastName: string
+    email: string
+  }
+}
+
+export interface ApplicationsResponse {
+  success: boolean
+  message: string
+  data: {
+    items: Application[]
+    totalCount: number
+    page: number
+    pageSize: number
+    totalPages: number
+  }
+}

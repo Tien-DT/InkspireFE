@@ -14,9 +14,14 @@ import {
 } from '~/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
 import { Badge } from '../ui/badge'
+import { UserRole } from '~/types/user.type'
 
 export function Header() {
-  const { userName, isAuthenticated, authReady } = useAuth()
+  const { userName, isAuthenticated, authReady, profile } = useAuth()
+
+  // Determine if user is a client (CLIENT role) or freelancer (other roles)
+  const isClient = profile?.role === UserRole.CLIENT
+  const isFreelancer = profile?.role !== undefined && profile?.role !== UserRole.CLIENT
 
   return (
     <header className='bg-white border-b border-border'>
@@ -92,9 +97,16 @@ export function Header() {
                     <DropdownMenuItem>
                       <Link to={PATH.manageProject}>Quản lý dự án</Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Link to={PATH.managePostProject}>Quản lý bài đăng</Link>
-                    </DropdownMenuItem>
+                    {isClient && (
+                      <DropdownMenuItem>
+                        <Link to={PATH.managePostProject}>Quản lý bài đăng</Link>
+                      </DropdownMenuItem>
+                    )}
+                    {isFreelancer && (
+                      <DropdownMenuItem>
+                        <Link to={PATH.manageApplications}>Quản lý ứng tuyển</Link>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild className='text-destructive'>
                       <Link to={PATH.logout}>Đăng xuất</Link>

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { authApi } from '~/apis/auth.api'
 import type { LoginRequest, RegisterRequest } from '~/types/auth.type'
-import { setAccessTokenToLS, setRefreshTokenToLS, setProfileToLS } from '~/utils/auth'
+import { setAccessTokenToLS, setRefreshTokenToLS, setProfileToLS, extractUserFromToken } from '~/utils/auth'
 import { useAuth } from '~/contexts/AuthContext'
 
 /**
@@ -21,9 +21,30 @@ export const useLogin = () => {
       setAccessTokenToLS(response.access_token)
       setRefreshTokenToLS(response.refresh_token)
 
-      // Store user profile
+      // Ưu tiên lưu user từ response
       if (response.user) {
+        console.log('User from login response:', response.user)
         setProfileToLS(response.user)
+      } else {
+        // Fallback: Decode JWT để lấy user info
+        console.log('No user in response, extracting from JWT...')
+        const userFromToken = extractUserFromToken(response.access_token)
+
+        if (userFromToken) {
+          console.log('User extracted from JWT:', userFromToken)
+          setProfileToLS(userFromToken)
+        } else {
+          // Last resort: gọi API getProfile
+          console.log('Failed to extract from JWT, fetching profile from API...')
+          try {
+            const profile = await authApi.getProfile()
+            console.log('Profile from API:', profile)
+            setProfileToLS(profile)
+          } catch (error) {
+            console.error('Failed to fetch profile:', error)
+            toast.error('Không thể tải thông tin người dùng')
+          }
+        }
       }
 
       // Refresh auth state to update UI immediately

@@ -98,7 +98,7 @@ export default function Profile() {
 
   if (!hasProfile) {
     return (
-      <div className='min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50'>
+      <div className='min-h-screen bg-background'>
         <div className='container mx-auto px-4 py-8'>
           <Card className='max-w-2xl mx-auto'>
             <CardContent className='py-16 text-center'>
@@ -111,11 +111,7 @@ export default function Profile() {
               <p className='text-gray-600 mb-8 max-w-md mx-auto'>
                 Hãy tạo profile để giới thiệu bản thân, kỹ năng và portfolio của bạn với khách hàng tiềm năng.
               </p>
-              <Button
-                onClick={() => setIsEditDialogOpen(true)}
-                className='bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white'
-                size='lg'
-              >
+              <Button onClick={() => setIsEditDialogOpen(true)} className='btn-submit' size='lg'>
                 <Plus className='h-5 w-5 mr-2' />
                 Tạo profile ngay
               </Button>
@@ -127,13 +123,10 @@ export default function Profile() {
   }
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50'>
+    <div className='min-h-screen bg-background'>
       <div className='container mx-auto px-4 py-8'>
         <div className='flex justify-end mb-4'>
-          <Button
-            onClick={() => setIsEditDialogOpen(true)}
-            className='bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white'
-          >
+          <Button onClick={() => setIsEditDialogOpen(true)} className='btn-submit'>
             <Edit className='h-4 w-4 mr-2' />
             Chỉnh sửa profile
           </Button>
@@ -143,7 +136,7 @@ export default function Profile() {
           <div className='space-y-6'>
             <Card className='overflow-hidden'>
               <CardContent className='p-0'>
-                <div className='bg-gradient-to-br from-blue-500 via-cyan-500 to-blue-600 p-8 text-center'>
+                <div className='bg-section p-8 text-center'>
                   <div className='flex justify-center mb-4'>
                     <Avatar className='h-32 w-32 border-4 border-white shadow-xl'>
                       <AvatarImage src={profileData.avatar} />
@@ -188,13 +181,11 @@ export default function Profile() {
                       </div>
                     </div>
                   </div>
-                  <Button className='w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white mt-6'>
+                  <Button className='w-full btn-submit mt-6'>
                     <Mail className='h-4 w-4 mr-2' />
                     Gửi tin nhắn
                   </Button>
-                  <Button variant='outline' className='w-full border-2'>
-                    Xem hồ sơ đầy đủ
-                  </Button>
+                  <Button className='w-full btn-cancel'>Xem hồ sơ đầy đủ</Button>
                 </div>
               </CardContent>
             </Card>
@@ -451,13 +442,10 @@ export default function Profile() {
                     </div>
                   </div>
                   <div className='flex justify-end gap-3 pt-4 border-t sticky bottom-0 bg-white'>
-                    <Button type='button' variant='outline' onClick={() => setIsEditDialogOpen(false)}>
+                    <Button type='button' className='btn-cancel' onClick={() => setIsEditDialogOpen(false)}>
                       Hủy
                     </Button>
-                    <Button
-                      type='submit'
-                      className='bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700'
-                    >
+                    <Button type='submit' className='btn-submit'>
                       {hasProfile ? 'Lưu thay đổi' : 'Tạo profile'}
                     </Button>
                   </div>
@@ -560,13 +548,10 @@ export default function Profile() {
                     </div>
                   )}
                   <div className='flex justify-end gap-3 pt-4 border-t sticky bottom-0 bg-white'>
-                    <Button type='button' variant='outline' onClick={() => setIsEditDialogOpen(false)}>
+                    <Button type='button' className='btn-cancel' onClick={() => setIsEditDialogOpen(false)}>
                       Hủy
                     </Button>
-                    <Button
-                      onClick={handleSavePortfolio}
-                      className='bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700'
-                    >
+                    <Button onClick={handleSavePortfolio} className='btn-submit'>
                       Lưu Portfolio
                     </Button>
                   </div>

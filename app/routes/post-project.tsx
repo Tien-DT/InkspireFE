@@ -105,12 +105,12 @@ export default function PostProject() {
   const skillColors = ['blue', 'purple', 'orange', 'pink', 'green', 'yellow', 'red', 'indigo'] as const
 
   return (
-    <div className='container mx-auto px-4 py-6 space-y-6'>
+    <div className='container mx-auto px-4 py-6 space-y-6 min-h-screen bg-background'>
       <div
         className={`transition-all duration-500 ease-out ${isTransitioning ? 'opacity-0 -translate-x-12' : 'opacity-100 translate-x-0'}`}
       >
         <div className='text-center mb-8'>
-          <h1 className='text-3xl font-bold text-teal-500 mb-2'>Đăng Dự Án Mới</h1>
+          <h1 className='text-3xl font-bold text-gradient mb-2'>Đăng Dự Án Mới</h1>
           <p className='text-gray-600'>Chia sẻ dự án của bạn với hàng nghìn freelancer tài năng</p>
         </div>
 
@@ -288,10 +288,7 @@ export default function PostProject() {
                   </div>
 
                   <div className='pt-4'>
-                    <Button
-                      className='bg-gray-800 hover:bg-gray-900 text-white px-8 py-3 rounded-md transition-colors duration-200'
-                      onClick={handleNext}
-                    >
+                    <Button className='btn-submit px-8 py-3' onClick={handleNext}>
                       Tiếp theo
                       <ArrowRight className='ml-2 h-4 w-4' />
                     </Button>

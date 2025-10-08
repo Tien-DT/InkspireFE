@@ -13,6 +13,7 @@ import { Textarea } from '~/components/ui/textarea'
 import { useRecruitments } from '~/hooks/useRecruitments'
 import { recruitmentApi } from '~/apis/recruitment.api'
 import { toast } from 'sonner'
+import { getProfileFromLS } from '~/utils/auth'
 
 import { Suspense } from 'react'
 import { HydrateFallback } from '~/components/ui'
@@ -73,14 +74,30 @@ export default function JobsFreelancer() {
 
     if (!selectedJobId) return
 
+    const profile = getProfileFromLS()
+    if (!profile?.id) {
+      toast.error('Vui lòng đăng nhập để ứng tuyển')
+      return
+    }
+
     setIsSubmitting(true)
     try {
-      const formData = new FormData()
-      formData.append('recruitmentPostId', selectedJobId)
-      formData.append('cv', cvFile)
-      formData.append('coverLetter', coverLetter)
+      // Step 1: Upload CV to Supabase
+      toast.info('Đang tải CV lên...')
+      const uploadResult = await recruitmentApi.uploadCV(cvFile)
 
-      await recruitmentApi.applyToJob(formData)
+      if (!uploadResult.success || !uploadResult.data?.fileUrl) {
+        throw new Error('Upload CV failed')
+      }
+
+      // Step 2: Submit application with CV URL
+      toast.info('Đang gửi hồ sơ ứng tuyển...')
+      await recruitmentApi.submitApplication({
+        userId: profile.id,
+        recruitmentPostId: selectedJobId,
+        cvFileUrl: uploadResult.data.fileUrl,
+        coverLetter: coverLetter.trim()
+      })
 
       toast.success('Nộp hồ sơ ứng tuyển thành công!')
 
@@ -91,7 +108,14 @@ export default function JobsFreelancer() {
       setSelectedJobId(null)
     } catch (error) {
       console.error('Application error:', error)
-      toast.error('Có lỗi xảy ra khi nộp hồ sơ. Vui lòng thử lại!')
+      const errorMessage =
+        (error as { response?: { data?: { message?: string } }; message?: string })?.response?.data?.message ||
+        (error as Error)?.message
+      if (errorMessage?.includes('upload') || errorMessage?.includes('CV')) {
+        toast.error('Lỗi khi tải CV lên. Vui lòng thử lại!')
+      } else {
+        toast.error('Có lỗi xảy ra khi nộp hồ sơ. Vui lòng thử lại!')
+      }
     } finally {
       setIsSubmitting(false)
     }
@@ -106,7 +130,7 @@ export default function JobsFreelancer() {
     }
   }
   return (
-    <div className='container mx-auto px-4 py-6 space-y-6'>
+    <div className='container mx-auto px-4 py-6 space-y-6 min-h-screen bg-background'>
       <div className='grid grid-cols-1 lg:grid-cols-4 gap-6'>
         {/* Left Sidebar - Filters */}
         <div className='lg:col-span-1'>
@@ -338,16 +362,10 @@ export default function JobsFreelancer() {
                           </div>
 
                           <div className='flex flex-col gap-2 w-full'>
-                            <Button
-                              className='w-full bg-gray-900 hover:bg-gray-800 text-white'
-                              onClick={() => handleApplyClick(post.id)}
-                            >
+                            <Button className='w-full btn-submit' onClick={() => handleApplyClick(post.id)}>
                               Ứng tuyển ngay
                             </Button>
-                            <Button
-                              variant='outline'
-                              className='w-full text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                            >
+                            <Button className='btn-cancel'>
                               <Eye className='h-4 w-4 mr-2' />
                               Xem chi tiết
                             </Button>
@@ -389,7 +407,7 @@ export default function JobsFreelancer() {
                 <Upload className='h-4 w-4 mr-2' />
                 Tải lên CV từ máy tính, chọn hoặc kéo thả
               </label>
-              <p className='text-sm text-gray-500'>Hỗ trợ định dạng .doc, .docx, pdf có kích thước dưới 5MB</p>
+              <p className='text-sm text-gray-500'>Hỗ trợ định dạng pdf có kích thước dưới 5MB</p>
 
               <div className='border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-500 transition-colors cursor-pointer'>
                 <input
@@ -414,13 +432,13 @@ export default function JobsFreelancer() {
                         <p className='text-sm font-semibold text-gray-700 mb-1'>
                           Tải lên CV từ máy tính, chọn hoặc kéo thả
                         </p>
-                        <p className='text-xs text-gray-500'>Hỗ trợ .doc, .docx, pdf (dưới 5MB)</p>
+                        <p className='text-xs text-gray-500'>Hỗ trợ pdf (dưới 5MB)</p>
                       </>
                     )}
                   </div>
                 </label>
                 {cvFile && (
-                  <Button variant='outline' size='sm' className='mt-3' onClick={() => setCvFile(null)}>
+                  <Button className='btn-cancel' size='sm' onClick={() => setCvFile(null)}>
                     Chọn file khác
                   </Button>
                 )}
@@ -449,18 +467,10 @@ export default function JobsFreelancer() {
 
           {/* Footer Buttons */}
           <div className='flex gap-3 pt-4 border-t'>
-            <Button
-              className='flex-1 bg-white text-gray-900 hover:bg-gray-50 hover:text-gray-800'
-              onClick={handleDialogClose}
-              disabled={isSubmitting}
-            >
+            <Button className='flex-1 btn-cancel' onClick={handleDialogClose} disabled={isSubmitting}>
               Hủy
             </Button>
-            <Button
-              className='flex-1 bg-gray-900 hover:bg-gray-800 text-white'
-              onClick={handleSubmitApplication}
-              disabled={isSubmitting}
-            >
+            <Button className='flex-1 btn-submit' onClick={handleSubmitApplication} disabled={isSubmitting}>
               {isSubmitting ? 'Đang gửi...' : 'Nộp hồ sơ ứng tuyển'}
             </Button>
           </div>

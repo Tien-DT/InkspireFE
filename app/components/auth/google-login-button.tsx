@@ -6,7 +6,13 @@ import { auth, googleProvider } from '~/lib/firebase'
 import { authApi } from '~/apis/auth.api'
 import { GoogleIcon } from '~/components/icons/google-icon'
 import { Button } from '~/components/ui/button'
-import { setAccessTokenToLS, setRefreshTokenToLS, setProfileToLS, setLastAuthContext } from '~/utils/auth'
+import {
+  setAccessTokenToLS,
+  setRefreshTokenToLS,
+  setProfileToLS,
+  setLastAuthContext,
+  extractUserFromToken
+} from '~/utils/auth'
 import { useAuth } from '~/contexts/AuthContext'
 import { toast } from 'sonner'
 import type { AuthError, GoogleLoginRequest, GoogleLoginResponse } from '~/types/auth.type'
@@ -24,18 +30,41 @@ export function GoogleLoginButton({ rememberMe = false, onSuccess, onError }: Go
 
   const googleLoginMutation = useMutation<GoogleLoginResponse, AuthError, GoogleLoginRequest>({
     mutationFn: authApi.googleLogin,
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
+      console.log('Google Login Response:', data)
+
       // Lưu tokens vào localStorage
       setAccessTokenToLS(data.access_token)
       setRefreshTokenToLS(data.refresh_token)
 
-      // Lưu thông tin user nếu có
+      // Ưu tiên lưu user từ response
       if (data.user) {
+        console.log('User from response:', data.user)
         setProfileToLS(data.user)
-      }
+        setLastAuthContext('google', data.user?.email)
+      } else {
+        // Fallback: Decode JWT để lấy user info
+        console.log('No user in response, extracting from JWT...')
+        const userFromToken = extractUserFromToken(data.access_token)
 
-      // Lưu last auth context
-      setLastAuthContext('google', data.user?.email)
+        if (userFromToken) {
+          console.log('User extracted from JWT:', userFromToken)
+          setProfileToLS(userFromToken)
+          setLastAuthContext('google', userFromToken.email)
+        } else {
+          // Last resort: gọi API getProfile
+          console.log('Failed to extract from JWT, fetching profile from API...')
+          try {
+            const profile = await authApi.getProfile()
+            console.log('Profile from API:', profile)
+            setProfileToLS(profile)
+            setLastAuthContext('google', profile?.email)
+          } catch (error) {
+            console.error('Failed to fetch profile:', error)
+            toast.error('Không thể tải thông tin người dùng')
+          }
+        }
+      }
 
       // Refresh auth state
       refreshAuth()
