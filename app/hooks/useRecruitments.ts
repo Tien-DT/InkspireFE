@@ -30,10 +30,24 @@ export const useRecruitmentApplications = (
   recruitmentPostId: string | undefined,
   { page = 1, pageSize = 10 }: { page?: number; pageSize?: number } = {}
 ) => {
-  return useQuery<ApplicationsResponse>({
+  const query = useQuery<ApplicationsResponse>({
     queryKey: ['recruitment-applications', recruitmentPostId, page, pageSize],
     queryFn: () => recruitmentApi.getRecruitmentApplications(recruitmentPostId!, { page, pageSize }),
     enabled: !!recruitmentPostId,
     placeholderData: keepPreviousData
   })
+
+  // Debug: Log applications data
+  if (query.data?.data?.items) {
+    console.log(
+      'Applications data:',
+      query.data.data.items.map((app) => ({
+        id: app.id,
+        userName: `${app.user.firstName} ${app.user.lastName}`,
+        status: app.status
+      }))
+    )
+  }
+
+  return query
 }

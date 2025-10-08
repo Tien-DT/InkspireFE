@@ -11,7 +11,13 @@ import { Card, CardContent } from '~/components/ui/card'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { Textarea } from '~/components/ui/textarea'
-import { useProjectById, useCreateMilestone, useMilestones, useUpdateMilestone } from '~/hooks/useProjects'
+import {
+  useProjectById,
+  useCreateMilestone,
+  useMilestones,
+  useUpdateMilestone,
+  useUpdateProject
+} from '~/hooks/useProjects'
 import type { Milestone } from '~/apis/project.api'
 import { useWallet } from '~/hooks/useUser'
 import { useAuth } from '~/contexts/AuthContext'
@@ -40,11 +46,11 @@ const getStatusInfo = (status: number) => {
     case 0:
       return { label: 'Bản nháp', color: 'text-gray-600', bgColor: 'bg-gray-100' }
     case 1:
-      return { label: 'Đang hoạt động', color: 'text-green-600', bgColor: 'bg-green-100' }
+      return { label: 'Chờ ứng tuyển', color: 'text-[oklch(0.75_0.15_85)]', bgColor: 'bg-yellow-100' }
     case 2:
-      return { label: 'Đã đóng', color: 'text-orange-600', bgColor: 'bg-orange-100' }
+      return { label: 'Đang hoạt động', color: 'text-[oklch(0.55_0.15_240)]', bgColor: 'bg-blue-100' }
     case 3:
-      return { label: 'Hoàn thành', color: 'text-blue-600', bgColor: 'bg-blue-100' }
+      return { label: 'Đã hoàn thành', color: 'text-[oklch(0.65_0.18_145)]', bgColor: 'bg-green-100' }
     default:
       return { label: 'Không xác định', color: 'text-gray-600', bgColor: 'bg-gray-100' }
   }
@@ -88,6 +94,7 @@ function ProjectDetailContent() {
   const { data: walletData } = useWallet(profile?.id)
   const createMilestone = useCreateMilestone()
   const updateMilestone = useUpdateMilestone()
+  const updateProject = useUpdateProject()
 
   const [isAddingTimeline, setIsAddingTimeline] = useState(false)
   const [showSuccessDialog, setShowSuccessDialog] = useState(false)
@@ -148,6 +155,16 @@ function ProjectDetailContent() {
 
   // Map API data to timeline items
   const timelines: TimelineItem[] = milestonesData?.data?.map(mapMilestoneToTimeline) || []
+
+  // Check if all milestones are completed
+  const allMilestonesCompleted = timelines.length === 3 && timelines.every((t) => t.status === 'completed')
+
+  // Max 3 milestones allowed
+  const canAddMoreMilestones = timelines.length < 3
+
+  // Check if user is client (role 1) - only clients can manage milestones
+  const isClient = profile?.role === 1
+  const isFreelancer = profile?.role === 2
 
   const handleAddTimeline = async () => {
     if (!newTimeline.title || !newTimeline.description || newTimeline.budget <= 0) {
@@ -244,6 +261,30 @@ function ProjectDetailContent() {
         typeof errorData === 'string'
           ? errorData
           : (errorData as { message?: string })?.message || 'Đặt cọc thất bại. Vui lòng thử lại.'
+      setErrorMessage(errorMsg)
+      setShowErrorDialog(true)
+    }
+  }
+
+  const handleCompleteProject = async () => {
+    if (!projectId) return
+
+    try {
+      // Update project status to 3 (Đã hoàn thành)
+      await updateProject.mutateAsync({
+        projectId: projectId,
+        payload: {
+          status: 3
+        }
+      })
+
+      toast.success('Dự án đã được đánh dấu hoàn thành!')
+    } catch (err: unknown) {
+      const errorData = (err as { response?: { data?: string | { message?: string } } })?.response?.data
+      const errorMsg =
+        typeof errorData === 'string'
+          ? errorData
+          : (errorData as { message?: string })?.message || 'Không thể hoàn thành dự án. Vui lòng thử lại.'
       setErrorMessage(errorMsg)
       setShowErrorDialog(true)
     }
@@ -472,7 +513,7 @@ function ProjectDetailContent() {
           {/* Project Timeline */}
           <div className='space-y-6 '>
             {/* Add Timeline Form */}
-            {isAddingTimeline && (
+            {isAddingTimeline && isClient && (
               <div className='flex items-start gap-4'>
                 <div className='flex-shrink-0 w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-md'>
                   <Plus className='h-5 w-5 text-white' />
@@ -648,58 +689,69 @@ function ProjectDetailContent() {
                         <div className='flex items-center justify-between pt-5 border-t-2 border-gray-200'>
                           <div className='flex gap-3'>{/* Empty left side */}</div>
 
-                          <div>
-                            {/* Show "Đặt cọc ngay" only when status is 'pending-payment' (status 1) */}
-                            {showDeposit && timeline.status === 'pending-payment' && (
-                              <Button
-                                onClick={() => handleDeposit(timeline)}
-                                disabled={updateMilestone.isPending}
-                                className='bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-md disabled:opacity-50'
-                              >
-                                {updateMilestone.isPending ? (
-                                  <>
-                                    <Clock className='h-4 w-4 mr-2 animate-spin' />
-                                    Đang xử lý...
-                                  </>
-                                ) : (
-                                  <>
-                                    <MessageCircle className='h-4 w-4 mr-2' />
-                                    Đặt cọc ngay
-                                  </>
-                                )}
-                              </Button>
-                            )}
+                          {/* Only show action buttons for clients */}
+                          {isClient && (
+                            <div>
+                              {/* Show "Đặt cọc ngay" only when status is 'pending-payment' (status 1) */}
+                              {showDeposit && timeline.status === 'pending-payment' && (
+                                <Button
+                                  onClick={() => handleDeposit(timeline)}
+                                  disabled={updateMilestone.isPending}
+                                  className='bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-md disabled:opacity-50'
+                                >
+                                  {updateMilestone.isPending ? (
+                                    <>
+                                      <Clock className='h-4 w-4 mr-2 animate-spin' />
+                                      Đang xử lý...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <MessageCircle className='h-4 w-4 mr-2' />
+                                      Đặt cọc ngay
+                                    </>
+                                  )}
+                                </Button>
+                              )}
 
-                            {/* Show "Đánh dấu hoàn thành" only when status is 'paid' (status 2) */}
-                            {timeline.status === 'paid' && (
-                              <Button
-                                size='sm'
-                                onClick={() => handleCompleteTimeline(timeline)}
-                                disabled={updateMilestone.isPending}
-                                className='bg-green-600 hover:bg-green-700 text-white shadow-md disabled:opacity-50'
-                              >
-                                {updateMilestone.isPending ? (
-                                  <>
-                                    <Clock className='h-4 w-4 mr-1.5 animate-spin' />
-                                    Đang xử lý...
-                                  </>
-                                ) : (
-                                  <>
-                                    <Check className='h-4 w-4 mr-1.5' />
-                                    Đánh dấu hoàn thành
-                                  </>
-                                )}
-                              </Button>
-                            )}
+                              {/* Show "Đánh dấu hoàn thành" only when status is 'paid' (status 2) */}
+                              {timeline.status === 'paid' && (
+                                <Button
+                                  size='sm'
+                                  onClick={() => handleCompleteTimeline(timeline)}
+                                  disabled={updateMilestone.isPending}
+                                  className='bg-green-600 hover:bg-green-700 text-white shadow-md disabled:opacity-50'
+                                >
+                                  {updateMilestone.isPending ? (
+                                    <>
+                                      <Clock className='h-4 w-4 mr-1.5 animate-spin' />
+                                      Đang xử lý...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Check className='h-4 w-4 mr-1.5' />
+                                      Đánh dấu hoàn thành
+                                    </>
+                                  )}
+                                </Button>
+                              )}
 
-                            {/* Show completion badge when status is 'completed' (status 3) */}
-                            {isCompleted && (
-                              <div className='flex items-center gap-2 text-green-600 text-base font-semibold'>
-                                <Check className='h-5 w-5' />
-                                Đã hoàn thành
-                              </div>
-                            )}
-                          </div>
+                              {/* Show completion badge when status is 'completed' (status 3) */}
+                              {isCompleted && (
+                                <div className='flex items-center gap-2 text-green-600 text-base font-semibold'>
+                                  <Check className='h-5 w-5' />
+                                  Đã hoàn thành
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Freelancer only sees status badge */}
+                          {isFreelancer && isCompleted && (
+                            <div className='flex items-center gap-2 text-green-600 text-base font-semibold'>
+                              <Check className='h-5 w-5' />
+                              Đã hoàn thành
+                            </div>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
@@ -709,13 +761,15 @@ function ProjectDetailContent() {
             })}
 
             {/* Empty State */}
-            {timelines.length === 0 && !isAddingTimeline && (
+            {timelines.length === 0 && !isAddingTimeline && isClient && (
               <div className='text-center py-16'>
                 <div className='inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-100 to-blue-50 rounded-full mb-4'>
                   <Clock className='h-10 w-10 text-blue-500' />
                 </div>
                 <h3 className='text-lg font-semibold text-gray-700 mb-2'>Chưa có giai đoạn nào</h3>
-                <p className='text-gray-500 mb-6'>Bắt đầu bằng cách thêm giai đoạn đầu tiên cho dự án của bạn</p>
+                <p className='text-gray-500 mb-6'>
+                  Bắt đầu bằng cách thêm giai đoạn đầu tiên cho dự án của bạn (Tối đa 3 giai đoạn)
+                </p>
                 <Button
                   onClick={() => setIsAddingTimeline(true)}
                   className='bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg'
@@ -725,44 +779,85 @@ function ProjectDetailContent() {
                 </Button>
               </div>
             )}
+
+            {/* Empty State for Freelancer */}
+            {timelines.length === 0 && isFreelancer && (
+              <div className='text-center py-16'>
+                <div className='inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-50 rounded-full mb-4'>
+                  <Clock className='h-10 w-10 text-gray-400' />
+                </div>
+                <h3 className='text-lg font-semibold text-gray-700 mb-2'>Chưa có giai đoạn nào</h3>
+                <p className='text-gray-500'>Khách hàng chưa tạo giai đoạn cho dự án này</p>
+              </div>
+            )}
           </div>
 
-          {/* Quick Actions - Fixed at bottom */}
-          <div className='sticky bottom-0 mt-12 bg-gradient-to-br from-white to-gray-50 rounded-2xl p-8 border-2 border-gray-300 shadow-2xl'>
-            <h3 className='text-2xl font-bold text-gray-900 mb-6'>Hành động nhanh</h3>
-            <div className='grid grid-cols-4 gap-6'>
-              <button
-                onClick={() => setIsAddingTimeline(true)}
-                className='text-center border-2 border-gray-200 rounded-xl py-7 hover:border-blue-500 hover:bg-blue-50 transition-all duration-200 hover:shadow-lg group'
-              >
-                <div className='w-14 h-14 bg-gradient-to-br from-blue-100 to-blue-50 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-200'>
-                  <Plus className='h-6 w-6 text-blue-600' />
-                </div>
-                <p className='text-sm font-medium text-gray-700 group-hover:text-blue-600'>Thêm giai đoạn</p>
-              </button>
+          {/* Quick Actions - Only for clients */}
+          {isClient && (
+            <div className='sticky bottom-0 mt-12 bg-gradient-to-br from-white to-gray-50 rounded-2xl p-8 border-2 border-gray-300 shadow-2xl'>
+              <h3 className='text-2xl font-bold text-gray-900 mb-6'>Hành động nhanh</h3>
+              <div className='grid grid-cols-4 gap-6'>
+                <button
+                  onClick={() => setIsAddingTimeline(true)}
+                  disabled={!canAddMoreMilestones}
+                  className={`text-center border-2 rounded-xl py-7 transition-all duration-200 group ${
+                    canAddMoreMilestones
+                      ? 'border-gray-200 hover:border-blue-500 hover:bg-blue-50 hover:shadow-lg cursor-pointer'
+                      : 'border-gray-200 bg-gray-100 cursor-not-allowed opacity-50'
+                  }`}
+                >
+                  <div
+                    className={`w-14 h-14 bg-gradient-to-br from-blue-100 to-blue-50 rounded-xl flex items-center justify-center mx-auto mb-3 ${
+                      canAddMoreMilestones ? 'group-hover:scale-110' : ''
+                    } transition-transform duration-200`}
+                  >
+                    <Plus className='h-6 w-6 text-blue-600' />
+                  </div>
+                  <p
+                    className={`text-sm font-medium ${canAddMoreMilestones ? 'text-gray-700 group-hover:text-blue-600' : 'text-gray-500'}`}
+                  >
+                    Thêm giai đoạn {!canAddMoreMilestones && '(Tối đa 3)'}
+                  </p>
+                </button>
 
-              <button className='text-center border-2 border-gray-200 rounded-xl py-7 hover:border-green-500 hover:bg-green-50 transition-all duration-200 hover:shadow-lg group'>
-                <div className='w-14 h-14 bg-gradient-to-br from-green-100 to-green-50 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-200'>
-                  <Download className='h-6 w-6 text-green-600' />
-                </div>
-                <p className='text-sm font-medium text-gray-700 group-hover:text-green-600'>Tải báo cáo</p>
-              </button>
+                <button className='text-center border-2 border-gray-200 rounded-xl py-7 hover:border-green-500 hover:bg-green-50 transition-all duration-200 hover:shadow-lg group'>
+                  <div className='w-14 h-14 bg-gradient-to-br from-green-100 to-green-50 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-200'>
+                    <Download className='h-6 w-6 text-green-600' />
+                  </div>
+                  <p className='text-sm font-medium text-gray-700 group-hover:text-green-600'>Tải báo cáo</p>
+                </button>
 
-              <button className='text-center border-2 border-gray-200 rounded-xl py-7 hover:border-orange-500 hover:bg-orange-50 transition-all duration-200 hover:shadow-lg group'>
-                <div className='w-14 h-14 bg-gradient-to-br from-orange-100 to-orange-50 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-200'>
-                  <MessageCircle className='h-6 w-6 text-orange-600' />
-                </div>
-                <p className='text-sm font-medium text-gray-700 group-hover:text-orange-600'>Gửi phản hồi</p>
-              </button>
+                <button className='text-center border-2 border-gray-200 rounded-xl py-7 hover:border-orange-500 hover:bg-orange-50 transition-all duration-200 hover:shadow-lg group'>
+                  <div className='w-14 h-14 bg-gradient-to-br from-orange-100 to-orange-50 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-200'>
+                    <MessageCircle className='h-6 w-6 text-orange-600' />
+                  </div>
+                  <p className='text-sm font-medium text-gray-700 group-hover:text-orange-600'>Gửi phản hồi</p>
+                </button>
 
-              <button className='text-center border-2 border-gray-200 rounded-xl py-7 hover:border-purple-500 hover:bg-purple-50 transition-all duration-200 hover:shadow-lg group'>
-                <div className='w-14 h-14 bg-gradient-to-br from-purple-100 to-purple-50 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-200'>
-                  <Share2 className='h-6 w-6 text-purple-600' />
-                </div>
-                <p className='text-sm font-medium text-gray-700 group-hover:text-purple-600'>Chia sẻ</p>
-              </button>
+                {allMilestonesCompleted ? (
+                  <button
+                    onClick={handleCompleteProject}
+                    disabled={updateProject.isPending}
+                    className='text-center border-2 border-green-500 bg-gradient-to-br from-green-50 to-white rounded-xl py-7 hover:border-green-600 hover:bg-green-100 transition-all duration-200 hover:shadow-xl group animate-pulse disabled:opacity-50'
+                  >
+                    <div className='w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-200 shadow-lg'>
+                      <CheckCircle2 className='h-6 w-6 text-white' />
+                    </div>
+                    <p className='text-sm font-bold text-green-700 group-hover:text-green-800'>
+                      {updateProject.isPending ? 'Đang xử lý...' : 'Hoàn thành dự án'}
+                    </p>
+                  </button>
+                ) : (
+                  <button className='text-center border-2 border-gray-200 rounded-xl py-7 hover:border-purple-500 hover:bg-purple-50 transition-all duration-200 hover:shadow-lg group'>
+                    <div className='w-14 h-14 bg-gradient-to-br from-purple-100 to-purple-50 rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-200'>
+                      <Share2 className='h-6 w-6 text-purple-600' />
+                    </div>
+                    <p className='text-sm font-medium text-gray-700 group-hover:text-purple-600'>Chia sẻ</p>
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </>

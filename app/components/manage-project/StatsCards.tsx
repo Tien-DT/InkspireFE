@@ -1,34 +1,43 @@
-import { Clock, AlertCircle, XCircle, CheckCircle } from 'lucide-react'
+import { Clock, AlertCircle, CheckCircle, Folder } from 'lucide-react'
 import { Card } from '~/components/ui/card'
 
-const stats = [
-  {
-    label: 'Dự án đang hoạt động',
-    value: '3',
-    icon: Clock,
-    color: 'bg-[oklch(0.55_0.15_240)]'
-  },
-  {
-    label: 'Chờ duyệt',
-    value: '1',
-    icon: AlertCircle,
-    color: 'bg-[oklch(0.75_0.15_85)]'
-  },
-  {
-    label: 'Cần sửa đổi',
-    value: '1',
-    icon: XCircle,
-    color: 'bg-[oklch(0.6_0.22_25)]'
-  },
-  {
-    label: 'Hoàn thành tháng này',
-    value: '2',
-    icon: CheckCircle,
-    color: 'bg-[oklch(0.65_0.18_145)]'
+interface StatsCardsProps {
+  projectCounts: {
+    all: number
+    pending: number
+    active: number
+    completed: number
   }
-]
+}
 
-export function StatsCards() {
+export function StatsCards({ projectCounts }: StatsCardsProps) {
+  const stats = [
+    {
+      label: 'Tất cả dự án',
+      value: projectCounts.all.toString(),
+      icon: Folder,
+      color: 'bg-gray-500'
+    },
+    {
+      label: 'Chờ duyệt',
+      value: projectCounts.pending.toString(),
+      icon: AlertCircle,
+      color: 'bg-[oklch(0.75_0.15_85)]'
+    },
+    {
+      label: 'Đang hoạt động',
+      value: projectCounts.active.toString(),
+      icon: Clock,
+      color: 'bg-[oklch(0.55_0.15_240)]'
+    },
+    {
+      label: 'Hoàn thành',
+      value: projectCounts.completed.toString(),
+      icon: CheckCircle,
+      color: 'bg-[oklch(0.65_0.18_145)]'
+    }
+  ]
+
   return (
     <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6'>
       {stats.map((stat) => (

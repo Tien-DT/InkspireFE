@@ -1,5 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { projectApi, type CreateMilestonePayload, type UpdateMilestonePayload } from '~/apis/project.api'
+import {
+  projectApi,
+  type CreateMilestonePayload,
+  type UpdateMilestonePayload,
+  type UpdateProjectPayload
+} from '~/apis/project.api'
 import { getProfileFromLS } from '~/utils/auth'
 
 export const useProjects = () => {
@@ -75,6 +80,19 @@ export const useUpdateMilestone = () => {
       queryClient.invalidateQueries({ queryKey: ['project'] })
       queryClient.invalidateQueries({ queryKey: ['milestones'] })
       queryClient.invalidateQueries({ queryKey: ['wallet'] })
+    }
+  })
+}
+
+export const useUpdateProject = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ projectId, payload }: { projectId: string; payload: UpdateProjectPayload }) =>
+      projectApi.updateProject(projectId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
+      queryClient.invalidateQueries({ queryKey: ['project'] })
     }
   })
 }

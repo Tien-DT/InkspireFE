@@ -16,11 +16,11 @@ const getStatusInfo = (status: number) => {
     case 0:
       return { label: 'Bản nháp', color: 'text-gray-600', bgColor: 'bg-gray-100' }
     case 1:
-      return { label: 'Đang hoạt động', color: 'text-[oklch(0.55_0.15_240)]', bgColor: 'bg-blue-100' }
+      return { label: 'Chờ ứng tuyển', color: 'text-[oklch(0.75_0.15_85)]', bgColor: 'bg-yellow-100' }
     case 2:
-      return { label: 'Đã đóng', color: 'text-[oklch(0.6_0.22_25)]', bgColor: 'bg-orange-100' }
+      return { label: 'Đang hoạt động', color: 'text-[oklch(0.55_0.15_240)]', bgColor: 'bg-blue-100' }
     case 3:
-      return { label: 'Hoàn thành', color: 'text-[oklch(0.65_0.18_145)]', bgColor: 'bg-green-100' }
+      return { label: 'Đã hoàn thành', color: 'text-[oklch(0.65_0.18_145)]', bgColor: 'bg-green-100' }
     default:
       return { label: 'Không xác định', color: 'text-gray-600', bgColor: 'bg-gray-100' }
   }
