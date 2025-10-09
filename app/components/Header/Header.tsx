@@ -33,16 +33,18 @@ export function Header() {
     }).format(amount)
   }
 
-  // Get initials from user name (same as ProfileHeader)
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
+  // Get initials: first letter of first_name + first letter of last_name
+  const getUserInitials = (): string => {
+    if (!profile?.first_name && !profile?.last_name) {
+      return userName ? userName.charAt(0).toUpperCase() : 'U'
+    }
+
+    const firstInitial = profile.first_name?.charAt(0).toUpperCase() || ''
+    const lastInitial = profile.last_name?.charAt(0).toUpperCase() || ''
+    return firstInitial + lastInitial || 'U'
   }
 
-  const userInitials = userName ? getInitials(userName) : 'U'
+  const userInitials = getUserInitials()
 
   return (
     <header className='bg-white border-b border-border'>

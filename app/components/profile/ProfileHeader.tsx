@@ -3,13 +3,13 @@ import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
 
 interface ProfileHeaderProps {
   name: string
-  title: string
+  status: string
   avatar: string
   rating: number
   reviewCount: number
 }
 
-export function ProfileHeader({ name, title, avatar, rating, reviewCount }: ProfileHeaderProps) {
+export function ProfileHeader({ name, status, avatar, rating, reviewCount }: ProfileHeaderProps) {
   const initials = name
     .split(' ')
     .map((n) => n[0])
@@ -26,7 +26,7 @@ export function ProfileHeader({ name, title, avatar, rating, reviewCount }: Prof
         </Avatar>
       </div>
       <h1 className='text-2xl font-bold text-white mb-1'>{name}</h1>
-      <p className='text-blue-100 text-sm'>{title}</p>
+      <p className='text-blue-100 text-sm'>{status}</p>
       <div className='flex items-center justify-center gap-1 mt-3'>
         <Star className='h-5 w-5 fill-yellow-400 text-yellow-400' />
         <span className='text-white font-bold text-lg'>{rating}</span>

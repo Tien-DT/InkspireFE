@@ -15,6 +15,7 @@ import PaginationDemo from '~/components/Pagination'
 import { AuthErrorBoundary } from '~/components/errors'
 import { projectApi } from '~/apis/project.api'
 import { useChat } from '~/contexts/ChatContext'
+import { RecruitmentPostListSkeleton } from '~/components/skeletons'
 import {
   Dialog,
   DialogContent,
@@ -208,12 +209,11 @@ function ManagePostProjectPage() {
   if (isLoading) {
     return (
       <div className='container mx-auto px-4 py-8 min-h-screen bg-background'>
-        <div className='flex items-center justify-center h-96'>
-          <div className='text-center'>
-            <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4'></div>
-            <p className='text-gray-600'>Đang tải dữ liệu...</p>
-          </div>
+        <div className='mb-8'>
+          <h1 className='text-3xl font-bold text-gray-900'>Quản lý bài đăng tuyển dụng</h1>
+          <p className='text-gray-600 mt-2'>Quản lý và theo dõi các bài đăng tuyển dụng của bạn</p>
         </div>
+        <RecruitmentPostListSkeleton />
       </div>
     )
   }

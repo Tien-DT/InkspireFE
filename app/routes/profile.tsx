@@ -82,7 +82,7 @@ function ProfilePage() {
       phone: userProfileData.data.phoneNumber || '',
       bio: '', // TODO: Add bio field to backend
       priceRange: '500.000 - 800.000 VND', // TODO: Add price range to backend
-      status: userProfileData.data.role === 1 ? 'Designer' : 'Developer', // TODO: Improve status mapping
+      status: userProfileData.data.role === 1 ? 'Client' : 'Freelancer', // TODO: Improve status mapping
       skills: [], // TODO: Add skills from backend
       portfolio: portfolioItems
     }
@@ -164,7 +164,7 @@ function ProfilePage() {
               <CardContent className='p-0'>
                 <ProfileHeader
                   name={profileData.name}
-                  title={profileData.title}
+                  status={profileData.status}
                   avatar={profileData.avatar}
                   rating={profileData.rating}
                   reviewCount={profileData.reviewCount}

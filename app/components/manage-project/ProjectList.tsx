@@ -1,6 +1,7 @@
 import { ProjectCard } from '~/components/manage-project/ProjectCard'
 import { useProjects } from '~/hooks/useProjects'
 import type { Project } from '~/apis/project.api'
+import { ProjectListSkeleton } from '~/components/skeletons'
 
 interface ProjectListProps {
   activeTab: string
@@ -10,14 +11,7 @@ export function ProjectList({ activeTab }: ProjectListProps) {
   const { data, isLoading, error } = useProjects()
 
   if (isLoading) {
-    return (
-      <div className='flex items-center justify-center py-12'>
-        <div className='text-center'>
-          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4'></div>
-          <p className='text-gray-600'>Đang tải dữ liệu...</p>
-        </div>
-      </div>
-    )
+    return <ProjectListSkeleton />
   }
 
   if (error) {
