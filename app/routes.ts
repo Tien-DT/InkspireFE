@@ -30,6 +30,14 @@ export default [
     ])
   ]),
 
+  // Admin routes
+  layout('./layouts/AdminLayout/AdminLayout.tsx', [
+    route('admin', './routes/admin/admin-home-page.tsx'),
+    route('admin/transactions', './routes/admin/transactions/transactions-page.tsx'),
+    route('admin/projects', './routes/admin/projects/projects-page.tsx'),
+    route('admin/users', './routes/admin/users/users-page.tsx')
+  ]),
+
   // Auth routes
   layout('./layouts/auth-layout.tsx', [
     route('login', './routes/login/login-page.tsx'),
