@@ -33,7 +33,6 @@ import {
 } from '~/components/ui/dialog'
 import { AlertCircle, CheckCircle2 } from 'lucide-react'
 import { EvaluationDialog } from '~/components/project/EvaluationDialog'
-import { EvaluationResult } from '~/components/project/EvaluationResult'
 
 interface TimelineItem {
   id: string
@@ -115,7 +114,6 @@ function ProjectDetailContent() {
   const [errorMessage, setErrorMessage] = useState('')
   const [isEvaluating, setIsEvaluating] = useState(false)
   const [currentMilestone, setCurrentMilestone] = useState<TimelineItem | null>(null)
-  const [evaluationResult, setEvaluationResult] = useState<any>(null)
   const [newTimeline, setNewTimeline] = useState({
     title: '',
     description: '',
@@ -465,7 +463,6 @@ function ProjectDetailContent() {
         milestone={currentMilestone}
         project={project}
         timelines={timelines}
-        onEvaluationComplete={setEvaluationResult}
       />
 
       <div className='container mx-auto px-4 py-6 space-y-6 flex min-h-screen bg-background'>
@@ -555,7 +552,6 @@ function ProjectDetailContent() {
 
         {/* Main Content Area */}
         <div className='flex-1 p-6'>
-          {evaluationResult && <EvaluationResult result={evaluationResult} />}
           {/* Tabs */}
           <div className='flex border-b border-gray-200 mb-6'>
             <button className='px-4 py-2 text-blue-600 border-b-2 border-blue-600 font-medium'>Timeline dự án</button>

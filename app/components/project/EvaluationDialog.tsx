@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import type { TimelineItem } from '~/routes/project-detail'
 import type { Project } from '~/apis/project.api'
+import { EvaluationResult } from './EvaluationResult'
 
 interface EvaluationDialogProps {
   isOpen: boolean
@@ -13,11 +14,11 @@ interface EvaluationDialogProps {
   milestone: TimelineItem | null
   project: Project | null
   timelines: TimelineItem[]
-  onEvaluationComplete: (data: any) => void
 }
 
-export function EvaluationDialog({ isOpen, onClose, milestone, project, timelines, onEvaluationComplete }: EvaluationDialogProps) {
+export function EvaluationDialog({ isOpen, onClose, milestone, project, timelines }: EvaluationDialogProps) {
   const [file, setFile] = useState<File | null>(null)
+  const [evaluationResult, setEvaluationResult] = useState<any>(null)
   const evaluateMutation = useEvaluateMilestoneFile()
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,33 +36,47 @@ export function EvaluationDialog({ isOpen, onClose, milestone, project, timeline
     let requirementText = project.description
     const currentMilestoneIndex = timelines.findIndex(t => t.id === milestone.id)
     for (let i = 0; i <= currentMilestoneIndex; i++) {
-      requirementText += `
-Lần nộp thứ ${i + 1}: ${timelines[i].description}`
+      requirementText += `\nLần nộp thứ ${i + 1}: ${timelines[i].description}`
     }
 
     try {
       const result = await evaluateMutation.mutateAsync({ requirementText, file })
-      onEvaluationComplete(result.data)
-      onClose()
+      setEvaluationResult(result.data)
     } catch (error) {
       toast.error('Đã có lỗi xảy ra khi chấm điểm')
     }
   }
 
+  const handleClose = () => {
+    setFile(null)
+    setEvaluationResult(null)
+    onClose()
+  }
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="max-w-4xl">
         <DialogHeader>
           <DialogTitle>Kiểm tra sản phẩm bằng AI</DialogTitle>
         </DialogHeader>
-        <div>
-          <Input type="file" accept=".pdf,.jpg,.jpeg,.png,.svg" onChange={handleFileChange} />
-        </div>
+        {evaluationResult ? (
+          <EvaluationResult result={evaluationResult} />
+        ) : (
+          <div>
+            <Input type="file" accept=".pdf,.jpg,.jpeg,.png,.svg" onChange={handleFileChange} />
+          </div>
+        )}
         <DialogFooter>
-          <Button onClick={onClose} variant="outline">Hủy</Button>
-          <Button onClick={handleSubmit} disabled={!file || evaluateMutation.isPending}>
-            {evaluateMutation.isPending ? 'Đang chấm điểm...' : 'Chấm điểm'}
-          </Button>
+          {evaluationResult ? (
+            <Button onClick={handleClose}>Đóng</Button>
+          ) : (
+            <>
+              <Button onClick={handleClose} variant="outline">Hủy</Button>
+              <Button onClick={handleSubmit} disabled={!file || evaluateMutation.isPending}>
+                {evaluateMutation.isPending ? 'Đang chấm điểm...' : 'Chấm điểm'}
+              </Button>
+            </>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
