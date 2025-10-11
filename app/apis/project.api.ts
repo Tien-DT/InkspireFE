@@ -3,6 +3,7 @@ import type { ProjectStatus } from '~/types/recruitment.type'
 
 export const URL_PROJECTS = '/api/projects'
 export const URL_PROJECT_MILESTONES = '/api/project-milestones'
+export const URL_FILE_EVALUATIONS = '/api/file-evaluations'
 
 export interface CreateProjectPayload {
   clientId?: string | null
@@ -172,6 +173,19 @@ export const projectApi = {
     formData.append('file', file)
 
     const response = await axiosClient.post(`${URL_PROJECT_MILESTONES}/${milestoneId}/upload-file`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+    return response.data
+  },
+
+  evaluateMilestoneFile: async ({ requirementText, file }: { requirementText: string; file: File }): Promise<any> => {
+    const formData = new FormData()
+    formData.append('requirementText', requirementText)
+    formData.append('file', file)
+
+    const response = await axiosClient.post(`${URL_FILE_EVALUATIONS}/evaluate`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }

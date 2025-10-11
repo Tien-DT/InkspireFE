@@ -108,3 +108,10 @@ export const useUploadMilestoneDocument = () => {
     }
   })
 }
+
+export const useEvaluateMilestoneFile = () => {
+  return useMutation({
+    mutationFn: ({ requirementText, file }: { requirementText: string; file: File }) =>
+      projectApi.evaluateMilestoneFile({ requirementText, file })
+  })
+}

@@ -17,7 +17,8 @@ import {
   useMilestones,
   useUpdateMilestone,
   useUpdateProject,
-  useUploadMilestoneDocument
+  useUploadMilestoneDocument,
+  useEvaluateMilestoneFile
 } from '~/hooks/useProjects'
 import type { Milestone } from '~/apis/project.api'
 import { useWallet } from '~/hooks/useUser'
@@ -31,6 +32,8 @@ import {
   DialogTitle
 } from '~/components/ui/dialog'
 import { AlertCircle, CheckCircle2 } from 'lucide-react'
+import { EvaluationDialog } from '~/components/project/EvaluationDialog'
+import { EvaluationResult } from '~/components/project/EvaluationResult'
 
 interface TimelineItem {
   id: string
@@ -102,7 +105,7 @@ function ProjectDetailContent() {
   const updateMilestone = useUpdateMilestone()
   const updateProject = useUpdateProject()
   const uploadMilestoneDocument = useUploadMilestoneDocument()
-
+  const evaluateMilestoneFile = useEvaluateMilestoneFile()
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [isAddingTimeline, setIsAddingTimeline] = useState(false)
   const [showSuccessDialog, setShowSuccessDialog] = useState(false)
@@ -110,6 +113,9 @@ function ProjectDetailContent() {
   const [showDepositSuccessDialog, setShowDepositSuccessDialog] = useState(false)
   const [showInsufficientFundsDialog, setShowInsufficientFundsDialog] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
+  const [isEvaluating, setIsEvaluating] = useState(false)
+  const [currentMilestone, setCurrentMilestone] = useState<TimelineItem | null>(null)
+  const [evaluationResult, setEvaluationResult] = useState<any>(null)
   const [newTimeline, setNewTimeline] = useState({
     title: '',
     description: '',
@@ -453,6 +459,15 @@ function ProjectDetailContent() {
         </DialogContent>
       </Dialog>
 
+      <EvaluationDialog
+        isOpen={isEvaluating}
+        onClose={() => setIsEvaluating(false)}
+        milestone={currentMilestone}
+        project={project}
+        timelines={timelines}
+        onEvaluationComplete={setEvaluationResult}
+      />
+
       <div className='container mx-auto px-4 py-6 space-y-6 flex min-h-screen bg-background'>
         <div className='w-80 bg-white min-h-screen p-6 rounded-lg'>
           <div className='mb-6'>
@@ -540,6 +555,7 @@ function ProjectDetailContent() {
 
         {/* Main Content Area */}
         <div className='flex-1 p-6'>
+          {evaluationResult && <EvaluationResult result={evaluationResult} />}
           {/* Tabs */}
           <div className='flex border-b border-gray-200 mb-6'>
             <button className='px-4 py-2 text-blue-600 border-b-2 border-blue-600 font-medium'>Timeline dự án</button>
@@ -802,6 +818,16 @@ function ProjectDetailContent() {
                           {/* Freelancer only sees status badge */}
                           {isFreelancer && timeline.status === 'paid' && (
                             <div className='flex items-center gap-2'>
+                              <Button
+                                size='sm'
+                                variant='outline'
+                                onClick={() => {
+                                  setCurrentMilestone(timeline)
+                                  setIsEvaluating(true)
+                                }}
+                              >
+                                Kiểm tra sản phẩm bằng AI
+                              </Button>
                               <Input type='file' accept='.pdf,.jpg,.jpeg,.png,.svg' onChange={handleFileChange} />
                               <Button onClick={() => handleSubmitFile(timeline.id)} disabled={!selectedFile}>
                                 Nộp file
