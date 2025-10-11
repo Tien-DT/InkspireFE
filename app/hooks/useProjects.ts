@@ -96,3 +96,15 @@ export const useUpdateProject = () => {
     }
   })
 }
+
+export const useUploadMilestoneDocument = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ milestoneId, file }: { milestoneId: string; file: File }) =>
+      projectApi.uploadMilestoneDocument({ milestoneId, file }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['milestones'] })
+    }
+  })
+}

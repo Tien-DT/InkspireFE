@@ -16,7 +16,8 @@ import {
   useCreateMilestone,
   useMilestones,
   useUpdateMilestone,
-  useUpdateProject
+  useUpdateProject,
+  useUploadMilestoneDocument
 } from '~/hooks/useProjects'
 import type { Milestone } from '~/apis/project.api'
 import { useWallet } from '~/hooks/useUser'
@@ -35,10 +36,11 @@ interface TimelineItem {
   id: string
   title: string
   description: string
-  status: 'pending-payment' | 'paid' | 'completed'
+  status: 'pending-payment' | 'paid' | 'completed' | 'pending-confirmation'
   createdDate: string
   budget: number
   isPaid: boolean
+  fileUrl?: string
 }
 
 const getStatusInfo = (status: number) => {
@@ -51,6 +53,8 @@ const getStatusInfo = (status: number) => {
       return { label: 'Đang hoạt động', color: 'text-[oklch(0.55_0.15_240)]', bgColor: 'bg-blue-100' }
     case 3:
       return { label: 'Đã hoàn thành', color: 'text-[oklch(0.65_0.18_145)]', bgColor: 'bg-green-100' }
+    case 4:
+      return { label: 'Chờ xác nhận', color: 'text-orange-600', bgColor: 'bg-orange-100' }
     default:
       return { label: 'Không xác định', color: 'text-gray-600', bgColor: 'bg-gray-100' }
   }
@@ -73,6 +77,7 @@ const mapMilestoneToTimeline = (milestone: Milestone): TimelineItem => {
   else if (milestone.status === 2)
     status = 'paid' // Đã thanh toán
   else if (milestone.status === 3) status = 'completed' // Đã hoàn thành
+  else if (milestone.status === 4) status = 'pending-confirmation' // Chờ xác nhận
 
   return {
     id: milestone.id,
@@ -81,7 +86,8 @@ const mapMilestoneToTimeline = (milestone: Milestone): TimelineItem => {
     status,
     createdDate: milestone.createdAt,
     budget: milestone.budget,
-    isPaid: milestone.status === 2 || milestone.status === 3
+    isPaid: milestone.status === 2 || milestone.status === 3 || milestone.status === 4,
+    fileUrl: milestone.fileUrl
   }
 }
 
@@ -95,7 +101,9 @@ function ProjectDetailContent() {
   const createMilestone = useCreateMilestone()
   const updateMilestone = useUpdateMilestone()
   const updateProject = useUpdateProject()
+  const uploadMilestoneDocument = useUploadMilestoneDocument()
 
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [isAddingTimeline, setIsAddingTimeline] = useState(false)
   const [showSuccessDialog, setShowSuccessDialog] = useState(false)
   const [showErrorDialog, setShowErrorDialog] = useState(false)
@@ -290,6 +298,33 @@ function ProjectDetailContent() {
     }
   }
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setSelectedFile(e.target.files[0])
+    }
+  }
+
+  const handleSubmitFile = async (milestoneId: string) => {
+    if (!selectedFile) {
+      toast.error('Vui lòng chọn một file')
+      return
+    }
+
+    try {
+      await uploadMilestoneDocument.mutateAsync({ milestoneId, file: selectedFile })
+      await updateMilestone.mutateAsync({
+        milestoneId,
+        payload: {
+          status: 4
+        }
+      })
+      toast.success('Nộp file thành công')
+      setSelectedFile(null)
+    } catch (error) {
+      toast.error('Nộp file thất bại')
+    }
+  }
+
   const canShowDeposit = (index: number) => {
     if (index === 0) return true // Timeline đầu tiên luôn hiện
     return timelines[index - 1]?.status === 'completed' // Timeline trước đã hoàn thành
@@ -303,6 +338,8 @@ function ProjectDetailContent() {
         return { icon: Check, color: 'bg-blue-500', badge: 'bg-blue-100 text-blue-800', label: 'Đã thanh toán' }
       case 'pending-payment':
         return { icon: Clock, color: 'bg-yellow-500', badge: 'bg-yellow-100 text-yellow-800', label: 'Chờ thanh toán' }
+      case 'pending-confirmation':
+        return { icon: Clock, color: 'bg-orange-500', badge: 'bg-orange-100 text-orange-800', label: 'Chờ xác nhận' }
       default:
         return { icon: Clock, color: 'bg-gray-300', badge: 'bg-gray-100 text-gray-600', label: 'Chờ thanh toán' }
     }
@@ -715,24 +752,41 @@ function ProjectDetailContent() {
 
                               {/* Show "Đánh dấu hoàn thành" only when status is 'paid' (status 2) */}
                               {timeline.status === 'paid' && (
-                                <Button
-                                  size='sm'
-                                  onClick={() => handleCompleteTimeline(timeline)}
-                                  disabled={updateMilestone.isPending}
-                                  className='bg-green-600 hover:bg-green-700 text-white shadow-md disabled:opacity-50'
-                                >
-                                  {updateMilestone.isPending ? (
-                                    <>
-                                      <Clock className='h-4 w-4 mr-1.5 animate-spin' />
-                                      Đang xử lý...
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Check className='h-4 w-4 mr-1.5' />
-                                      Đánh dấu hoàn thành
-                                    </>
+                                <div className='flex items-center gap-2 text-blue-600 text-base font-semibold'>
+                                  <Clock className='h-5 w-5' />
+                                  Chờ freelancer nộp file
+                                </div>
+                              )}
+
+                              {timeline.status === 'pending-confirmation' && (
+                                <div className='flex items-center gap-2'>
+                                  {timeline.fileUrl && (
+                                    <a href={timeline.fileUrl} target='_blank' rel='noopener noreferrer'>
+                                      <Button size='sm' variant='outline'>
+                                        <Download className='h-4 w-4 mr-1.5' />
+                                        Tải file
+                                      </Button>
+                                    </a>
                                   )}
-                                </Button>
+                                  <Button
+                                    size='sm'
+                                    onClick={() => handleCompleteTimeline(timeline)}
+                                    disabled={updateMilestone.isPending}
+                                    className='bg-green-600 hover:bg-green-700 text-white shadow-md disabled:opacity-50'
+                                  >
+                                    {updateMilestone.isPending ? (
+                                      <>
+                                        <Clock className='h-4 w-4 mr-1.5 animate-spin' />
+                                        Đang xử lý...
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Check className='h-4 w-4 mr-1.5' />
+                                        Đánh dấu hoàn thành
+                                      </>
+                                    )}
+                                  </Button>
+                                </div>
                               )}
 
                               {/* Show completion badge when status is 'completed' (status 3) */}
@@ -746,6 +800,22 @@ function ProjectDetailContent() {
                           )}
 
                           {/* Freelancer only sees status badge */}
+                          {isFreelancer && timeline.status === 'paid' && (
+                            <div className='flex items-center gap-2'>
+                              <Input type='file' accept='.pdf,.jpg,.jpeg,.png,.svg' onChange={handleFileChange} />
+                              <Button onClick={() => handleSubmitFile(timeline.id)} disabled={!selectedFile}>
+                                Nộp file
+                              </Button>
+                            </div>
+                          )}
+
+                          {isFreelancer && timeline.status === 'pending-confirmation' && (
+                            <div className='flex items-center gap-2 text-orange-600 text-base font-semibold'>
+                              <Clock className='h-5 w-5' />
+                              Chờ xác nhận
+                            </div>
+                          )}
+
                           {isFreelancer && isCompleted && (
                             <div className='flex items-center gap-2 text-green-600 text-base font-semibold'>
                               <Check className='h-5 w-5' />
@@ -772,6 +842,7 @@ function ProjectDetailContent() {
                 </p>
                 <Button
                   onClick={() => setIsAddingTimeline(true)}
+                  disabled={project.status !== 2}
                   className='bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg'
                 >
                   <Plus className='h-4 w-4 mr-2' />
@@ -799,9 +870,9 @@ function ProjectDetailContent() {
               <div className='grid grid-cols-4 gap-6'>
                 <button
                   onClick={() => setIsAddingTimeline(true)}
-                  disabled={!canAddMoreMilestones}
+                  disabled={!canAddMoreMilestones || project.status !== 2}
                   className={`text-center border-2 rounded-xl py-7 transition-all duration-200 group ${
-                    canAddMoreMilestones
+                    canAddMoreMilestones && project.status === 2
                       ? 'border-gray-200 hover:border-blue-500 hover:bg-blue-50 hover:shadow-lg cursor-pointer'
                       : 'border-gray-200 bg-gray-100 cursor-not-allowed opacity-50'
                   }`}

@@ -111,6 +111,7 @@ export interface Milestone {
   createdAt: string
   updatedAt: string
   status: number
+  fileUrl?: string
   escrows: unknown[]
 }
 
@@ -163,6 +164,18 @@ export const projectApi = {
 
   getMilestonesByProject: async (projectId: string): Promise<GetMilestonesResponse> => {
     const response = await axiosClient.get<GetMilestonesResponse>(`${URL_PROJECT_MILESTONES}/projects/${projectId}`)
+    return response.data
+  },
+
+  uploadMilestoneDocument: async ({ milestoneId, file }: { milestoneId: string; file: File }): Promise<any> => {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const response = await axiosClient.post(`${URL_PROJECT_MILESTONES}/${milestoneId}/upload-file`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
     return response.data
   }
 }
