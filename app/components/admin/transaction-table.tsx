@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '~/components/ui/pagination'
@@ -6,8 +6,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '~/components/ui/table'
 import { Badge } from '~/components/ui/badge'
 import { Download, MoreHorizontal } from 'lucide-react'
+import { adminApi, type AdminTransaction } from '~/apis/admin.api'
 
-type TransactionStatus = 'Hoàn thành' | 'Đang xử lý' | 'Đang chờ xét'
+type TransactionStatus = 'Completed' | 'Pending' | 'Failed' | 'Cancelled' | 'Unknown'
 
 type TransactionRecord = {
   id: string
@@ -19,58 +20,99 @@ type TransactionRecord = {
   date: string
 }
 
-const transactions: TransactionRecord[] = [
-  {
-    id: 'GD-001',
-    type: 'Thanh toán',
-    amount: '60.000.000đ',
-    from: 'Công ty TNHH TechCorp',
-    to: 'Nguyễn Văn An',
-    status: 'Hoàn thành',
-    date: '15/03/2024'
-  },
-  {
-    id: 'GD-002',
-    type: 'Rút tiền',
-    amount: '30.000.000đ',
-    from: 'Trần Thị Bình',
-    to: 'Tài khoản ngân hàng',
-    status: 'Đang xử lý',
-    date: '14/03/2024'
-  },
-  {
-    id: 'GD-003',
-    type: 'Hoàn tiền',
-    amount: '20.000.000đ',
-    from: 'Hân Hằng',
-    to: 'Marketing Pro',
-    status: 'Đang xử lý',
-    date: '13/03/2024'
-  },
-  {
-    id: 'GD-004',
-    type: 'Thanh toán',
-    amount: '75.000.000đ',
-    from: 'StartupXYZ',
-    to: 'Lê Minh Cường',
-    status: 'Đang chờ xét',
-    date: '12/03/2024'
-  }
-]
-
 const statusMap: Record<TransactionStatus, { label: string; className: string }> = {
-  'Hoàn thành': { label: 'Hoàn thành', className: 'bg-emerald-100 text-emerald-700' },
-  'Đang xử lý': { label: 'Đang xử lý', className: 'bg-amber-100 text-amber-700' },
-  'Đang chờ xét': { label: 'Đang chờ xét', className: 'bg-rose-100 text-rose-700' }
+  'Completed': { label: 'Hoàn thành', className: 'bg-emerald-100 text-emerald-700' },
+  'Pending': { label: 'Đang xử lý', className: 'bg-amber-100 text-amber-700' },
+  'Failed': { label: 'Thất bại', className: 'bg-rose-100 text-rose-700' },
+  'Cancelled': { label: 'Đã hủy', className: 'bg-gray-100 text-gray-700' },
+  'Unknown': { label: 'Không xác định', className: 'bg-gray-100 text-gray-700' }
 }
-
-const totalPages = 12
 
 export function TransactionTable() {
   const [currentPage, setCurrentPage] = useState(1)
+  const [transactions, setTransactions] = useState<TransactionRecord[]>([])
+  const [totalPages, setTotalPages] = useState(1)
+  const [loading, setLoading] = useState(true)
+  const [filters, setFilters] = useState({
+    type: undefined as string | undefined,
+    status: undefined as string | undefined
+  })
+
+  useEffect(() => {
+    fetchTransactions()
+  }, [currentPage, filters])
+
+  const fetchTransactions = async () => {
+    try {
+      setLoading(true)
+      const response = await adminApi.getTransactions({
+        page: currentPage,
+        pageSize: 10,
+        type: filters.type,
+        status: filters.status
+      })
+      
+      if (response.data) {
+        const formattedTransactions = response.data.items.map((t: AdminTransaction) => ({
+          id: t.id,
+          type: t.type,
+          amount: `${t.amount.toLocaleString('vi-VN')}đ`,
+          from: t.fromUserName,
+          to: t.toUserName,
+          status: t.status as TransactionStatus,
+          date: t.createdAt ? new Date(t.createdAt).toLocaleDateString('vi-VN') : 'N/A'
+        }))
+        setTransactions(formattedTransactions)
+        setTotalPages(response.data.totalPages)
+      }
+    } catch (error) {
+      console.error('Failed to fetch transactions:', error)
+      setTransactions([])
+      setTotalPages(1)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const changePage = (page: number) => {
     setCurrentPage(page)
+  }
+
+  const handleTypeFilter = (value: string) => {
+    setFilters(prev => ({ ...prev, type: value === 'all-types' ? undefined : value }))
+    setCurrentPage(1)
+  }
+
+  const handleStatusFilter = (value: string) => {
+    setFilters(prev => ({ ...prev, status: value === 'all-status' ? undefined : value }))
+    setCurrentPage(1)
+  }
+
+  const handleExportReport = async () => {
+    try {
+      const blob = await adminApi.exportTransactionsReport({ format: 'xlsx' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `transactions_report_${new Date().toISOString().split('T')[0]}.xlsx`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Failed to export report:', error)
+    }
+  }
+
+  if (loading) {
+    return (
+      <Card className='bg-white/90 shadow-sm backdrop-blur-sm'>
+        <CardHeader>
+          <CardTitle>Loading...</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className='h-96 animate-pulse bg-gray-200 rounded'></div>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
@@ -78,11 +120,11 @@ export function TransactionTable() {
       <CardHeader className='flex flex-col gap-4 pb-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0'>
         <CardTitle className='text-lg font-semibold text-slate-900'>Lịch sử giao dịch</CardTitle>
         <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-          <Button variant='outline' size='sm' className='gap-2'>
+          <Button variant='outline' size='sm' className='gap-2' onClick={handleExportReport}>
             <Download className='h-4 w-4' />
             Xuất báo cáo
           </Button>
-          <Select defaultValue='all-types'>
+          <Select defaultValue='all-types' onValueChange={handleTypeFilter}>
             <SelectTrigger className='w-[180px]'>
               <SelectValue placeholder='Tất cả loại' />
             </SelectTrigger>
@@ -93,15 +135,16 @@ export function TransactionTable() {
               <SelectItem value='refund'>Hoàn tiền</SelectItem>
             </SelectContent>
           </Select>
-          <Select defaultValue='all-status'>
+          <Select defaultValue='all-status' onValueChange={handleStatusFilter}>
             <SelectTrigger className='w-[180px]'>
               <SelectValue placeholder='Tất cả trạng thái' />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value='all-status'>Tất cả trạng thái</SelectItem>
-              <SelectItem value='completed'>Hoàn thành</SelectItem>
-              <SelectItem value='processing'>Đang xử lý</SelectItem>
-              <SelectItem value='pending'>Đang chờ xét</SelectItem>
+              <SelectItem value='Completed'>Hoàn thành</SelectItem>
+              <SelectItem value='Pending'>Đang xử lý</SelectItem>
+              <SelectItem value='Failed'>Thất bại</SelectItem>
+              <SelectItem value='Cancelled'>Đã hủy</SelectItem>
             </SelectContent>
           </Select>
         </div>

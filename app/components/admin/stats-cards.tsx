@@ -1,6 +1,7 @@
-import type { ComponentType, SVGProps } from 'react'
+import { useEffect, useState, type ComponentType, type SVGProps } from 'react'
 import { TrendingDown, TrendingUp, Users, Briefcase, Wallet, ShieldCheck } from 'lucide-react'
 import { Card } from '~/components/ui/card'
+import { adminApi, type AdminDashboardStats } from '~/apis/admin.api'
 
 type StatDetail = {
   label: string
@@ -16,55 +17,137 @@ type StatItem = {
   details: StatDetail[]
 }
 
-const stats: StatItem[] = [
-  {
-    title: 'Tổng người dùng',
-    value: '12.847',
-    change: '+8.5%',
-    trend: 'up',
-    icon: Users,
-    details: [
-      { label: 'Freelancer', value: '8.274' },
-      { label: 'Khách hàng', value: '4.573' }
-    ]
-  },
-  {
-    title: 'Dự án đang hoạt động',
-    value: '1.234',
-    change: '+4.3%',
-    trend: 'up',
-    icon: Briefcase,
-    details: [
-      { label: 'Đang triển khai', value: '862' },
-      { label: 'Chờ duyệt', value: '372' }
-    ]
-  },
-  {
-    title: 'Doanh thu tháng',
-    value: '1.320.000.000đ',
-    change: '+12.8%',
-    trend: 'up',
-    icon: Wallet,
-    details: [
-      { label: 'Hoa hồng', value: '720.000.000đ' },
-      { label: 'Phí dịch vụ', value: '380.000.000đ' },
-      { label: 'Advertising', value: '220.000.000đ' }
-    ]
-  },
-  {
-    title: 'Chiến dịch cần duyệt',
-    value: '47',
-    change: '-3.2%',
-    trend: 'down',
-    icon: ShieldCheck,
-    details: [
-      { label: 'Đã duyệt', value: '23' },
-      { label: 'Chờ duyệt', value: '24' }
+export function StatsCards() {
+  const [stats, setStats] = useState<StatItem[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchDashboardStats()
+  }, [])
+
+  const fetchDashboardStats = async () => {
+    try {
+      const data = await adminApi.getDashboardStats()
+      const formattedStats = formatStatsData(data)
+      setStats(formattedStats)
+    } catch (error) {
+      console.error('Failed to fetch dashboard stats:', error)
+      // Use default data if API fails
+      setStats(getDefaultStats())
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const formatStatsData = (data: AdminDashboardStats): StatItem[] => {
+    return [
+      {
+        title: 'Tổng người dùng',
+        value: data.userStats.totalUsers.toLocaleString('vi-VN'),
+        change: `${data.userStats.userGrowthPercentage > 0 ? '+' : ''}${data.userStats.userGrowthPercentage.toFixed(1)}%`,
+        trend: data.userStats.userGrowthPercentage > 0 ? 'up' : 'down',
+        icon: Users,
+        details: [
+          { label: 'Freelancer', value: data.userStats.totalFreelancers.toLocaleString('vi-VN') },
+          { label: 'Khách hàng', value: data.userStats.totalClients.toLocaleString('vi-VN') }
+        ]
+      },
+      {
+        title: 'Dự án đang hoạt động',
+        value: data.projectStats.totalProjects.toLocaleString('vi-VN'),
+        change: `${data.projectStats.projectGrowthPercentage > 0 ? '+' : ''}${data.projectStats.projectGrowthPercentage.toFixed(1)}%`,
+        trend: data.projectStats.projectGrowthPercentage > 0 ? 'up' : 'down',
+        icon: Briefcase,
+        details: [
+          { label: 'Đang triển khai', value: data.projectStats.activeProjects.toLocaleString('vi-VN') },
+          { label: 'Chờ duyệt', value: data.projectStats.pendingProjects.toLocaleString('vi-VN') }
+        ]
+      },
+      {
+        title: 'Doanh thu tháng',
+        value: `${data.transactionStats.monthlyRevenue.toLocaleString('vi-VN')}đ`,
+        change: `${data.transactionStats.revenueGrowthPercentage > 0 ? '+' : ''}${data.transactionStats.revenueGrowthPercentage.toFixed(1)}%`,
+        trend: data.transactionStats.revenueGrowthPercentage > 0 ? 'up' : 'down',
+        icon: Wallet,
+        details: [
+          { label: 'Hoa hồng', value: `${data.transactionStats.commissionEarned.toLocaleString('vi-VN')}đ` },
+          { label: 'Phí dịch vụ', value: `${data.transactionStats.serviceFees.toLocaleString('vi-VN')}đ` },
+          { label: 'Tổng giao dịch', value: data.transactionStats.totalTransactions.toLocaleString('vi-VN') }
+        ]
+      },
+      {
+        title: 'Bài đăng tuyển dụng',
+        value: data.recruitmentStats.totalRecruitmentPosts.toLocaleString('vi-VN'),
+        change: `${data.recruitmentStats.recruitmentGrowthPercentage > 0 ? '+' : ''}${data.recruitmentStats.recruitmentGrowthPercentage.toFixed(1)}%`,
+        trend: data.recruitmentStats.recruitmentGrowthPercentage > 0 ? 'up' : 'down',
+        icon: ShieldCheck,
+        details: [
+          { label: 'Đang hoạt động', value: data.recruitmentStats.activeRecruitmentPosts.toLocaleString('vi-VN') },
+          { label: 'Chờ duyệt', value: data.recruitmentStats.pendingApproval.toLocaleString('vi-VN') }
+        ]
+      }
     ]
   }
-]
 
-export function StatsCards() {
+  const getDefaultStats = (): StatItem[] => [
+    {
+      title: 'Tổng người dùng',
+      value: '0',
+      change: '+0%',
+      trend: 'up',
+      icon: Users,
+      details: [
+        { label: 'Freelancer', value: '0' },
+        { label: 'Khách hàng', value: '0' }
+      ]
+    },
+    {
+      title: 'Dự án đang hoạt động',
+      value: '0',
+      change: '+0%',
+      trend: 'up',
+      icon: Briefcase,
+      details: [
+        { label: 'Đang triển khai', value: '0' },
+        { label: 'Chờ duyệt', value: '0' }
+      ]
+    },
+    {
+      title: 'Doanh thu tháng',
+      value: '0đ',
+      change: '+0%',
+      trend: 'up',
+      icon: Wallet,
+      details: [
+        { label: 'Hoa hồng', value: '0đ' },
+        { label: 'Phí dịch vụ', value: '0đ' },
+        { label: 'Tổng giao dịch', value: '0' }
+      ]
+    },
+    {
+      title: 'Bài đăng tuyển dụng',
+      value: '0',
+      change: '+0%',
+      trend: 'up',
+      icon: ShieldCheck,
+      details: [
+        { label: 'Đang hoạt động', value: '0' },
+        { label: 'Chờ duyệt', value: '0' }
+      ]
+    }
+  ]
+
+  if (loading) {
+    return (
+      <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+        {[...Array(4)].map((_, i) => (
+          <Card key={i} className='p-5 shadow-sm'>
+            <div className='h-32 animate-pulse bg-gray-200 rounded'></div>
+          </Card>
+        ))}
+      </div>
+    )
+  }
   return (
     <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
       {stats.map((stat) => {

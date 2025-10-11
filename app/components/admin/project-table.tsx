@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import {
@@ -14,90 +14,123 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '~/components/ui/table'
 import { Badge } from '~/components/ui/badge'
 import { MoreHorizontal } from 'lucide-react'
-
-type ProjectStatus = 'Đang thực hiện' | 'Chờ duyệt' | 'Hoàn thành' | 'Bị trì hoãn'
+import { adminApi, type AdminProject } from '~/apis/admin.api'
 
 type ProjectRecord = {
+  id: string
   name: string
   description: string
   client: string
-  freelancer: string
   budget: string
-  status: ProjectStatus
+  status: number
+  statusName: string
   deadline: string
 }
 
-const projects: ProjectRecord[] = [
-  {
-    name: 'Thiết kế UI/UX trang web điện tử',
-    description: 'Phát triển Web',
-    client: 'Công ty TNHH TechCorp',
-    freelancer: 'Nguyễn Văn An',
-    budget: '120.000.000đ',
-    status: 'Đang thực hiện',
-    deadline: '15/04/2024'
-  },
-  {
-    name: 'Thiết kế UI/UX ứng dụng di động',
-    description: 'Ứng dụng di động',
-    client: 'StartupXYZ',
-    freelancer: 'Trần Thị Bình',
-    budget: '80.000.000đ',
-    status: 'Chờ duyệt',
-    deadline: '20/03/2024'
-  },
-  {
-    name: 'Viết nội dung cho blog công ty',
-    description: 'Marketing Pro',
-    client: 'Marketing Pro',
-    freelancer: 'Lê Minh Cường',
-    budget: '20.000.000đ',
-    status: 'Hoàn thành',
-    deadline: '28/02/2024'
-  },
-  {
-    name: 'Phát triển website thương mại điện tử',
-    description: 'Phát triển Web',
-    client: 'Công ty TNHH TechCorp',
-    freelancer: 'Nguyễn Văn An',
-    budget: '150.000.000đ',
-    status: 'Đang thực hiện',
-    deadline: '15/04/2024'
-  },
-  {
-    name: 'Thiết kế chiến dịch truyền thông',
-    description: 'Marketing',
-    client: 'BrandHouse',
-    freelancer: 'Phạm Thu Hương',
-    budget: '95.000.000đ',
-    status: 'Chờ duyệt',
-    deadline: '30/03/2024'
-  },
-  {
-    name: 'Dự án tổng hợp sản phẩm',
-    description: 'Khách hàng dự định',
-    client: 'Global Group',
-    freelancer: 'Phạm Thu Dung',
-    budget: '250.000.000đ',
-    status: 'Bị trì hoãn',
-    deadline: '01/05/2024'
+const getStatusAppearance = (statusName: string) => {
+  switch (statusName) {
+    case 'Active':
+      return { label: 'Đang thực hiện', className: 'bg-emerald-100 text-emerald-700' }
+    case 'Pending':
+      return { label: 'Chờ duyệt', className: 'bg-amber-100 text-amber-700' }
+    case 'Completed':
+      return { label: 'Hoàn thành', className: 'bg-slate-100 text-slate-700' }
+    case 'On Hold':
+      return { label: 'Bị trì hoãn', className: 'bg-rose-100 text-rose-700' }
+    case 'Cancelled':
+      return { label: 'Đã hủy', className: 'bg-gray-100 text-gray-700' }
+    default:
+      return { label: statusName, className: 'bg-gray-100 text-gray-700' }
   }
-]
-
-const statusAppearance: Record<ProjectStatus, { label: string; className: string }> = {
-  'Đang thực hiện': { label: 'Đang thực hiện', className: 'bg-emerald-100 text-emerald-700' },
-  'Chờ duyệt': { label: 'Chờ duyệt', className: 'bg-amber-100 text-amber-700' },
-  'Hoàn thành': { label: 'Hoàn thành', className: 'bg-slate-100 text-slate-700' },
-  'Bị trì hoãn': { label: 'Bị trì hoãn', className: 'bg-rose-100 text-rose-700' }
 }
-
-const totalPages = 10
 
 export function ProjectTable() {
   const [currentPage, setCurrentPage] = useState(1)
+  const [projects, setProjects] = useState<ProjectRecord[]>([])
+  const [totalPages, setTotalPages] = useState(1)
+  const [loading, setLoading] = useState(true)
+  const [filters, setFilters] = useState({
+    status: undefined as number | undefined,
+    search: undefined as string | undefined
+  })
+
+  useEffect(() => {
+    fetchProjects()
+  }, [currentPage, filters])
+
+  const fetchProjects = async () => {
+    try {
+      setLoading(true)
+      const response = await adminApi.getProjects({
+        page: currentPage,
+        pageSize: 10,
+        status: filters.status,
+        search: filters.search
+      })
+      
+      if (response.data) {
+        const formattedProjects = response.data.items.map((project: AdminProject) => ({
+          id: project.id,
+          name: project.name || 'N/A',
+          description: project.description || 'N/A',
+          client: project.clientName,
+          budget: `${project.budget.toLocaleString('vi-VN')}đ`,
+          status: project.status,
+          statusName: project.statusName,
+          deadline: project.endDate ? new Date(project.endDate).toLocaleDateString('vi-VN') : 'N/A'
+        }))
+        setProjects(formattedProjects)
+        setTotalPages(response.data.totalPages)
+      }
+    } catch (error) {
+      console.error('Failed to fetch projects:', error)
+      setProjects([])
+      setTotalPages(1)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
+  }
+
+  const handleStatusFilter = (value: string) => {
+    if (value === 'all-status') {
+      setFilters(prev => ({ ...prev, status: undefined }))
+    } else {
+      const statusMap: Record<string, number> = {
+        'pending': 0,
+        'in-progress': 1,
+        'completed': 2,
+        'cancelled': 3,
+        'on-hold': 4
+      }
+      setFilters(prev => ({ ...prev, status: statusMap[value] }))
+    }
+    setCurrentPage(1)
+  }
+
+  const handleUpdateStatus = async (projectId: string, newStatus: number) => {
+    try {
+      await adminApi.updateProjectStatus(projectId, newStatus)
+      fetchProjects() // Refresh the list
+    } catch (error) {
+      console.error('Failed to update project status:', error)
+    }
+  }
+
+  if (loading) {
+    return (
+      <Card className='bg-white/90 shadow-sm backdrop-blur-sm'>
+        <CardHeader>
+          <CardTitle>Loading...</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className='h-96 animate-pulse bg-gray-200 rounded'></div>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
@@ -105,7 +138,7 @@ export function ProjectTable() {
       <CardHeader className='flex flex-col gap-4 pb-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0'>
         <CardTitle className='text-lg font-semibold text-slate-900'>Danh mục dự án</CardTitle>
         <div className='flex flex-col gap-2 sm:flex-row'>
-          <Select defaultValue='all-status'>
+          <Select defaultValue='all-status' onValueChange={handleStatusFilter}>
             <SelectTrigger className='w-[200px]'>
               <SelectValue placeholder='Tất cả trạng thái' />
             </SelectTrigger>
@@ -114,18 +147,8 @@ export function ProjectTable() {
               <SelectItem value='in-progress'>Đang thực hiện</SelectItem>
               <SelectItem value='pending'>Chờ duyệt</SelectItem>
               <SelectItem value='completed'>Hoàn thành</SelectItem>
-              <SelectItem value='delayed'>Bị trì hoãn</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select defaultValue='all-category'>
-            <SelectTrigger className='w-[200px]'>
-              <SelectValue placeholder='Tất cả danh mục' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value='all-category'>Tất cả danh mục</SelectItem>
-              <SelectItem value='web-dev'>Phát triển Web</SelectItem>
-              <SelectItem value='mobile'>Ứng dụng di động</SelectItem>
-              <SelectItem value='marketing'>Marketing</SelectItem>
+              <SelectItem value='on-hold'>Bị trì hoãn</SelectItem>
+              <SelectItem value='cancelled'>Đã hủy</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -137,7 +160,6 @@ export function ProjectTable() {
               <TableRow className='border-border/40 text-sm text-muted-foreground'>
                 <TableHead>Dự án</TableHead>
                 <TableHead>Khách hàng</TableHead>
-                <TableHead>Freelancer</TableHead>
                 <TableHead>Ngân sách</TableHead>
                 <TableHead>Trạng thái</TableHead>
                 <TableHead>Hạn chót</TableHead>
@@ -146,9 +168,9 @@ export function ProjectTable() {
             </TableHeader>
             <TableBody>
               {projects.map((project) => {
-                const status = statusAppearance[project.status]
+                const status = getStatusAppearance(project.statusName)
                 return (
-                  <TableRow key={`${project.name}-${project.client}`} className='border-border/40 text-sm'>
+                  <TableRow key={project.id} className='border-border/40 text-sm'>
                     <TableCell>
                       <div>
                         <p className='font-medium text-slate-900'>{project.name}</p>
@@ -156,7 +178,6 @@ export function ProjectTable() {
                       </div>
                     </TableCell>
                     <TableCell className='text-slate-700'>{project.client}</TableCell>
-                    <TableCell className='text-slate-700'>{project.freelancer}</TableCell>
                     <TableCell className='text-slate-900'>{project.budget}</TableCell>
                     <TableCell>
                       <Badge variant='outline' className={`border-transparent px-3 py-1 text-xs font-medium ${status.className}`}>

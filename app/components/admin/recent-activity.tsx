@@ -1,47 +1,112 @@
-import { CheckCircle2, Clock } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { CheckCircle2, Clock, User, Briefcase, CreditCard } from 'lucide-react'
 import { Card } from '~/components/ui/card'
+import { adminApi, type RecentActivity } from '~/apis/admin.api'
 
 type ActivityItem = {
+  id: string
+  icon: React.ElementType
   title: string
   description: string
   time: string
   completed: boolean
+  type: string
 }
 
-const activities: ActivityItem[] = [
-  {
-    title: 'Phát hành sản phẩm mới',
-    description: 'Sản phẩm mới đã được phát hành thành công',
-    time: '2 giờ trước',
-    completed: true
-  },
-  {
-    title: 'Hoàn tất dự án TAMI web bán hàng',
-    description: 'Dự án đã được bàn giao cho khách hàng',
-    time: '5 giờ trước',
-    completed: true
-  },
-  {
-    title: 'Xử lý thanh toán 40.000.000đ',
-    description: 'Khoản thanh toán đã được xử lý thành công',
-    time: '1 ngày trước',
-    completed: true
-  },
-  {
-    title: 'Đăng tải báo cáo tháng',
-    description: 'Tài liệu đã được tải lên hệ thống',
-    time: '2 ngày trước',
-    completed: true
-  },
-  {
-    title: 'Kích hoạt gói Premium hạng Platinum',
-    description: 'Gói Premium đã được kích hoạt cho người dùng',
-    time: '3 ngày trước',
-    completed: true
+const getActivityIcon = (type: string) => {
+  switch (type) {
+    case 'user_registration':
+      return User
+    case 'project_created':
+      return Briefcase
+    case 'transaction':
+      return CreditCard
+    default:
+      return Clock
   }
-]
+}
+
+const formatTimestamp = (timestamp: string) => {
+  const date = new Date(timestamp)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+
+  if (diffHours < 1) {
+    const diffMinutes = Math.floor(diffMs / (1000 * 60))
+    return `${diffMinutes} phút trước`
+  } else if (diffHours < 24) {
+    return `${diffHours} giờ trước`
+  } else if (diffDays < 7) {
+    return `${diffDays} ngày trước`
+  } else {
+    return date.toLocaleDateString('vi-VN')
+  }
+}
 
 export function RecentActivity() {
+  const [activities, setActivities] = useState<ActivityItem[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchRecentActivities()
+  }, [])
+
+  const fetchRecentActivities = async () => {
+    try {
+      const data = await adminApi.getRecentActivities(10)
+      const formattedActivities = data.map((activity: RecentActivity) => ({
+        id: activity.id,
+        icon: getActivityIcon(activity.type),
+        title: getActivityTitle(activity),
+        description: activity.description,
+        time: formatTimestamp(activity.timestamp),
+        completed: activity.status === 'completed',
+        type: activity.type
+      }))
+      setActivities(formattedActivities)
+    } catch (error) {
+      console.error('Failed to fetch recent activities:', error)
+      // Use default data if API fails
+      setActivities(getDefaultActivities())
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const getActivityTitle = (activity: RecentActivity) => {
+    switch (activity.type) {
+      case 'user_registration':
+        return 'Người dùng mới đăng ký'
+      case 'project_created':
+        return 'Dự án mới được tạo'
+      case 'transaction':
+        return 'Giao dịch mới'
+      default:
+        return activity.description
+    }
+  }
+
+  const getDefaultActivities = (): ActivityItem[] => [
+    {
+      id: '1',
+      icon: CheckCircle2,
+      title: 'Chưa có hoạt động',
+      description: 'Hệ thống chưa ghi nhận hoạt động nào',
+      time: 'N/A',
+      completed: false,
+      type: 'default'
+    }
+  ]
+
+  if (loading) {
+    return (
+      <Card className='p-6 shadow-sm'>
+        <div className='h-64 animate-pulse bg-gray-200 rounded'></div>
+      </Card>
+    )
+  }
   return (
     <Card className='p-6 shadow-sm'>
       <div className='space-y-6'>
@@ -51,22 +116,25 @@ export function RecentActivity() {
         </div>
 
         <div className='space-y-4'>
-          {activities.map((activity) => (
-            <div key={activity.title} className='flex gap-3'>
-              <div className='mt-0.5 flex-shrink-0'>
-                {activity.completed ? (
-                  <CheckCircle2 className='h-5 w-5 text-emerald-500' />
-                ) : (
-                  <Clock className='h-5 w-5 text-muted-foreground' />
-                )}
+          {activities.map((activity) => {
+            const Icon = activity.icon
+            return (
+              <div key={activity.id} className='flex gap-3'>
+                <div className='mt-0.5 flex-shrink-0'>
+                  {activity.completed ? (
+                    <Icon className='h-5 w-5 text-emerald-500' />
+                  ) : (
+                    <Icon className='h-5 w-5 text-muted-foreground' />
+                  )}
+                </div>
+                <div className='flex-1 space-y-1'>
+                  <p className='text-sm font-medium leading-tight text-slate-900'>{activity.title}</p>
+                  <p className='text-xs text-muted-foreground'>{activity.description}</p>
+                  <p className='text-xs text-muted-foreground'>{activity.time}</p>
+                </div>
               </div>
-              <div className='flex-1 space-y-1'>
-                <p className='text-sm font-medium leading-tight text-slate-900'>{activity.title}</p>
-                <p className='text-xs text-muted-foreground'>{activity.description}</p>
-                <p className='text-xs text-muted-foreground'>{activity.time}</p>
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
     </Card>

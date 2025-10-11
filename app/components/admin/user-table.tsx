@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
@@ -14,93 +14,22 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '~/components/ui/table'
 import { MoreHorizontal, Star } from 'lucide-react'
+import { adminApi, type AdminUser } from '~/apis/admin.api'
 
 type UserStatus = 'pending' | 'suspended' | 'active'
 
 type UserRecord = {
+  id: string
   name: string
   email: string
-  role: 'Freelancer' | 'Khách hàng'
+  role: string
   status: UserStatus
   joinDate: string
   projects: number
   rating: number | null
 }
 
-const users: UserRecord[] = [
-  {
-    name: 'Nguyễn Văn An',
-    email: 'nguyenvanan@example.com',
-    role: 'Freelancer',
-    status: 'pending',
-    joinDate: '15/01/2024',
-    projects: 0,
-    rating: null
-  },
-  {
-    name: 'Trần Thị Bình',
-    email: 'tranthibinh@example.com',
-    role: 'Khách hàng',
-    status: 'pending',
-    joinDate: '20/02/2024',
-    projects: 0,
-    rating: null
-  },
-  {
-    name: 'Lê Minh Cường',
-    email: 'leminhcuong@example.com',
-    role: 'Freelancer',
-    status: 'suspended',
-    joinDate: '10/10/2023',
-    projects: 8,
-    rating: 3.8
-  },
-  {
-    name: 'Phạm Thị Dung',
-    email: 'phamthidung@example.com',
-    role: 'Freelancer',
-    status: 'suspended',
-    joinDate: '18/10/2023',
-    projects: 8,
-    rating: 1.8
-  },
-  {
-    name: 'Nguyễn Văn Tuấn',
-    email: 'nguyenvantuanx@example.com',
-    role: 'Freelancer',
-    status: 'active',
-    joinDate: '15/01/2024',
-    projects: 12,
-    rating: 4.8
-  },
-  {
-    name: 'Trần Thị Nhung',
-    email: 'tranthinhung@example.com',
-    role: 'Khách hàng',
-    status: 'active',
-    joinDate: '20/02/2024',
-    projects: 5,
-    rating: 4.9
-  },
-  {
-    name: 'Lê Minh Tú',
-    email: 'leminhtu@example.com',
-    role: 'Freelancer',
-    status: 'suspended',
-    joinDate: '10/11/2023',
-    projects: 8,
-    rating: 3.2
-  },
-  {
-    name: 'Phạm Thu Hương',
-    email: 'phamthuhuong@example.com',
-    role: 'Khách hàng',
-    status: 'active',
-    joinDate: '01/03/2024',
-    projects: 5,
-    rating: 4.8
-  }
-]
+
 
 const statusConfig: Record<UserStatus, { label: string; className: string }> = {
   pending: {
@@ -117,13 +46,101 @@ const statusConfig: Record<UserStatus, { label: string; className: string }> = {
   }
 }
 
-const totalPages = 15
-
 export function UserTable() {
   const [currentPage, setCurrentPage] = useState(1)
+  const [users, setUsers] = useState<UserRecord[]>([])
+  const [totalPages, setTotalPages] = useState(1)
+  const [loading, setLoading] = useState(true)
+  const [filters, setFilters] = useState({
+    role: undefined as number | undefined,
+    status: undefined as number | undefined
+  })
+
+  useEffect(() => {
+    fetchUsers()
+  }, [currentPage, filters])
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true)
+      const response = await adminApi.getUsers({
+        page: currentPage,
+        pageSize: 10,
+        role: filters.role,
+        status: filters.status
+      })
+      
+      if (response.data) {
+        const formattedUsers = response.data.items.map((user: AdminUser) => ({
+          id: user.id,
+          name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.username || 'N/A',
+          email: user.email || 'N/A',
+          role: user.roleName,
+          status: getStatusFromCode(user.status),
+          joinDate: user.createdAt ? new Date(user.createdAt).toLocaleDateString('vi-VN') : 'N/A',
+          projects: user.totalProjects,
+          rating: null
+        }))
+        setUsers(formattedUsers)
+        setTotalPages(response.data.totalPages)
+      }
+    } catch (error) {
+      console.error('Failed to fetch users:', error)
+      setUsers([])
+      setTotalPages(1)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const getStatusFromCode = (status?: number): UserStatus => {
+    switch (status) {
+      case 0: return 'pending'
+      case 1: return 'active'
+      case 2: return 'suspended'
+      default: return 'pending'
+    }
+  }
 
   const goToPage = (page: number) => {
     setCurrentPage(page)
+  }
+
+  const handleRoleFilter = (value: string) => {
+    if (value === 'all-roles') {
+      setFilters(prev => ({ ...prev, role: undefined }))
+    } else if (value === 'freelancer') {
+      setFilters(prev => ({ ...prev, role: 3 }))
+    } else if (value === 'customer') {
+      setFilters(prev => ({ ...prev, role: 2 }))
+    }
+    setCurrentPage(1)
+  }
+
+  const handleStatusFilter = (value: string) => {
+    if (value === 'all-status') {
+      setFilters(prev => ({ ...prev, status: undefined }))
+    } else if (value === 'active') {
+      setFilters(prev => ({ ...prev, status: 1 }))
+    } else if (value === 'pending') {
+      setFilters(prev => ({ ...prev, status: 0 }))
+    } else if (value === 'suspended') {
+      setFilters(prev => ({ ...prev, status: 2 }))
+    }
+    setCurrentPage(1)
+  }
+
+  if (loading) {
+    return (
+      <Card className='border-border/40 bg-card shadow-sm'>
+        <CardHeader>
+          <CardTitle>Loading...</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className='h-96 animate-pulse bg-gray-200 rounded'></div>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
@@ -131,7 +148,7 @@ export function UserTable() {
       <CardHeader className='flex flex-col gap-4 pb-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0'>
         <CardTitle className='text-xl font-semibold text-foreground'>Danh sách người dùng</CardTitle>
         <div className='flex flex-col gap-2 sm:flex-row'>
-          <Select defaultValue='all-roles'>
+          <Select defaultValue='all-roles' onValueChange={handleRoleFilter}>
             <SelectTrigger className='w-[180px]'>
               <SelectValue placeholder='Tất cả vai trò' />
             </SelectTrigger>
@@ -141,7 +158,7 @@ export function UserTable() {
               <SelectItem value='customer'>Khách hàng</SelectItem>
             </SelectContent>
           </Select>
-          <Select defaultValue='all-status'>
+          <Select defaultValue='all-status' onValueChange={handleStatusFilter}>
             <SelectTrigger className='w-[180px]'>
               <SelectValue placeholder='Tất cả trạng thái' />
             </SelectTrigger>
@@ -169,42 +186,50 @@ export function UserTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.map((user) => {
-                const status = statusConfig[user.status]
-                return (
-                  <TableRow key={user.email} className='border-border/40'>
-                    <TableCell>
-                      <div className='space-y-1'>
-                        <p className='font-medium text-foreground'>{user.name}</p>
-                        <p className='text-sm text-muted-foreground'>{user.email}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell className='text-foreground'>{user.role}</TableCell>
-                    <TableCell>
-                      <Badge variant='outline' className={`border-transparent ${status.className}`}>
-                        {status.label}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className='text-foreground'>{user.joinDate}</TableCell>
-                    <TableCell className='text-foreground'>{user.projects}</TableCell>
-                    <TableCell>
-                      {user.rating ? (
-                        <div className='flex items-center gap-1 text-foreground'>
-                          <Star className='h-4 w-4 fill-yellow-400 text-yellow-400' />
-                          <span>{user.rating}</span>
+              {users.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className='h-24 text-center text-muted-foreground'>
+                    Không có dữ liệu người dùng
+                  </TableCell>
+                </TableRow>
+              ) : (
+                users.map((user) => {
+                  const status = statusConfig[user.status]
+                  return (
+                    <TableRow key={user.id} className='border-border/40'>
+                      <TableCell>
+                        <div className='space-y-1'>
+                          <p className='font-medium text-foreground'>{user.name}</p>
+                          <p className='text-sm text-muted-foreground'>{user.email}</p>
                         </div>
-                      ) : (
-                        <span className='text-muted-foreground'>Chưa có</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Button variant='ghost' size='icon' className='h-8 w-8'>
-                        <MoreHorizontal className='h-4 w-4' />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
+                      </TableCell>
+                      <TableCell className='text-foreground'>{user.role}</TableCell>
+                      <TableCell>
+                        <Badge variant='outline' className={`border-transparent ${status.className}`}>
+                          {status.label}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className='text-foreground'>{user.joinDate}</TableCell>
+                      <TableCell className='text-foreground'>{user.projects}</TableCell>
+                      <TableCell>
+                        {user.rating ? (
+                          <div className='flex items-center gap-1 text-foreground'>
+                            <Star className='h-4 w-4 fill-yellow-400 text-yellow-400' />
+                            <span>{user.rating}</span>
+                          </div>
+                        ) : (
+                          <span className='text-muted-foreground'>Chưa có</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Button variant='ghost' size='icon' className='h-8 w-8'>
+                          <MoreHorizontal className='h-4 w-4' />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })
+              )}
             </TableBody>
           </Table>
         </div>

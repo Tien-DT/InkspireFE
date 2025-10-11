@@ -46,6 +46,12 @@
         "file": "./routes/profile.tsx",
         "path": "profile"
       },
+      "routes/user-profile": {
+        "id": "routes/user-profile",
+        "parentId": "layouts/ProtectedLayout/ProtectedLayout",
+        "file": "./routes/user-profile.tsx",
+        "path": "user-profile/:userId"
+      },
       "routes/dashboard-freelancer": {
         "id": "routes/dashboard-freelancer",
         "parentId": "layouts/ProtectedLayout/ProtectedLayout",
@@ -124,6 +130,35 @@
         "file": "./routes/post-recruitment.tsx",
         "path": "post-recruitment"
       },
+      "layouts/AdminLayout/AdminLayout": {
+        "id": "layouts/AdminLayout/AdminLayout",
+        "parentId": "root",
+        "file": "./layouts/AdminLayout/AdminLayout.tsx"
+      },
+      "routes/admin/admin-home-page": {
+        "id": "routes/admin/admin-home-page",
+        "parentId": "layouts/AdminLayout/AdminLayout",
+        "file": "./routes/admin/admin-home-page.tsx",
+        "path": "admin"
+      },
+      "routes/admin/transactions/transactions-page": {
+        "id": "routes/admin/transactions/transactions-page",
+        "parentId": "layouts/AdminLayout/AdminLayout",
+        "file": "./routes/admin/transactions/transactions-page.tsx",
+        "path": "admin/transactions"
+      },
+      "routes/admin/projects/projects-page": {
+        "id": "routes/admin/projects/projects-page",
+        "parentId": "layouts/AdminLayout/AdminLayout",
+        "file": "./routes/admin/projects/projects-page.tsx",
+        "path": "admin/projects"
+      },
+      "routes/admin/users/users-page": {
+        "id": "routes/admin/users/users-page",
+        "parentId": "layouts/AdminLayout/AdminLayout",
+        "file": "./routes/admin/users/users-page.tsx",
+        "path": "admin/users"
+      },
       "layouts/auth-layout": {
         "id": "layouts/auth-layout",
         "parentId": "root",
@@ -162,9 +197,9 @@
     }
   },
   "reactRouterConfig": {
-    "appDirectory": "D:/WorkSpace/inkspire/app",
+    "appDirectory": "C:/Users/USER/Documents/TaiLieu/EXE201/InkspireFE/InkspireFE/app",
     "basename": "/",
-    "buildDirectory": "D:/WorkSpace/inkspire/build",
+    "buildDirectory": "C:/Users/USER/Documents/TaiLieu/EXE201/InkspireFE/InkspireFE/build",
     "future": {
       "unstable_middleware": false,
       "unstable_optimizeDeps": false,
@@ -218,6 +253,12 @@
         "file": "./routes/profile.tsx",
         "path": "profile"
       },
+      "routes/user-profile": {
+        "id": "routes/user-profile",
+        "parentId": "layouts/ProtectedLayout/ProtectedLayout",
+        "file": "./routes/user-profile.tsx",
+        "path": "user-profile/:userId"
+      },
       "routes/dashboard-freelancer": {
         "id": "routes/dashboard-freelancer",
         "parentId": "layouts/ProtectedLayout/ProtectedLayout",
@@ -295,6 +336,35 @@
         "parentId": "layouts/ProtectedLayout/ProtectedLayout",
         "file": "./routes/post-recruitment.tsx",
         "path": "post-recruitment"
+      },
+      "layouts/AdminLayout/AdminLayout": {
+        "id": "layouts/AdminLayout/AdminLayout",
+        "parentId": "root",
+        "file": "./layouts/AdminLayout/AdminLayout.tsx"
+      },
+      "routes/admin/admin-home-page": {
+        "id": "routes/admin/admin-home-page",
+        "parentId": "layouts/AdminLayout/AdminLayout",
+        "file": "./routes/admin/admin-home-page.tsx",
+        "path": "admin"
+      },
+      "routes/admin/transactions/transactions-page": {
+        "id": "routes/admin/transactions/transactions-page",
+        "parentId": "layouts/AdminLayout/AdminLayout",
+        "file": "./routes/admin/transactions/transactions-page.tsx",
+        "path": "admin/transactions"
+      },
+      "routes/admin/projects/projects-page": {
+        "id": "routes/admin/projects/projects-page",
+        "parentId": "layouts/AdminLayout/AdminLayout",
+        "file": "./routes/admin/projects/projects-page.tsx",
+        "path": "admin/projects"
+      },
+      "routes/admin/users/users-page": {
+        "id": "routes/admin/users/users-page",
+        "parentId": "layouts/AdminLayout/AdminLayout",
+        "file": "./routes/admin/users/users-page.tsx",
+        "path": "admin/users"
       },
       "layouts/auth-layout": {
         "id": "layouts/auth-layout",
@@ -371,6 +441,10 @@
                     "path": "profile"
                   },
                   {
+                    "file": "./routes/user-profile.tsx",
+                    "path": "user-profile/:userId"
+                  },
+                  {
                     "file": "./routes/dashboard-freelancer.tsx",
                     "path": "dashboard-freelancer"
                   },
@@ -423,6 +497,27 @@
                     "path": "post-recruitment"
                   }
                 ]
+              }
+            ]
+          },
+          {
+            "file": "./layouts/AdminLayout/AdminLayout.tsx",
+            "children": [
+              {
+                "file": "./routes/admin/admin-home-page.tsx",
+                "path": "admin"
+              },
+              {
+                "file": "./routes/admin/transactions/transactions-page.tsx",
+                "path": "admin/transactions"
+              },
+              {
+                "file": "./routes/admin/projects/projects-page.tsx",
+                "path": "admin/projects"
+              },
+              {
+                "file": "./routes/admin/users/users-page.tsx",
+                "path": "admin/users"
               }
             ]
           },
