@@ -13,8 +13,10 @@ import {
 } from '~/components/ui/pagination'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '~/components/ui/table'
-import { MoreHorizontal, Star } from 'lucide-react'
+import { Plus, Edit, Trash2, Star } from 'lucide-react'
 import { adminApi, type AdminUser } from '~/apis/admin.api'
+import { UserDialog } from './user-dialog'
+import { ConfirmDialog } from './confirm-dialog'
 
 type UserStatus = 'pending' | 'suspended' | 'active'
 
@@ -55,6 +57,12 @@ export function UserTable() {
     role: undefined as number | undefined,
     status: undefined as number | undefined
   })
+  const [userDialogOpen, setUserDialogOpen] = useState(false)
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
+  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null)
+  const [dialogMode, setDialogMode] = useState<'create' | 'edit'>('create')
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [fullUsers, setFullUsers] = useState<AdminUser[]>([])
 
   useEffect(() => {
     fetchUsers()
@@ -71,6 +79,7 @@ export function UserTable() {
       })
       
       if (response.data) {
+        setFullUsers(response.data.items)
         const formattedUsers = response.data.items.map((user: AdminUser) => ({
           id: user.id,
           name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.username || 'N/A',
@@ -91,6 +100,49 @@ export function UserTable() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleCreateUser = () => {
+    setDialogMode('create')
+    setSelectedUser(null)
+    setUserDialogOpen(true)
+  }
+
+  const handleEditUser = (userId: string) => {
+    const user = fullUsers.find(u => u.id === userId)
+    if (user) {
+      setSelectedUser(user)
+      setDialogMode('edit')
+      setUserDialogOpen(true)
+    }
+  }
+
+  const handleDeleteClick = (userId: string) => {
+    const user = fullUsers.find(u => u.id === userId)
+    if (user) {
+      setSelectedUser(user)
+      setConfirmDialogOpen(true)
+    }
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!selectedUser) return
+
+    try {
+      setDeleteLoading(true)
+      await adminApi.deleteUser(selectedUser.id)
+      setConfirmDialogOpen(false)
+      setSelectedUser(null)
+      fetchUsers()
+    } catch (error) {
+      console.error('Failed to delete user:', error)
+    } finally {
+      setDeleteLoading(false)
+    }
+  }
+
+  const handleDialogSuccess = () => {
+    fetchUsers()
   }
 
   const getStatusFromCode = (status?: number): UserStatus => {
@@ -145,11 +197,15 @@ export function UserTable() {
 
   return (
     <Card className='border-border/40 bg-card shadow-sm'>
-      <CardHeader className='flex flex-col gap-4 pb-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0'>
-        <CardTitle className='text-xl font-semibold text-foreground'>Danh sách người dùng</CardTitle>
-        <div className='flex flex-col gap-2 sm:flex-row'>
+      <CardHeader className='flex flex-col gap-3 pb-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0'>
+        <CardTitle className='text-lg sm:text-xl font-semibold text-foreground'>Danh sách người dùng</CardTitle>
+        <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
+          <Button onClick={handleCreateUser} className='gap-2 w-full sm:w-auto'>
+            <Plus className='h-4 w-4' />
+            <span className='sm:inline'>Thêm người dùng</span>
+          </Button>
           <Select defaultValue='all-roles' onValueChange={handleRoleFilter}>
-            <SelectTrigger className='w-[180px]'>
+            <SelectTrigger className='w-full sm:w-[160px]'>
               <SelectValue placeholder='Tất cả vai trò' />
             </SelectTrigger>
             <SelectContent>
@@ -159,7 +215,7 @@ export function UserTable() {
             </SelectContent>
           </Select>
           <Select defaultValue='all-status' onValueChange={handleStatusFilter}>
-            <SelectTrigger className='w-[180px]'>
+            <SelectTrigger className='w-full sm:w-[160px]'>
               <SelectValue placeholder='Tất cả trạng thái' />
             </SelectTrigger>
             <SelectContent>
@@ -173,16 +229,16 @@ export function UserTable() {
       </CardHeader>
       <CardContent>
         <div className='overflow-x-auto'>
-          <Table>
+          <Table className='min-w-[900px]'>
             <TableHeader>
               <TableRow className='border-border/40'>
-                <TableHead className='text-muted-foreground'>Người dùng</TableHead>
-                <TableHead className='text-muted-foreground'>Vai trò</TableHead>
-                <TableHead className='text-muted-foreground'>Trạng thái</TableHead>
-                <TableHead className='text-muted-foreground'>Ngày tham gia</TableHead>
-                <TableHead className='text-muted-foreground'>Dự án</TableHead>
-                <TableHead className='text-muted-foreground'>Đánh giá</TableHead>
-                <TableHead className='text-muted-foreground'>Hành động</TableHead>
+                <TableHead className='text-muted-foreground w-[250px]'>Người dùng</TableHead>
+                <TableHead className='text-muted-foreground w-[120px]'>Vai trò</TableHead>
+                <TableHead className='text-muted-foreground w-[130px]'>Trạng thái</TableHead>
+                <TableHead className='text-muted-foreground w-[120px]'>Ngày tham gia</TableHead>
+                <TableHead className='text-muted-foreground w-[80px]'>Dự án</TableHead>
+                <TableHead className='text-muted-foreground w-[100px]'>Đánh giá</TableHead>
+                <TableHead className='text-muted-foreground w-[120px]'>Hành động</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -197,10 +253,14 @@ export function UserTable() {
                   const status = statusConfig[user.status]
                   return (
                     <TableRow key={user.id} className='border-border/40'>
-                      <TableCell>
+                      <TableCell className='max-w-[250px]'>
                         <div className='space-y-1'>
-                          <p className='font-medium text-foreground'>{user.name}</p>
-                          <p className='text-sm text-muted-foreground'>{user.email}</p>
+                          <p className='font-medium text-foreground truncate' title={user.name}>
+                            {user.name}
+                          </p>
+                          <p className='text-sm text-muted-foreground truncate' title={user.email}>
+                            {user.email}
+                          </p>
                         </div>
                       </TableCell>
                       <TableCell className='text-foreground'>{user.role}</TableCell>
@@ -222,9 +282,24 @@ export function UserTable() {
                         )}
                       </TableCell>
                       <TableCell>
-                        <Button variant='ghost' size='icon' className='h-8 w-8'>
-                          <MoreHorizontal className='h-4 w-4' />
-                        </Button>
+                        <div className='flex gap-2'>
+                          <Button
+                            variant='ghost'
+                            size='icon'
+                            className='h-8 w-8'
+                            onClick={() => handleEditUser(user.id)}
+                          >
+                            <Edit className='h-4 w-4' />
+                          </Button>
+                          <Button
+                            variant='ghost'
+                            size='icon'
+                            className='h-8 w-8 text-red-600 hover:text-red-700'
+                            onClick={() => handleDeleteClick(user.id)}
+                          >
+                            <Trash2 className='h-4 w-4' />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   )
@@ -292,6 +367,21 @@ export function UserTable() {
           </Pagination>
         </div>
       </CardContent>
+      <UserDialog
+        open={userDialogOpen}
+        onClose={() => setUserDialogOpen(false)}
+        onSuccess={handleDialogSuccess}
+        user={selectedUser}
+        mode={dialogMode}
+      />
+      <ConfirmDialog
+        open={confirmDialogOpen}
+        onClose={() => setConfirmDialogOpen(false)}
+        onConfirm={handleDeleteConfirm}
+        title='Xóa người dùng'
+        description={`Bạn có chắc chắn muốn xóa người dùng "${selectedUser?.firstName} ${selectedUser?.lastName}"? Hành động này không thể hoàn tác.`}
+        loading={deleteLoading}
+      />
     </Card>
   )
 }

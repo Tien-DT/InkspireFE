@@ -4,8 +4,8 @@ import { QuickActions } from '~/components/admin/quick-actions'
 
 export default function AdminHomePage() {
   return (
-    <div className='min-h-screen bg-background p-6 md:p-8 lg:p-12'>
-      <div className='mx-auto space-y-8'>
+    <div className='min-h-screen bg-background p-4 md:p-6 lg:p-8'>
+      <div className='mx-auto max-w-7xl space-y-6 md:space-y-8'>
         <div className='space-y-2'>
           <h1 className='text-3xl font-bold text-primary'>Tổng quan bảng điều khiển</h1>
           <p className='text-muted-foreground'>Chào mừng trở lại! Hãy cập nhật tình hình hôm nay.</p>

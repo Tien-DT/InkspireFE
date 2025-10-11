@@ -167,6 +167,22 @@ class AdminApi {
   }
 
   // Users
+  async getTotalUsersCount(params: {
+    role?: number
+    status?: number
+  } = {}): Promise<number> {
+    const headers = this.getHeaders()
+    const queryParams = new URLSearchParams()
+    
+    if (params.role !== undefined) queryParams.append('role', params.role.toString())
+    if (params.status !== undefined) queryParams.append('status', params.status.toString())
+
+    const response = await fetch(`${API_BASE_URL}/api/admin/users/count?${queryParams}`, {
+      headers
+    })
+    return this.handleResponse<number>(response)
+  }
+
   async getUsers(params: {
     page?: number
     pageSize?: number
@@ -223,7 +239,64 @@ class AdminApi {
     await this.handleResponse<void>(response)
   }
 
+  async createUser(data: {
+    email: string
+    password: string
+    firstName: string
+    lastName: string
+    role: number
+    status: number
+    phoneNumber?: string
+  }): Promise<AdminUser> {
+    const headers = this.getHeaders()
+    const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(data)
+    })
+    return this.handleResponse<AdminUser>(response)
+  }
+
+  async updateUser(userId: string, data: {
+    firstName?: string
+    lastName?: string
+    phoneNumber?: string
+    role?: number
+    status?: number
+  }): Promise<AdminUser> {
+    const headers = this.getHeaders()
+    const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(data)
+    })
+    return this.handleResponse<AdminUser>(response)
+  }
+
+  async deleteUser(userId: string): Promise<void> {
+    const headers = this.getHeaders()
+    const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}`, {
+      method: 'DELETE',
+      headers
+    })
+    await this.handleResponse<void>(response)
+  }
+
   // Projects
+  async getTotalProjectsCount(params: {
+    status?: number
+  } = {}): Promise<number> {
+    const headers = this.getHeaders()
+    const queryParams = new URLSearchParams()
+    
+    if (params.status !== undefined) queryParams.append('status', params.status.toString())
+
+    const response = await fetch(`${API_BASE_URL}/api/admin/projects/count?${queryParams}`, {
+      headers
+    })
+    return this.handleResponse<number>(response)
+  }
+
   async getProjects(params: {
     page?: number
     pageSize?: number
@@ -264,6 +337,52 @@ class AdminApi {
       method: 'PUT',
       headers,
       body: JSON.stringify({ status, reason })
+    })
+    await this.handleResponse<void>(response)
+  }
+
+  async createProject(data: {
+    title: string
+    description?: string
+    budgetMin: number
+    budgetMax: number
+    clientId: string
+    recruitmentPostId?: string
+    deadline?: string
+    status?: number
+  }): Promise<AdminProject> {
+    const headers = this.getHeaders()
+    const response = await fetch(`${API_BASE_URL}/api/admin/projects`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(data)
+    })
+    return this.handleResponse<AdminProject>(response)
+  }
+
+  async updateProject(projectId: string, data: {
+    title?: string
+    description?: string
+    budgetMin?: number
+    budgetMax?: number
+    clientId?: string
+    deadline?: string
+    status?: number
+  }): Promise<AdminProject> {
+    const headers = this.getHeaders()
+    const response = await fetch(`${API_BASE_URL}/api/admin/projects/${projectId}`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(data)
+    })
+    return this.handleResponse<AdminProject>(response)
+  }
+
+  async deleteProject(projectId: string): Promise<void> {
+    const headers = this.getHeaders()
+    const response = await fetch(`${API_BASE_URL}/api/admin/projects/${projectId}`, {
+      method: 'DELETE',
+      headers
     })
     await this.handleResponse<void>(response)
   }

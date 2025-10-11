@@ -18,14 +18,29 @@ export function ProjectStatsCards() {
 
   const fetchProjectStats = async () => {
     try {
-      const data = await adminApi.getDashboardStats()
-      const projectStats = data.projectStats
+      // Gọi tuần tự các API count và log để debug
+      const activeProjects = await adminApi.getTotalProjectsCount({ status: 1 })
+      console.log('Active projects:', activeProjects, typeof activeProjects)
+      
+      const completedProjects = await adminApi.getTotalProjectsCount({ status: 2 })
+      console.log('Completed projects:', completedProjects, typeof completedProjects)
+      
+      const pendingProjects = await adminApi.getTotalProjectsCount({ status: 0 })
+      console.log('Pending projects:', pendingProjects, typeof pendingProjects)
+
+      // Đảm bảo tất cả là số
+      const active = Number(activeProjects) || 0
+      const completed = Number(completedProjects) || 0
+      const pending = Number(pendingProjects) || 0
+
+      // Tính tổng thực tế
+      const actualTotal = active + completed + pending
       
       const formattedStats: ProjectStat[] = [
-        { value: projectStats.totalProjects.toLocaleString(), label: 'Tổng dự án', accentClass: 'text-teal-600' },
-        { value: projectStats.activeProjects.toLocaleString(), label: 'Đang thực hiện', accentClass: 'text-blue-600' },
-        { value: projectStats.completedProjects.toLocaleString(), label: 'Đã hoàn thành', accentClass: 'text-amber-600' },
-        { value: projectStats.pendingProjects.toLocaleString(), label: 'Chờ duyệt', accentClass: 'text-red-600' }
+        { value: actualTotal.toString(), label: 'Tổng dự án', accentClass: 'text-teal-600' },
+        { value: active.toString(), label: 'Đang thực hiện', accentClass: 'text-blue-600' },
+        { value: completed.toString(), label: 'Đã hoàn thành', accentClass: 'text-amber-600' },
+        { value: pending.toString(), label: 'Chờ duyệt', accentClass: 'text-red-600' }
       ]
       setStats(formattedStats)
     } catch (error) {
@@ -46,17 +61,17 @@ export function ProjectStatsCards() {
 
   if (loading) {
     return (
-      <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
+      <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 sm:gap-4'>
         {[...Array(4)].map((_, i) => (
-          <Card key={i} className='bg-white/90 p-6 shadow-sm backdrop-blur-sm'>
-            <div className='h-16 animate-pulse bg-gray-200 rounded'></div>
+          <Card key={i} className='bg-white/90 p-4 sm:p-6 shadow-sm backdrop-blur-sm'>
+            <div className='h-12 sm:h-16 animate-pulse bg-gray-200 rounded'></div>
           </Card>
         ))}
       </div>
     )
   }
   return (
-    <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
+    <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 sm:gap-4'>
       {stats.map((stat) => (
         <Card key={stat.label} className='bg-white/90 p-6 shadow-sm backdrop-blur-sm'>
           <div className='space-y-1'>
