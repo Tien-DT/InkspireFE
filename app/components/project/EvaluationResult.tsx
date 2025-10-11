@@ -21,7 +21,7 @@ export function EvaluationResult({ result }: EvaluationResultProps) {
         <CardTitle>Kết quả đánh giá của AI</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 gap-6">
           <div className="flex flex-col items-center justify-center space-y-2">
             <h3 className="text-lg font-semibold">Điểm trung bình</h3>
             <div className="relative w-32 h-32">
@@ -90,7 +90,7 @@ export function EvaluationResult({ result }: EvaluationResultProps) {
           <h4 className="font-semibold">Phân tích</h4>
           <p className="text-sm text-gray-700">{result.evaluationAnalysis}</p>
         </div>
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 gap-6">
           <div>
             <h4 className="font-semibold">Điểm mạnh</h4>
             <ul className="list-disc list-inside text-sm text-gray-700">

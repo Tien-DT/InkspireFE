@@ -55,7 +55,7 @@ export function EvaluationDialog({ isOpen, onClose, milestone, project, timeline
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl">
+      <DialogContent className="max-w-6xl overflow-y-auto max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>Kiểm tra sản phẩm bằng AI</DialogTitle>
         </DialogHeader>
