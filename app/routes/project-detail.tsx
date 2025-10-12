@@ -18,7 +18,8 @@ import {
   useUpdateMilestone,
   useUpdateProject,
   useUploadMilestoneDocument,
-  useEvaluateMilestoneFile
+  useEvaluateMilestoneFile,
+  useEvaluateMilestoneFileByUrl
 } from '~/hooks/useProjects'
 import type { Milestone } from '~/apis/project.api'
 import { useWallet } from '~/hooks/useUser'
@@ -33,6 +34,8 @@ import {
 } from '~/components/ui/dialog'
 import { AlertCircle, CheckCircle2 } from 'lucide-react'
 import { EvaluationDialog } from '~/components/project/EvaluationDialog'
+import { ComplainDialog } from '~/components/project/ComplainDialog'
+import { EvaluationResultDialog } from '~/components/project/EvaluationResultDialog'
 
 interface TimelineItem {
   id: string
@@ -120,6 +123,53 @@ function ProjectDetailContent() {
     createdDate: format(new Date(), 'yyyy-MM-dd'),
     budget: 0
   })
+  const [isComplainDialogOpen, setIsComplainDialogOpen] = useState(false)
+  const [isResultDialogOpen, setIsResultDialogOpen] = useState(false)
+  const [evaluationResult, setEvaluationResult] = useState(null)
+  const [currentTimelineForComplain, setCurrentTimelineForComplain] = useState<TimelineItem | null>(null)
+
+  const evaluateMilestoneFileByUrl = useEvaluateMilestoneFileByUrl({
+    onSuccess: data => {
+      setEvaluationResult(data.data)
+      setIsResultDialogOpen(true)
+      if (data.data.meetsRequirements) {
+        // Find the timeline that was complained about
+        if (currentTimelineForComplain) {
+          handleCompleteTimeline(currentTimelineForComplain)
+          toast.success('Milestone tự động được hoàn thành do đạt yêu cầu.')
+        }
+      }
+    },
+    onError: () => {
+      toast.error('Gửi khiếu nại thất bại.')
+    }
+  })
+
+  const handleComplainClick = (timeline: TimelineItem) => {
+    setCurrentTimelineForComplain(timeline)
+    setIsComplainDialogOpen(true)
+  }
+
+  const handleComplainSubmit = async (contentType: string) => {
+    if (!currentTimelineForComplain || !currentTimelineForComplain.fileUrl) {
+      toast.error('Không tìm thấy file để khiếu nại.')
+      return
+    }
+
+    const fileName = currentTimelineForComplain.fileUrl.split('/').pop() || 'unknown_file'
+
+    try {
+      await evaluateMilestoneFileByUrl.mutateAsync({
+        requirementText: currentTimelineForComplain.description,
+        fileUrl: currentTimelineForComplain.fileUrl,
+        fileName,
+        contentType
+      })
+      toast.success('Khiếu nại của bạn đã được gửi đi.')
+    } catch (error) {
+      // error is handled by onError in useMutation
+    }
+  }
 
   if (isLoading || milestonesLoading) {
     return (
@@ -465,6 +515,19 @@ function ProjectDetailContent() {
         timelines={timelines}
       />
 
+      <ComplainDialog
+        isOpen={isComplainDialogOpen}
+        onClose={() => setIsComplainDialogOpen(false)}
+        onSubmit={handleComplainSubmit}
+        fileUrl={currentTimelineForComplain?.fileUrl || ''}
+      />
+
+      <EvaluationResultDialog
+        isOpen={isResultDialogOpen}
+        onClose={() => setIsResultDialogOpen(false)}
+        evaluationData={evaluationResult}
+      />
+
       <div className='container mx-auto px-4 py-6 space-y-6 flex min-h-screen bg-background'>
         <div className='w-80 bg-white min-h-screen p-6 rounded-lg'>
           <div className='mb-6'>
@@ -796,6 +859,21 @@ function ProjectDetailContent() {
                                         <Check className='h-4 w-4 mr-1.5' />
                                         Đánh dấu hoàn thành
                                       </>
+                                    )}
+                                  </Button>
+                                  <Button
+                                    size='sm'
+                                    onClick={() => handleComplainClick(timeline)}
+                                    disabled={evaluateMilestoneFileByUrl.isPending}
+                                    className='bg-red-600 hover:bg-red-700 text-white shadow-md disabled:opacity-50'
+                                  >
+                                    {evaluateMilestoneFileByUrl.isPending ? (
+                                      <>
+                                        <Clock className='h-4 w-4 mr-1.5 animate-spin' />
+                                        Đang gửi...
+                                      </>
+                                    ) : (
+                                      'Khiếu nại'
                                     )}
                                   </Button>
                                 </div>

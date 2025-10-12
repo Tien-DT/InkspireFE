@@ -115,3 +115,16 @@ export const useEvaluateMilestoneFile = () => {
       projectApi.evaluateMilestoneFile({ requirementText, file })
   })
 }
+
+export const useEvaluateMilestoneFileByUrl = (options: { onSuccess?: (data: any) => void, onError?: (error: any) => void } = {}) => {
+  return useMutation({
+    mutationFn: (body: {
+      requirementText: string
+      fileUrl: string
+      fileName: string
+      contentType: string
+    }) => projectApi.evaluateMilestoneFileByUrl(body),
+    onSuccess: options.onSuccess,
+    onError: options.onError,
+  })
+}

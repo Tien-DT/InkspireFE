@@ -191,5 +191,15 @@ export const projectApi = {
       }
     })
     return response.data
+  },
+
+  evaluateMilestoneFileByUrl: async (body: {
+    requirementText: string
+    fileUrl: string
+    fileName: string
+    contentType: string
+  }): Promise<any> => {
+    const response = await axiosClient.post(`${URL_FILE_EVALUATIONS}/evaluate-url`, body)
+    return response.data
   }
 }
