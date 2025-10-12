@@ -46,6 +46,7 @@ interface TimelineItem {
   budget: number
   isPaid: boolean
   fileUrl?: string
+  milestoneNumber: number
 }
 
 const getStatusInfo = (status: number) => {
@@ -92,7 +93,8 @@ const mapMilestoneToTimeline = (milestone: Milestone): TimelineItem => {
     createdDate: milestone.createdAt,
     budget: milestone.budget,
     isPaid: milestone.status === 2 || milestone.status === 3 || milestone.status === 4,
-    fileUrl: milestone.fileUrl
+    fileUrl: milestone.fileUrl,
+    milestoneNumber: milestone.milestoneNumber
   }
 }
 
@@ -158,9 +160,23 @@ function ProjectDetailContent() {
 
     const fileName = currentTimelineForComplain.fileUrl.split('/').pop() || 'unknown_file'
 
+    let requirementText = ''
+    const projectDescription = project?.description || ''
+
+    const milestoneNumber = currentTimelineForComplain.milestoneNumber
+
+    if (milestoneNumber === 1) {
+      requirementText = `${projectDescription} ${currentTimelineForComplain.description}`
+    } else if (milestoneNumber === 2) {
+      const milestone1 = timelines.find(t => t.milestoneNumber === 1)
+      requirementText = `${projectDescription} ${milestone1?.description || ''} ${currentTimelineForComplain.description}`
+    } else if (milestoneNumber === 3) {
+      requirementText = `${projectDescription} ${currentTimelineForComplain.description}`
+    }
+
     try {
       await evaluateMilestoneFileByUrl.mutateAsync({
-        requirementText: currentTimelineForComplain.description,
+        requirementText,
         fileUrl: currentTimelineForComplain.fileUrl,
         fileName,
         contentType
@@ -216,7 +232,7 @@ function ProjectDetailContent() {
     : project.freelancerName || 'Chưa có'
 
   // Map API data to timeline items
-  const timelines: TimelineItem[] = milestonesData?.data?.map(mapMilestoneToTimeline) || []
+  const timelines: TimelineItem[] = milestonesData?.data?.map(mapMilestoneToTimeline).sort((a, b) => a.milestoneNumber - b.milestoneNumber) || []
 
   // Check if all milestones are completed
   const allMilestonesCompleted = timelines.length === 3 && timelines.every((t) => t.status === 'completed')

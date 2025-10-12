@@ -7,13 +7,6 @@ import {
   DialogDescription,
 } from '~/components/ui/dialog'
 import { Button } from '~/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '~/components/ui/select'
 import { useState, useEffect } from 'react'
 
 interface ComplainDialogProps {
@@ -28,16 +21,16 @@ const getExtensionFromUrl = (url: string) => {
 }
 
 export function ComplainDialog({ isOpen, onClose, onSubmit, fileUrl }: ComplainDialogProps) {
-  const [selectedContentType, setSelectedContentType] = useState('')
+  const [contentType, setContentType] = useState('')
 
   useEffect(() => {
     if (fileUrl) {
-      setSelectedContentType(getExtensionFromUrl(fileUrl))
+      setContentType(getExtensionFromUrl(fileUrl))
     }
   }, [fileUrl])
 
   const handleSubmit = () => {
-    onSubmit(selectedContentType)
+    onSubmit(contentType)
     onClose()
   }
 
@@ -47,22 +40,11 @@ export function ComplainDialog({ isOpen, onClose, onSubmit, fileUrl }: ComplainD
         <DialogHeader>
           <DialogTitle>Khiếu nại Milestone</DialogTitle>
           <DialogDescription>
-            Vui lòng xác nhận loại file để tiếp tục.
+            Hệ thống đã phát hiện loại file là: <strong>{contentType}</strong>.
+            <br />
+            Nhấn "Xác nhận" để tiếp tục.
           </DialogDescription>
         </DialogHeader>
-        <div className="py-4">
-          <Select value={selectedContentType} onValueChange={setSelectedContentType}>
-            <SelectTrigger>
-              <SelectValue placeholder="Chọn loại file" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="pdf">PDF</SelectItem>
-              <SelectItem value="jpg">JPG</SelectItem>
-              <SelectItem value="png">PNG</SelectItem>
-              <SelectItem value="svg">SVG</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Hủy</Button>
           <Button onClick={handleSubmit}>Xác nhận</Button>
