@@ -29,11 +29,28 @@ export interface PurchaseSubscriptionRequest {
   durationMonths?: number
 }
 
+export interface PurchaseSubscriptionWithWalletRequest {
+  subscriptionId: string
+  durationMonths?: number
+}
+
 export interface PurchaseSubscriptionResponse {
   userSubscriptionId: string
   paymentUrl: string
   transactionId: string
   paymentMethod: string
+}
+
+export interface PurchaseSubscriptionWithWalletResponse {
+  message: string
+  subscription: {
+    id: string
+    subscriptionId: string
+    startDate: string
+    endDate: string
+    status: number
+  }
+  newWalletBalance: number
 }
 
 interface ApiResponse<T> {
@@ -75,6 +92,15 @@ export const subscriptionApi = {
   purchaseSubscription: async (request: PurchaseSubscriptionRequest): Promise<ApiResponse<PurchaseSubscriptionResponse>> => {
     const response = await axiosClient.post<ApiResponse<PurchaseSubscriptionResponse>>(
       `${URL_SUBSCRIPTIONS}/purchase`,
+      request
+    )
+    return response.data
+  },
+
+  // Purchase a subscription with wallet balance (only for clients)
+  purchaseSubscriptionWithWallet: async (request: PurchaseSubscriptionWithWalletRequest): Promise<ApiResponse<PurchaseSubscriptionWithWalletResponse>> => {
+    const response = await axiosClient.post<ApiResponse<PurchaseSubscriptionWithWalletResponse>>(
+      `${URL_SUBSCRIPTIONS}/purchase-with-wallet`,
       request
     )
     return response.data
