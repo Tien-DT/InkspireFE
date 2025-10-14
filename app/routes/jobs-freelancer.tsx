@@ -14,9 +14,37 @@ import type { Job } from '~/types/job.type'
 
 function JobsFreelancerPage() {
   const [searchParams, setSearchParams] = useSearchParams()
+
+  // Parse filters from URL
   const page = Number(searchParams.get('page')) || 1
+  const keyword = searchParams.get('keyword') || ''
+  const category = searchParams.get('category') || 'all'
+  const minBudget = Number(searchParams.get('minBudget')) || 0
+  const maxBudget = Number(searchParams.get('maxBudget')) || 100_000_000
   const pageSize = 10
-  const { data: recruitmentData, isLoading, error, refetch } = useRecruitments(page, pageSize)
+
+  // Local filter state (before applying)
+  const [filters, setFilters] = useState({
+    keyword,
+    category,
+    minBudget,
+    maxBudget
+  })
+
+  // Fetch data with filters
+  const {
+    data: recruitmentData,
+    isLoading,
+    error,
+    refetch
+  } = useRecruitments({
+    page,
+    pageSize,
+    keyword,
+    category,
+    minBudget,
+    maxBudget
+  })
 
   const skillColors = ['blue', 'purple', 'orange', 'pink', 'green', 'yellow', 'red', 'indigo'] as const
 
@@ -27,8 +55,35 @@ function JobsFreelancerPage() {
 
   const jobs = useMemo(() => recruitmentData?.data || [], [recruitmentData?.data])
   const totalCount = useMemo(() => recruitmentData?.pagination?.totalCount || 0, [recruitmentData?.pagination])
+
   const handlePageChange = (newPage: number) => {
-    setSearchParams({ page: newPage.toString() })
+    setSearchParams((prev) => {
+      const params = new URLSearchParams(prev)
+      params.set('page', newPage.toString())
+      return params
+    })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handleApplyFilters = () => {
+    setSearchParams({
+      page: '1',
+      keyword: filters.keyword,
+      category: filters.category,
+      minBudget: filters.minBudget.toString(),
+      maxBudget: filters.maxBudget.toString()
+    })
+  }
+
+  const handleClearFilters = () => {
+    const clearedFilters = {
+      keyword: '',
+      category: 'all',
+      minBudget: 0,
+      maxBudget: 100_000_000
+    }
+    setFilters(clearedFilters)
+    setSearchParams({ page: '1' })
   }
 
   const handleApplyClick = (jobId: string) => {
@@ -44,16 +99,6 @@ function JobsFreelancerPage() {
   const handleViewDetail = (jobId: string) => {
     console.log('View detail:', jobId)
     // TODO: Navigate to job detail page
-  }
-
-  const handleApplyFilters = () => {
-    console.log('Apply filters')
-    // TODO: Implement filter logic
-  }
-
-  const handleClearFilters = () => {
-    console.log('Clear filters')
-    // TODO: Reset filters
   }
 
   const handleSubmitApplication = async (cvFile: File, coverLetter: string) => {
@@ -124,26 +169,42 @@ function JobsFreelancerPage() {
       <div className='grid grid-cols-1 lg:grid-cols-4 gap-6'>
         {/* Left Sidebar - Filters */}
         <div className='lg:col-span-1'>
-          <JobFilters onApplyFilters={handleApplyFilters} onClearFilters={handleClearFilters} />
+          <JobFilters
+            filters={filters}
+            onFiltersChange={setFilters}
+            onApplyFilters={handleApplyFilters}
+            onClearFilters={handleClearFilters}
+          />
         </div>
 
         {/* Main Content - Job Listings */}
-        <div className='lg:col-span-3'>
-          <div className='mb-6'>
-            <h1 className='text-2xl font-semibold text-gray-900'>
-              {isLoading ? 'Đang tải dữ liệu...' : error ? 'Có lỗi xảy ra' : `Tìm thấy ${totalCount} công việc phù hợp`}
+        <div className='lg:col-span-3 space-y-6'>
+          <div className='flex items-center justify-between'>
+            <h1 className='text-2xl font-bold'>
+              {isLoading ? (
+                'Đang tải dữ liệu...'
+              ) : error ? (
+                'Có lỗi xảy ra'
+              ) : (
+                <>
+                  Tìm thấy <span className='text-primary'>{totalCount}</span> công việc phù hợp
+                </>
+              )}
             </h1>
           </div>
+
           {/* Loading State */}
           {isLoading && <JobListLoading />}
+
           {/* Error State */}
           {error && <JobListError error={error as Error} onRetry={() => refetch()} />}
+
           {/* Empty State */}
           {!isLoading && !error && jobs.length === 0 && <JobListEmpty />}
 
           {/* Job Cards */}
           {!isLoading && !error && jobs.length > 0 && (
-            <div className='space-y-8'>
+            <div className='space-y-6'>
               {jobs
                 .filter((job: Job) => Number(job.status) === 1)
                 .map((job: Job) => (
@@ -157,6 +218,7 @@ function JobsFreelancerPage() {
                 ))}
             </div>
           )}
+
           {/* Pagination */}
           {!isLoading && !error && jobs.length > 0 && (
             <div className='mt-8'>

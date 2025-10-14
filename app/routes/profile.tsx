@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { Edit } from 'lucide-react'
-import { Card, CardContent } from '~/components/ui/card'
+import { Card } from '~/components/ui/card'
 import { Button } from '~/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '~/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
@@ -148,27 +148,44 @@ function ProfilePage() {
   }
 
   return (
-    <div className='min-h-screen bg-background'>
-      <div className='container mx-auto px-4 py-8'>
-        <div className='flex justify-end mb-4'>
-          <Button onClick={() => setIsEditDialogOpen(true)} className='btn-submit'>
-            <Edit className='h-4 w-4 mr-2' />
+    <div className='container mx-auto min-h-screen bg-gradient-to-br from-muted/30 via-background to-background'>
+      <div className='pointer-events-none absolute inset-x-0 top-0 h-64 bg-section opacity-30 blur-3xl' />
+      <div className='px-4 py-12 sm:px-6 lg:px-8'>
+        <div className='mb-8 flex flex-col items-center justify-end gap-4 text-center md:flex-row md:justify-between md:text-left'>
+          <div className='w-full flex-1 text-sm text-muted-foreground'>
+            <span className='rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary'>
+              Hồ sơ cá nhân
+            </span>
+            <h1 className='mt-3 text-3xl font-semibold text-foreground sm:text-4xl'>
+              Không gian thể hiện bản thân và kinh nghiệm của bạn
+            </h1>
+            <p className='mt-2 text-base text-muted-foreground'>
+              Cập nhật thông tin để thu hút thêm khách hàng và hợp tác chất lượng.
+            </p>
+          </div>
+          <Button
+            onClick={() => setIsEditDialogOpen(true)}
+            variant='shine'
+            size='lg'
+            className='shadow-lg hover:shadow-xl'
+          >
+            <Edit className='mr-2 h-5 w-5' />
             Chỉnh sửa profile
           </Button>
         </div>
 
-        <div className='grid lg:grid-cols-[350px_1fr] gap-6'>
+        <div className='grid gap-8 lg:grid-cols-[360px_1fr]'>
           {/* Left Sidebar */}
           <div className='space-y-6'>
-            <Card className='overflow-hidden py-0'>
-              <CardContent className='p-0'>
-                <ProfileHeader
-                  name={profileData.name}
-                  status={profileData.status}
-                  avatar={profileData.avatar}
-                  rating={profileData.rating}
-                  reviewCount={profileData.reviewCount}
-                />
+            <div className='overflow-hidden rounded-3xl border border-border/40 bg-card/90 shadow-xl backdrop-blur'>
+              <ProfileHeader
+                name={profileData.name}
+                status={profileData.status}
+                avatar={profileData.avatar}
+                rating={profileData.rating}
+                reviewCount={profileData.reviewCount}
+              />
+              <div className='space-y-5 p-6'>
                 <ProfileContact
                   location={profileData.location}
                   email={profileData.email}
@@ -176,29 +193,29 @@ function ProfilePage() {
                   onSendMessage={() => console.log('Send message')}
                   onViewFullProfile={() => console.log('View full profile')}
                 />
-
                 <ProfilePricing priceRange={profileData.priceRange} status={profileData.status} />
-
                 <ProfileSkills skills={profileData.skills} />
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
 
           {/* Right Content */}
           <div className='space-y-6'>
-            <Card className='border-0 shadow-sm'>
+            <Card className='overflow-hidden rounded-3xl border border-border/40 bg-card/90 shadow-xl backdrop-blur'>
               <Tabs defaultValue='intro' className='w-full'>
-                <ProfileTabs />
+                <div className='sticky top-0 z-10 border-b border-border/40 bg-card/95 px-6 pb-4 pt-6 backdrop-blur-sm'>
+                  <ProfileTabs />
+                </div>
 
-                <TabsContent value='intro' className='mt-0 p-6'>
+                <TabsContent value='intro' className='mt-0 space-y-6 px-6 pb-6 pt-4'>
                   <ProfileIntroTab bio={profileData.bio} />
                 </TabsContent>
 
-                <TabsContent value='portfolio' className='mt-0 p-6'>
+                <TabsContent value='portfolio' className='mt-0 space-y-6 px-6 pb-6 pt-4'>
                   <ProfilePortfolioTab portfolio={profileData.portfolio} />
                 </TabsContent>
 
-                <TabsContent value='reviews' className='mt-0 p-6'>
+                <TabsContent value='reviews' className='mt-0 space-y-6 px-6 pb-6 pt-4'>
                   <ProfileReviewsTab />
                 </TabsContent>
               </Tabs>
@@ -208,10 +225,12 @@ function ProfilePage() {
 
         {/* Edit Dialog */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className='!max-w-[85vw] !w-[85vw] h-[90vh] bg-white flex flex-col p-0 gap-0 overflow-hidden'>
-            <DialogHeader className='px-6 pt-6 pb-4 border-b shrink-0 bg-white'>
-              <DialogTitle className='text-2xl'>{hasProfile ? 'Chỉnh sửa profile' : 'Tạo profile mới'}</DialogTitle>
-              <DialogDescription>
+          <DialogContent className='flex h-[90vh] !w-5xl min-w-5xl flex-col gap-0 overflow-hidden rounded-3xl border border-border/40 bg-card/95 p-0 shadow-2xl backdrop-blur'>
+            <DialogHeader className='shrink-0 border-b border-border/40 bg-card/95 px-6 pb-4 pt-6'>
+              <DialogTitle className='text-2xl font-semibold text-foreground'>
+                {hasProfile ? 'Chỉnh sửa profile' : 'Tạo profile mới'}
+              </DialogTitle>
+              <DialogDescription className='text-sm text-muted-foreground'>
                 {hasProfile
                   ? 'Cập nhật thông tin cá nhân, chuyên môn và portfolio của bạn'
                   : 'Điền thông tin để tạo profile chuyên nghiệp'}
@@ -221,16 +240,26 @@ function ProfilePage() {
             <Tabs
               value={editingTab}
               onValueChange={(v) => setEditingTab(v as EditTabType)}
-              className='flex-1 flex flex-col min-h-0 overflow-hidden'
+              className='flex min-h-0 flex-1 flex-col overflow-hidden'
             >
-              <div className='px-6 pt-4 pb-2 shrink-0 bg-white border-b'>
-                <TabsList className='grid w-full grid-cols-2'>
-                  <TabsTrigger value='profile'>Thông tin Profile</TabsTrigger>
-                  <TabsTrigger value='portfolio'>Portfolio</TabsTrigger>
+              <div className='shrink-0 border-b border-border/40 bg-card/95 px-6 pb-2 pt-4'>
+                <TabsList className='grid w-full grid-cols-2 rounded-2xl border border-border/40 bg-card/80 p-1 text-muted-foreground'>
+                  <TabsTrigger
+                    value='profile'
+                    className='rounded-xl px-6 py-2 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground'
+                  >
+                    Thông tin Profile
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value='portfolio'
+                    className='rounded-xl px-6 py-2 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground'
+                  >
+                    Portfolio
+                  </TabsTrigger>
                 </TabsList>
               </div>
 
-              <TabsContent value='profile' className='flex-1 overflow-y-auto scrollbar-hide px-6 py-6 mt-0 min-h-0'>
+              <TabsContent value='profile' className='mt-0 flex-1 min-h-0 overflow-y-auto px-6 scrollbar-hide'>
                 <ProfileEditForm
                   defaultValues={formDefaultValues}
                   onSubmit={handleSaveProfile}
@@ -238,7 +267,7 @@ function ProfilePage() {
                 />
               </TabsContent>
 
-              <TabsContent value='portfolio' className='flex-1 overflow-y-auto scrollbar-hide px-6 py-6 mt-0 min-h-0'>
+              <TabsContent value='portfolio' className='mt-0 flex-1 min-h-0 overflow-y-auto px-6 scrollbar-hide'>
                 <PortfolioEditTab
                   initialItems={portfolioItems}
                   onSave={handleSavePortfolio}
