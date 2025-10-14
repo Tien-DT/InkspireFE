@@ -81,7 +81,8 @@ const mapMilestoneToTimeline = (milestone: Milestone): TimelineItem => {
     status = 'pending-payment' // Chờ thanh toán
   else if (milestone.status === 2)
     status = 'paid' // Đã thanh toán
-  else if (milestone.status === 3) status = 'completed' // Đã hoàn thành
+  else if (milestone.status === 3)
+    status = 'completed' // Đã hoàn thành
   else if (milestone.status === 4) status = 'pending-confirmation' // Chờ xác nhận
 
   return {
@@ -129,7 +130,7 @@ function ProjectDetailContent() {
   const [currentTimelineForComplain, setCurrentTimelineForComplain] = useState<TimelineItem | null>(null)
 
   const evaluateMilestoneFileByUrl = useEvaluateMilestoneFileByUrl({
-    onSuccess: data => {
+    onSuccess: (data) => {
       setEvaluationResult(data.data)
       setIsResultDialogOpen(true)
       if (data.data.meetsRequirements) {
@@ -166,7 +167,7 @@ function ProjectDetailContent() {
     if (milestoneNumber === 1) {
       requirementText = `${projectDescription} ${currentTimelineForComplain.description}`
     } else if (milestoneNumber === 2) {
-      const milestone1 = timelines.find(t => t.milestoneNumber === 1)
+      const milestone1 = timelines.find((t) => t.milestoneNumber === 1)
       requirementText = `${projectDescription} ${milestone1?.description || ''} ${currentTimelineForComplain.description}`
     } else if (milestoneNumber === 3) {
       requirementText = `${projectDescription} ${currentTimelineForComplain.description}`
@@ -230,7 +231,8 @@ function ProjectDetailContent() {
     : project.freelancerName || 'Chưa có'
 
   // Map API data to timeline items
-  const timelines: TimelineItem[] = milestonesData?.data?.map(mapMilestoneToTimeline).sort((a, b) => a.milestoneNumber - b.milestoneNumber) || []
+  const timelines: TimelineItem[] =
+    milestonesData?.data?.map(mapMilestoneToTimeline).sort((a, b) => a.milestoneNumber - b.milestoneNumber) || []
 
   // Check if all milestones are completed
   const allMilestonesCompleted = timelines.length === 3 && timelines.every((t) => t.status === 'completed')

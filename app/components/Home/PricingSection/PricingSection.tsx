@@ -224,64 +224,62 @@ export function PricingSection() {
           viewport={{ once: true, amount: 0.2 }}
         >
           {plans.map((plan, index) => {
-            const buttonClasses = isKnownPlan(plan.title)
-              ? colorMap[plan.title].button
-              : 'bg-muted text-foreground'
+            const buttonClasses = isKnownPlan(plan.title) ? colorMap[plan.title].button : 'bg-muted text-foreground'
 
             return (
               <motion.div key={index} variants={fadeInUp} className='relative'>
-              {plan.isPremium && (
-                <div className='absolute -top-4 left-1/2 -translate-x-1/2 z-10'>
-                  <span className='bg-gradient-to-r from-primary to-secondary text-white px-4 py-1 rounded-full text-sm font-semibold shadow-lg'>
-                    Phổ biến nhất
-                  </span>
-                </div>
-              )}
-              <Card
-                className={`h-full transition-all duration-300 ${
-                  plan.isPremium
-                    ? 'border-primary/50 shadow-lg shadow-primary/20 md:scale-105 hover:scale-110 hover:shadow-xl hover:shadow-primary/30'
-                    : 'hover:-translate-y-1 hover:shadow-md'
-                }`}
-              >
-                <CardHeader className='text-center'>
-                  <CardTitle className={`text-3xl font-bold ${plan.isPremium ? 'text-primary' : 'text-foreground'}`}>
-                    {plan.title}
-                  </CardTitle>
-                  <p className='text-muted-foreground'>{plan.description}</p>
-                  <div>
-                    <span className={`text-3xl font-bold ${plan.isPremium ? 'text-primary' : 'text-foreground'}`}>
-                      {plan.price}
+                {plan.isPremium && (
+                  <div className='absolute -top-4 left-1/2 -translate-x-1/2 z-10'>
+                    <span className='bg-gradient-to-r from-primary to-secondary text-white px-4 py-1 rounded-full text-sm font-semibold shadow-lg'>
+                      Phổ biến nhất
                     </span>
-                    /<span className='font-bold'>tháng</span>
                   </div>
-                </CardHeader>
-                <CardContent className='flex flex-col gap-4 h-full'>
-                  <ul className='flex flex-col gap-3 flex-1'>
-                    {plan.features.map((feature, index) => (
-                      <li className='flex items-center gap-2' key={index}>
-                        <span className='text-green-500 shrink-0'>
-                          <BadgeCheck />
-                        </span>
-                        <span className='text-sm'>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <Button
-                    className={`w-full ${buttonClasses}`}
-                    variant='outline'
-                    onClick={plan.isPremium && !isPremium ? handleUpgrade : undefined}
-                    disabled={(plan.isPremium && isLoading) || (plan.isPremium && isPremium)}
-                  >
-                    {plan.isPremium && isLoading
-                      ? 'Đang xử lý...'
-                      : plan.isPremium && isPremium
-                        ? 'Gói hiện tại'
-                        : plan.textBtn}
-                  </Button>
-                </CardContent>
-              </Card>
-            </motion.div>
+                )}
+                <Card
+                  className={`h-full transition-all duration-300 ${
+                    plan.isPremium
+                      ? 'border-primary/50 shadow-lg shadow-primary/20 md:scale-105 hover:scale-110 hover:shadow-xl hover:shadow-primary/30'
+                      : 'hover:-translate-y-1 hover:shadow-md'
+                  }`}
+                >
+                  <CardHeader className='text-center'>
+                    <CardTitle className={`text-3xl font-bold ${plan.isPremium ? 'text-primary' : 'text-foreground'}`}>
+                      {plan.title}
+                    </CardTitle>
+                    <p className='text-muted-foreground'>{plan.description}</p>
+                    <div>
+                      <span className={`text-3xl font-bold ${plan.isPremium ? 'text-primary' : 'text-foreground'}`}>
+                        {plan.price}
+                      </span>
+                      /<span className='font-bold'>tháng</span>
+                    </div>
+                  </CardHeader>
+                  <CardContent className='flex flex-col gap-4 h-full'>
+                    <ul className='flex flex-col gap-3 flex-1'>
+                      {plan.features.map((feature, index) => (
+                        <li className='flex items-center gap-2' key={index}>
+                          <span className='text-green-500 shrink-0'>
+                            <BadgeCheck />
+                          </span>
+                          <span className='text-sm'>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <Button
+                      className={`w-full ${buttonClasses}`}
+                      variant='outline'
+                      onClick={plan.isPremium && !isPremium ? handleUpgrade : undefined}
+                      disabled={(plan.isPremium && isLoading) || (plan.isPremium && isPremium)}
+                    >
+                      {plan.isPremium && isLoading
+                        ? 'Đang xử lý...'
+                        : plan.isPremium && isPremium
+                          ? 'Gói hiện tại'
+                          : plan.textBtn}
+                    </Button>
+                  </CardContent>
+                </Card>
+              </motion.div>
             )
           })}
         </motion.div>
