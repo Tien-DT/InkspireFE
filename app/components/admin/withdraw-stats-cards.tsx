@@ -20,7 +20,7 @@ export function WithdrawRequestStatsCards() {
     try {
       const token = localStorage.getItem('token')
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/WithdrawRequests?$select=id,status,amount`,
+        `${import.meta.env.VITE_API_URL}/api/WithdrawRequests?$select=id,status,amount`,
         {
           headers: {
             'Authorization': `Bearer ${token}`

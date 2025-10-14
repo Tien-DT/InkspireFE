@@ -11,7 +11,7 @@ import {
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
-import { Check, X, Eye, DollarSign } from 'lucide-react'
+import { Check, X, Eye, DollarSign, RefreshCw } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -55,6 +55,7 @@ export function WithdrawRequestTable() {
     request: WithdrawRequest | null
   }>({ open: false, type: null, request: null })
   const [adminNotes, setAdminNotes] = useState('')
+  const [triggeringMonthly, setTriggeringMonthly] = useState(false)
 
   useEffect(() => {
     fetchWithdrawRequests()
@@ -65,7 +66,7 @@ export function WithdrawRequestTable() {
       setLoading(true)
       const token = localStorage.getItem('token')
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/WithdrawRequests?$expand=user,wallet&$orderby=createdAt desc`,
+        `${import.meta.env.VITE_API_URL}/api/WithdrawRequests?$expand=user,wallet&$orderby=createdAt desc`,
         {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -75,7 +76,10 @@ export function WithdrawRequestTable() {
       
       if (response.ok) {
         const data = await response.json()
-        setWithdrawRequests(data.value || data)
+        console.log('Withdraw requests data:', data)
+        // Check if data is wrapped in 'value' property (OData response) or is direct array
+        const requests = Array.isArray(data) ? data : (data.value || [])
+        setWithdrawRequests(requests)
       }
     } catch (error) {
       console.error('Error fetching withdraw requests:', error)
@@ -91,7 +95,7 @@ export function WithdrawRequestTable() {
     try {
       const token = localStorage.getItem('token')
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/WithdrawRequests/${actionDialog.request.id}/approve`,
+        `${import.meta.env.VITE_API_URL}/api/WithdrawRequests/${actionDialog.request.id}/approve`,
         {
           method: 'PUT',
           headers: {
@@ -125,7 +129,7 @@ export function WithdrawRequestTable() {
     try {
       const token = localStorage.getItem('token')
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/WithdrawRequests/${actionDialog.request.id}/reject`,
+        `${import.meta.env.VITE_API_URL}/api/WithdrawRequests/${actionDialog.request.id}/reject`,
         {
           method: 'PUT',
           headers: {
@@ -156,7 +160,7 @@ export function WithdrawRequestTable() {
     try {
       const token = localStorage.getItem('token')
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/WithdrawRequests/${actionDialog.request.id}/complete`,
+        `${import.meta.env.VITE_API_URL}/api/WithdrawRequests/${actionDialog.request.id}/complete`,
         {
           method: 'PUT',
           headers: {
@@ -178,6 +182,42 @@ export function WithdrawRequestTable() {
       }
     } catch (error) {
       toast.error('Đã xảy ra lỗi khi hoàn thành yêu cầu')
+    }
+  }
+
+  const handleTriggerMonthly = async () => {
+    if (!confirm('Bạn có chắc chắn muốn tạo lệnh rút tiền hàng tháng cho tất cả freelancer?')) {
+      return
+    }
+
+    setTriggeringMonthly(true)
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/WithdrawRequests/trigger-monthly`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      )
+      
+      if (response.ok) {
+        const result = await response.json()
+        toast.success(
+          `Đã tạo ${result.created} lệnh rút tiền mới${result.skipped > 0 ? `, bỏ qua ${result.skipped} tài khoản đã có lệnh` : ''}`
+        )
+        fetchWithdrawRequests()
+      } else {
+        const error = await response.text()
+        toast.error(`Không thể tạo lệnh rút tiền: ${error}`)
+      }
+    } catch (error) {
+      toast.error('Đã xảy ra lỗi khi tạo lệnh rút tiền hàng tháng')
+    } finally {
+      setTriggeringMonthly(false)
     }
   }
 
@@ -233,10 +273,31 @@ export function WithdrawRequestTable() {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Danh sách yêu cầu rút tiền</CardTitle>
-          <CardDescription>
-            Quản lý và xử lý các yêu cầu rút tiền từ người dùng
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Danh sách yêu cầu rút tiền</CardTitle>
+              <CardDescription>
+                Quản lý và xử lý các yêu cầu rút tiền từ người dùng
+              </CardDescription>
+            </div>
+            <Button 
+              onClick={handleTriggerMonthly}
+              disabled={triggeringMonthly}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {triggeringMonthly ? (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                  Đang tạo...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Tạo lệnh rút tiền tháng
+                </>
+              )}
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
