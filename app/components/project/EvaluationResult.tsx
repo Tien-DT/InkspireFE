@@ -2,8 +2,24 @@ import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { Progress } from '~/components/ui/progress'
 import { Badge } from '~/components/ui/badge'
 
+export interface EvaluationResultData {
+  averageScore: number
+  evaluationScore: number
+  contentQualityScore: number
+  technicalAccuracyScore: number
+  styleComplianceScore: number
+  completenessScore: number
+  evaluationAnalysis: string
+  strengths: string[]
+  weaknesses: string[]
+  suggestions: string[]
+  missingElements: string[]
+  meetsRequirements: boolean
+  aiModel: string
+}
+
 interface EvaluationResultProps {
-  result: any
+  result: EvaluationResultData | null
 }
 
 export function EvaluationResult({ result }: EvaluationResultProps) {

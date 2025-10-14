@@ -1,4 +1,5 @@
 import axiosClient from '~/lib/axios'
+import type { UserApiResponse } from '~/types/user.type'
 
 // API endpoints
 const URL_GET_USER_BY_ID = '/api/users'
@@ -30,5 +31,23 @@ export const userApi = {
   getUserById: async (userId: string): Promise<UserProfileResponse> => {
     const response = await axiosClient.get<UserProfileResponse>(`${URL_GET_USER_BY_ID}/${userId}`)
     return response.data
+  },
+
+  /**
+   * Get a list of all users
+   */
+  getAllUsers: async (): Promise<UserApiResponse[]> => {
+    const response = await axiosClient.get<UserApiResponse[] | { value?: UserApiResponse[] }>(URL_GET_USER_BY_ID)
+    const payload = response.data
+
+    if (Array.isArray(payload)) {
+      return payload
+    }
+
+    if (payload.value && Array.isArray(payload.value)) {
+      return payload.value
+    }
+
+    return []
   }
 }

@@ -4,13 +4,14 @@ import { Badge } from '~/components/ui/badge'
 
 interface ProfileHeaderProps {
   name: string
-  status: string
   avatar: string
   rating: number
   reviewCount: number
+  status?: string
+  title?: string
 }
 
-export function ProfileHeader({ name, status, avatar, rating, reviewCount }: ProfileHeaderProps) {
+export function ProfileHeader({ name, status, title, avatar, rating, reviewCount }: ProfileHeaderProps) {
   const initials = name
     .split(' ')
     .filter(Boolean)
@@ -27,16 +28,19 @@ export function ProfileHeader({ name, status, avatar, rating, reviewCount }: Pro
         </Avatar>
       </div>
       <div className='relative flex flex-col items-center gap-3'>
-        <div className='inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-4 py-1 text-xs font-semibold uppercase tracking-wider'>
-          <span className='text-white/80'>Trạng thái</span>
-          <Badge
-            variant='outline'
-            className='border-white/40 bg-white/10 text-primary-foreground/90 px-3 py-0.5 text-xs uppercase tracking-wider'
-          >
-            {status}
-          </Badge>
-        </div>
+        {status && (
+          <div className='inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-4 py-1 text-xs font-semibold uppercase tracking-wider'>
+            <span className='text-white/80'>Trạng thái</span>
+            <Badge
+              variant='outline'
+              className='border-white/40 bg-white/10 text-primary-foreground/90 px-3 py-0.5 text-xs uppercase tracking-wider'
+            >
+              {status}
+            </Badge>
+          </div>
+        )}
         <h1 className='text-3xl font-bold leading-tight'>{name}</h1>
+        {title && <p className='text-white/80 text-sm font-medium'>{title}</p>}
         <div className='flex items-center justify-center gap-2 rounded-full bg-white/10 px-5 py-2 text-sm font-semibold text-white/90 shadow-[0_10px_30px_rgba(0,0,0,0.15)] backdrop-blur'>
           <Star className='h-5 w-5 fill-yellow-300 text-yellow-300 drop-shadow' />
           <span className='text-lg font-bold text-white'>{rating.toFixed(1)}</span>

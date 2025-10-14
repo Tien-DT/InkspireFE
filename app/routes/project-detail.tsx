@@ -18,7 +18,6 @@ import {
   useUpdateMilestone,
   useUpdateProject,
   useUploadMilestoneDocument,
-  useEvaluateMilestoneFile,
   useEvaluateMilestoneFileByUrl
 } from '~/hooks/useProjects'
 import type { Milestone } from '~/apis/project.api'
@@ -37,7 +36,7 @@ import { EvaluationDialog } from '~/components/project/EvaluationDialog'
 import { ComplainDialog } from '~/components/project/ComplainDialog'
 import { EvaluationResultDialog } from '~/components/project/EvaluationResultDialog'
 
-interface TimelineItem {
+export interface TimelineItem {
   id: string
   title: string
   description: string
@@ -109,7 +108,6 @@ function ProjectDetailContent() {
   const updateMilestone = useUpdateMilestone()
   const updateProject = useUpdateProject()
   const uploadMilestoneDocument = useUploadMilestoneDocument()
-  const evaluateMilestoneFile = useEvaluateMilestoneFile()
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [isAddingTimeline, setIsAddingTimeline] = useState(false)
   const [showSuccessDialog, setShowSuccessDialog] = useState(false)
@@ -183,7 +181,7 @@ function ProjectDetailContent() {
       })
       toast.success('Khiếu nại của bạn đã được gửi đi.')
     } catch (error) {
-      // error is handled by onError in useMutation
+      console.error('Failed to submit complaint for evaluation', error)
     }
   }
 
@@ -391,6 +389,7 @@ function ProjectDetailContent() {
       toast.success('Nộp file thành công')
       setSelectedFile(null)
     } catch (error) {
+      console.error('Failed to submit milestone document', error)
       toast.error('Nộp file thất bại')
     }
   }

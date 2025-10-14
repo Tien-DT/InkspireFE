@@ -126,6 +126,7 @@ function UserProfilePage() {
                 <ProfileHeader
                   name={profileData.name}
                   title={profileData.title}
+                  status={profileData.status}
                   avatar={profileData.avatar}
                   rating={profileData.rating}
                   reviewCount={profileData.reviewCount}

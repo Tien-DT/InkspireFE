@@ -4,6 +4,7 @@ import { BadgeCheck } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { useState, useEffect } from 'react'
+import { isAxiosError } from 'axios'
 import { useAuth } from '~/contexts/AuthContext'
 import { UserRole } from '~/types/user.type'
 import { subscriptionApi } from '~/apis/subscription.api'
@@ -11,44 +12,17 @@ import { walletApi } from '~/apis/wallet.api'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { usePremiumStatus } from '~/hooks/usePremiumStatus'
+import type { Subscription } from '~/apis/subscription.api'
 
-type SubscriptionPlan = {
-  id: string
-  title?: string
-  price: number
-  [key: string]: unknown
-}
+type SubscriptionPayload = Subscription[] | { value?: Subscription[] } | undefined | null
 
-const colorMap: Record<string, { button: string }> = {
-  'Miễn phí': {
-    button: 'border-border text-foreground hover:bg-muted/60'
-  },
-  'Cao cấp': {
-    button: 'border-primary bg-primary text-primary-foreground hover:bg-primary/90 hover:text-white'
-  }
-}
-
-const normalizeSubscriptions = (data: unknown): SubscriptionPlan[] => {
-  if (Array.isArray(data)) {
-    return data.filter(
-      (item): item is SubscriptionPlan =>
-        item !== null &&
-        typeof item === 'object' &&
-        'id' in item &&
-        'price' in item &&
-        typeof (item as { price: unknown }).price === 'number'
-    )
+const normalizeSubscriptions = (payload: SubscriptionPayload): Subscription[] => {
+  if (Array.isArray(payload)) {
+    return payload
   }
 
-  if (data && typeof data === 'object' && Array.isArray((data as { value?: unknown }).value)) {
-    return ((data as { value?: unknown }).value as unknown[]).filter(
-      (item): item is SubscriptionPlan =>
-        item !== null &&
-        typeof item === 'object' &&
-        'id' in item &&
-        'price' in item &&
-        typeof (item as { price: unknown }).price === 'number'
-    )
+  if (payload?.value && Array.isArray(payload.value)) {
+    return payload.value
   }
 
   return []
@@ -58,21 +32,21 @@ export function PricingSection() {
   const { isAuthenticated, profile } = useAuth()
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
-  const [subscriptions, setSubscriptions] = useState<SubscriptionPlan[]>([])
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
   const { data: isPremium } = usePremiumStatus(profile?.id, isAuthenticated)
 
   // Fetch available subscriptions on mount
   useEffect(() => {
-    subscriptionApi
-      .getSubscriptions()
-      .then((data) => {
-        const subscriptionsArray = normalizeSubscriptions(data)
-        console.log('Fetched subscriptions:', subscriptionsArray)
-        setSubscriptions(subscriptionsArray)
-      })
-      .catch((error) => {
-        console.error('Failed to fetch subscriptions:', error)
-      })
+    const fetchSubscriptions = async () => {
+      try {
+        const data = await subscriptionApi.getSubscriptions()
+        setSubscriptions(normalizeSubscriptions(data))
+      } catch (error) {
+        console.error('Failed to fetch subscriptions', error)
+      }
+    }
+
+    fetchSubscriptions()
   }, [])
 
   const handleUpgrade = async () => {
@@ -105,21 +79,20 @@ export function PricingSection() {
       }
 
       // Find the premium subscription (49k price or by title)
-      console.log('Available subscriptions:', availableSubscriptions)
-      const premiumSubscription = availableSubscriptions.find(
-        (sub) =>
+      const premiumSubscription = availableSubscriptions.find((sub) => {
+        const normalizedTitle = sub.title.toLowerCase()
+        return (
           sub.price === 49000 ||
           sub.price === 49000.0 ||
-          sub.title?.toLowerCase().includes('cao cấp') ||
-          sub.title?.toLowerCase().includes('premium')
-      )
-      console.log('Premium subscription found:', premiumSubscription)
+          normalizedTitle.includes('cao cấp') ||
+          normalizedTitle.includes('premium')
+        )
+      })
 
       if (!premiumSubscription) {
         toast.error(
           `Không tìm thấy gói cao cấp. Tổng số gói: ${availableSubscriptions.length}. Vui lòng liên hệ admin để tạo gói subscription.`
         )
-        console.log('All subscriptions:', availableSubscriptions)
         return
       }
 
@@ -132,15 +105,10 @@ export function PricingSection() {
       }
 
       // Call the purchase with wallet API
-      console.log('Calling purchase API with:', {
-        subscriptionId: premiumSubscription.id,
-        durationMonths: 1
-      })
       const purchaseResponse = await subscriptionApi.purchaseSubscriptionWithWallet({
         subscriptionId: premiumSubscription.id,
         durationMonths: 1
       })
-      console.log('Purchase response:', purchaseResponse)
 
       if (purchaseResponse.success) {
         const data = purchaseResponse.data
@@ -162,37 +130,41 @@ export function PricingSection() {
       } else {
         toast.error(purchaseResponse.message || 'Có lỗi xảy ra khi mua gói')
       }
-    } catch (error: unknown) {
-      const err = error as {
-        response?: {
-          status?: number
-          data?: { message?: string }
-        }
-      }
-
+    } catch (error) {
       console.error('Purchase failed:', error)
-      console.error('Error response:', err.response)
-      console.error('Error data:', err.response?.data)
 
-      // Handle specific error messages
-      if (err.response?.data?.message) {
-        toast.error(err.response.data.message)
-        // Don't logout on business logic errors
-        if (err.response?.status !== 401) {
+      if (isAxiosError<{ message?: string }>(error)) {
+        const status = error.response?.status
+        const message = error.response?.data?.message
+
+        if (message) {
+          toast.error(message)
+          if (status !== 401) {
+            return
+          }
+        }
+
+        if (!error.response) {
+          toast.error('Không thể kết nối tới server. Vui lòng kiểm tra kết nối mạng.')
           return
         }
+
+        if (status === 401) {
+          toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.')
+          setTimeout(() => navigate('/login'), 1500)
+          return
+        }
+
+        if (status === 403) {
+          toast.error('Bạn không có quyền thực hiện hành động này')
+          return
+        }
+
+        toast.error(`Có lỗi xảy ra khi mua gói cao cấp (${status ?? 'unknown'})`)
+        return
       }
 
-      if (err.response?.status === 401) {
-        toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.')
-        setTimeout(() => navigate('/login'), 1500)
-      } else if (err.response?.status === 403) {
-        toast.error('Bạn không có quyền thực hiện hành động này')
-      } else if (!err.response) {
-        toast.error('Không thể kết nối tới server. Vui lòng kiểm tra kết nối mạng.')
-      } else {
-        toast.error(`Có lỗi xảy ra khi mua gói cao cấp (${err.response?.status || 'unknown'})`)
-      }
+      toast.error('Có lỗi xảy ra khi mua gói cao cấp')
     } finally {
       setIsLoading(false)
     }
@@ -224,6 +196,17 @@ export function PricingSection() {
     }
   ]
 
+  const colorMap: Record<'Miễn phí' | 'Cao cấp', { button: string }> = {
+    'Miễn phí': {
+      button: 'bg-black text-white'
+    },
+    'Cao cấp': {
+      button: 'bg-primary text-white'
+    }
+  }
+
+  const isKnownPlan = (title: string): title is keyof typeof colorMap => title === 'Miễn phí' || title === 'Cao cấp'
+
   return (
     <section className='py-16'>
       <div className='container mx-auto px-4'>
@@ -240,8 +223,13 @@ export function PricingSection() {
           whileInView='visible'
           viewport={{ once: true, amount: 0.2 }}
         >
-          {plans.map((plan, index) => (
-            <motion.div key={index} variants={fadeInUp} className='relative'>
+          {plans.map((plan, index) => {
+            const buttonClasses = isKnownPlan(plan.title)
+              ? colorMap[plan.title].button
+              : 'bg-muted text-foreground'
+
+            return (
+              <motion.div key={index} variants={fadeInUp} className='relative'>
               {plan.isPremium && (
                 <div className='absolute -top-4 left-1/2 -translate-x-1/2 z-10'>
                   <span className='bg-gradient-to-r from-primary to-secondary text-white px-4 py-1 rounded-full text-sm font-semibold shadow-lg'>
@@ -280,7 +268,7 @@ export function PricingSection() {
                     ))}
                   </ul>
                   <Button
-                    className={`w-full ${colorMap[plan.title]?.button ?? ''}`}
+                    className={`w-full ${buttonClasses}`}
                     variant='outline'
                     onClick={plan.isPremium && !isPremium ? handleUpgrade : undefined}
                     disabled={(plan.isPremium && isLoading) || (plan.isPremium && isPremium)}
@@ -294,7 +282,8 @@ export function PricingSection() {
                 </CardContent>
               </Card>
             </motion.div>
-          ))}
+            )
+          })}
         </motion.div>
       </div>
     </section>

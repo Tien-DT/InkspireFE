@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import type { TimelineItem } from '~/routes/project-detail'
 import type { Project } from '~/apis/project.api'
 import { EvaluationResult } from './EvaluationResult'
+import type { EvaluationResultData } from './EvaluationResult'
 
 interface EvaluationDialogProps {
   isOpen: boolean
@@ -18,7 +19,7 @@ interface EvaluationDialogProps {
 
 export function EvaluationDialog({ isOpen, onClose, milestone, project, timelines }: EvaluationDialogProps) {
   const [file, setFile] = useState<File | null>(null)
-  const [evaluationResult, setEvaluationResult] = useState<any>(null)
+  const [evaluationResult, setEvaluationResult] = useState<EvaluationResultData | null>(null)
   const evaluateMutation = useEvaluateMilestoneFile()
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,8 +42,9 @@ export function EvaluationDialog({ isOpen, onClose, milestone, project, timeline
 
     try {
       const result = await evaluateMutation.mutateAsync({ requirementText, file })
-      setEvaluationResult(result.data)
+      setEvaluationResult(result.data as EvaluationResultData)
     } catch (error) {
+      console.error('Failed to evaluate milestone file', error)
       toast.error('Đã có lỗi xảy ra khi chấm điểm')
     }
   }

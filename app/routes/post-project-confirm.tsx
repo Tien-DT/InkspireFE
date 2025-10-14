@@ -177,16 +177,16 @@ function PostProjectConfirmPage() {
 
       // Fetch subscriptions
       const data = await subscriptionApi.getSubscriptions()
-      const availableSubscriptions = normalizeSubscriptions(data)
+      const availableSubscriptions = normalizeSubscriptions(data as SubscriptionsPayload)
 
       // Find the premium subscription (49k price or by title)
       const premiumSubscription = availableSubscriptions.find((sub) => {
-        const normalizedTitle = sub.title.toLowerCase()
+        const lowerTitle = sub.title.toLowerCase()
         return (
           sub.price === 49000 ||
           sub.price === 49000.0 ||
-          normalizedTitle.includes('cao cấp') ||
-          normalizedTitle.includes('premium')
+          lowerTitle.includes('cao cấp') ||
+          lowerTitle.includes('premium')
         )
       })
 
@@ -242,16 +242,15 @@ function PostProjectConfirmPage() {
       console.error('Purchase failed:', error)
 
       if (isAxiosError<{ message?: string }>(error)) {
-        const response = error.response
-        const status = response?.status
-        const message = response?.data?.message
+        const status = error.response?.status
+        const message = error.response?.data?.message
 
         if (message) {
           toast.error(message)
           return
         }
 
-        if (!response) {
+        if (!error.response) {
           toast.error('Không thể kết nối tới server. Vui lòng kiểm tra kết nối mạng.')
           return
         }
@@ -298,6 +297,7 @@ function PostProjectConfirmPage() {
           exit={{ opacity: 0, y: -20 }}
           transition={{ duration: 0.3 }}
         >
+          {/* Header */}
           <div className='text-center mb-8'>
             <h1 className='text-3xl font-bold mb-2 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent'>
               Xác nhận thông tin dự án
@@ -348,8 +348,7 @@ function PostProjectConfirmPage() {
                     <div className='col-span-2'>
                       <p className='text-sm text-muted-foreground'>Thời gian mở form</p>
                       <p className='font-medium'>
-                        {format(new Date(step1Data.startDate), 'dd/MM/yyyy')} -{' '}
-                        {format(new Date(step1Data.endDate), 'dd/MM/yyyy')}
+                        {format(new Date(step1Data.startDate), 'dd/MM/yyyy')} - {format(new Date(step1Data.endDate), 'dd/MM/yyyy')}
                       </p>
                     </div>
                     <div className='col-span-2'>
@@ -415,7 +414,9 @@ function PostProjectConfirmPage() {
                 </div>
               )}
               <div className='bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-4'>
-                <p className='text-base font-semibold text-gray-900 mb-2'>🎯 Nâng cấp lên gói Cao cấp để:</p>
+                <p className='text-base font-semibold text-gray-900 mb-2'>
+                  🎯 Nâng cấp lên gói Cao cấp để:
+                </p>
                 <ul className='text-sm text-gray-700 space-y-1 ml-4'>
                   <li className='flex items-center gap-2'>
                     <span className='text-green-600'>✓</span>
@@ -430,12 +431,17 @@ function PostProjectConfirmPage() {
                     Badge Premium trên dự án
                   </li>
                 </ul>
-                <p className='text-lg font-bold text-orange-600 mt-3'>Chỉ 49,000₫/tháng</p>
+                <p className='text-lg font-bold text-orange-600 mt-3'>
+                  Chỉ 49,000₫/tháng
+                </p>
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className='flex-col sm:flex-row gap-2 mt-2'>
-            <AlertDialogCancel className='sm:flex-1 border-gray-300' disabled={isPurchasing}>
+            <AlertDialogCancel 
+              className='sm:flex-1 border-gray-300'
+              disabled={isPurchasing}
+            >
               Đóng
             </AlertDialogCancel>
             <Button

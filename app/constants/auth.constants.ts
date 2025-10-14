@@ -14,12 +14,12 @@ export const AUTH_ERROR_MESSAGES: Record<AuthErrorCode, string> = {
   [AuthErrorCode.USER_NOT_FOUND]: 'Không tìm thấy tài khoản'
 } as const
 
-export const ROLE_MAP: Record<string, UserRole> = {
+export type RoleType = 'client' | 'designer' | 'developer' | 'marketer' | 'project-manager'
+
+export const ROLE_MAP: Record<RoleType, UserRole> = {
   client: UserRole.CLIENT,
-  designer: UserRole.DESIGNER,
-  developer: UserRole.DEVELOPER,
+  designer: UserRole.FREELANCER,
+  developer: UserRole.FREELANCER,
   marketer: UserRole.MARKETER,
   'project-manager': UserRole.PROJECT_MANAGER
 } as const
-
-export type RoleType = keyof typeof ROLE_MAP
