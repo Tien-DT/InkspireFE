@@ -150,9 +150,17 @@ export function Header() {
                       </>
                     )}
                     {isFreelancer && (
-                      <DropdownMenuItem>
-                        <Link to={PATH.manageApplications}>Quản lý ứng tuyển</Link>
-                      </DropdownMenuItem>
+                      <>
+                        <DropdownMenuItem>
+                          <Link to={PATH.manageApplications}>Quản lý ứng tuyển</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <Link to='/freelancer/wallet' className='flex items-center'>
+                            <Wallet className='mr-2 h-4 w-4' />
+                            Ví & Rút tiền
+                          </Link>
+                        </DropdownMenuItem>
+                      </>
                     )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild className='text-destructive'>

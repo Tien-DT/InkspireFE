@@ -11,7 +11,7 @@ import {
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
-import { Check, X, Eye, DollarSign, RefreshCw } from 'lucide-react'
+import { Check, X, Eye, DollarSign, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -34,6 +34,9 @@ interface WithdrawRequest {
   }
   walletId: string
   amount: number
+  netAmount?: number // Amount freelancer receives (80%)
+  platformFeeAmount?: number // Platform commission (20%)
+  platformFeePercentage?: number // Fee percentage at time of creation
   bankName?: string
   bankAccountNumber?: string
   bankAccountName?: string
@@ -43,6 +46,33 @@ interface WithdrawRequest {
   createdAt: string
   approvedAt?: string
   completedAt?: string
+}
+
+// Helper function to normalize PascalCase to camelCase
+const normalizeWithdrawRequest = (data: any): WithdrawRequest => {
+  return {
+    id: data.Id || data.id,
+    userId: data.UserId || data.userId,
+    user: data.User ? {
+      firstName: data.User.FirstName || data.User.firstName,
+      lastName: data.User.LastName || data.User.lastName,
+      email: data.User.Email || data.User.email
+    } : data.user,
+    walletId: data.WalletId || data.walletId,
+    amount: data.Amount ?? data.amount ?? 0,
+    netAmount: data.NetAmount ?? data.netAmount,
+    platformFeeAmount: data.PlatformFeeAmount ?? data.platformFeeAmount,
+    platformFeePercentage: data.PlatformFeePercentage ?? data.platformFeePercentage,
+    bankName: data.BankName || data.bankName,
+    bankAccountNumber: data.BankAccountNumber || data.bankAccountNumber,
+    bankAccountName: data.BankAccountName || data.bankAccountName,
+    requestType: data.RequestType ?? data.requestType ?? 0,
+    status: data.Status ?? data.status ?? 0,
+    adminNotes: data.AdminNotes || data.adminNotes,
+    createdAt: data.CreatedAt || data.createdAt,
+    approvedAt: data.ApprovedAt || data.approvedAt,
+    completedAt: data.CompletedAt || data.completedAt
+  }
 }
 
 export function WithdrawRequestTable() {
@@ -55,18 +85,39 @@ export function WithdrawRequestTable() {
     request: WithdrawRequest | null
   }>({ open: false, type: null, request: null })
   const [adminNotes, setAdminNotes] = useState('')
+  const [bankInfo, setBankInfo] = useState({
+    bankName: '',
+    bankAccountNumber: '',
+    bankAccountName: ''
+  })
   const [triggeringMonthly, setTriggeringMonthly] = useState(false)
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
+  const [pageSize] = useState(20)
 
   useEffect(() => {
     fetchWithdrawRequests()
-  }, [])
+  }, [currentPage])
 
   const fetchWithdrawRequests = async () => {
     try {
       setLoading(true)
       const token = localStorage.getItem('token')
+      
+      // OData pagination parameters
+      const skip = (currentPage - 1) * pageSize
+      const odataParams = [
+        `$expand=user,wallet`,
+        `$orderby=createdAt desc`,
+        `$top=${pageSize}`,
+        `$skip=${skip}`,
+        `$count=true`
+      ].join('&')
+      
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/WithdrawRequests?$expand=user,wallet&$orderby=createdAt desc`,
+        `${import.meta.env.VITE_API_URL}/api/WithdrawRequests?${odataParams}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -76,10 +127,32 @@ export function WithdrawRequestTable() {
       
       if (response.ok) {
         const data = await response.json()
-        console.log('Withdraw requests data:', data)
-        // Check if data is wrapped in 'value' property (OData response) or is direct array
-        const requests = Array.isArray(data) ? data : (data.value || [])
-        setWithdrawRequests(requests)
+        
+        let rawRequests: any[] = []
+        let count = 0
+        
+        // OData returns data in 'value' property with @odata.count for total
+        if (data['@odata.count'] !== undefined) {
+          count = data['@odata.count']
+          rawRequests = data.value || []
+        } else if (Array.isArray(data)) {
+          // Direct array response (non-OData or OData without count)
+          rawRequests = data
+          count = data.length
+        } else if (data.value) {
+          // OData format without count
+          rawRequests = data.value
+          count = data.value.length
+        } else {
+          rawRequests = []
+          count = 0
+        }
+        
+        // Normalize all requests from PascalCase to camelCase
+        const normalizedRequests = rawRequests.map(normalizeWithdrawRequest)
+        
+        setWithdrawRequests(normalizedRequests)
+        setTotalCount(count)
       }
     } catch (error) {
       console.error('Error fetching withdraw requests:', error)
@@ -92,6 +165,12 @@ export function WithdrawRequestTable() {
   const handleApprove = async () => {
     if (!actionDialog.request) return
     
+    // Check if bank info is missing and require it
+    if (!actionDialog.request.bankName && !bankInfo.bankName) {
+      toast.error('Vui lòng nhập thông tin ngân hàng')
+      return
+    }
+    
     try {
       const token = localStorage.getItem('token')
       const response = await fetch(
@@ -102,15 +181,21 @@ export function WithdrawRequestTable() {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ adminNotes })
+          body: JSON.stringify({ 
+            adminNotes,
+            bankName: bankInfo.bankName || undefined,
+            bankAccountNumber: bankInfo.bankAccountNumber || undefined,
+            bankAccountName: bankInfo.bankAccountName || undefined
+          })
         }
       )
       
       if (response.ok) {
         toast.success('Đã duyệt yêu cầu rút tiền')
-        fetchWithdrawRequests()
+        await fetchWithdrawRequests()
         setActionDialog({ open: false, type: null, request: null })
         setAdminNotes('')
+        setBankInfo({ bankName: '', bankAccountNumber: '', bankAccountName: '' })
       } else {
         const error = await response.text()
         toast.error(`Không thể duyệt yêu cầu: ${error}`)
@@ -142,7 +227,7 @@ export function WithdrawRequestTable() {
       
       if (response.ok) {
         toast.success('Đã từ chối yêu cầu rút tiền')
-        fetchWithdrawRequests()
+        await fetchWithdrawRequests()
         setActionDialog({ open: false, type: null, request: null })
         setAdminNotes('')
       } else {
@@ -173,7 +258,7 @@ export function WithdrawRequestTable() {
       
       if (response.ok) {
         toast.success('Đã hoàn thành yêu cầu rút tiền')
-        fetchWithdrawRequests()
+        await fetchWithdrawRequests()
         setActionDialog({ open: false, type: null, request: null })
         setAdminNotes('')
       } else {
@@ -206,9 +291,20 @@ export function WithdrawRequestTable() {
       
       if (response.ok) {
         const result = await response.json()
-        toast.success(
-          `Đã tạo ${result.created} lệnh rút tiền mới${result.skipped > 0 ? `, bỏ qua ${result.skipped} tài khoản đã có lệnh` : ''}`
-        )
+        const created = result.created || 0
+        const skipped = result.skipped || 0
+        
+        if (created > 0) {
+          toast.success(
+            `Đã tạo ${created} lệnh rút tiền mới${skipped > 0 ? `, bỏ qua ${skipped} tài khoản` : ''}`
+          )
+        } else if (skipped > 0) {
+          toast.warning(`Không có lệnh mới được tạo. Bỏ qua ${skipped} tài khoản (đã có lệnh hoặc không có thông tin ngân hàng)`)
+        } else {
+          toast.info('Không có tài khoản nào đủ điều kiện để tạo lệnh rút tiền')
+        }
+        
+        setCurrentPage(1) // Reset to first page
         fetchWithdrawRequests()
       } else {
         const error = await response.text()
@@ -255,7 +351,12 @@ export function WithdrawRequestTable() {
   }
 
   const formatDate = (date: string) => {
-    return new Date(date).toLocaleString('vi-VN')
+    if (!date) return '-'
+    try {
+      return new Date(date).toLocaleString('vi-VN')
+    } catch (error) {
+      return '-'
+    }
   }
 
   if (loading) {
@@ -305,8 +406,12 @@ export function WithdrawRequestTable() {
             <TableHeader>
               <TableRow>
                 <TableHead>Người dùng</TableHead>
-                <TableHead>Số tiền</TableHead>
-                <TableHead>Ngân hàng</TableHead>
+                <TableHead>Tổng tiền</TableHead>
+                <TableHead>Freelancer nhận</TableHead>
+                <TableHead>Hoa hồng</TableHead>
+                <TableHead>Số tài khoản</TableHead>
+                <TableHead>Tên ngân hàng</TableHead>
+                <TableHead>Tên người nhận</TableHead>
                 <TableHead>Loại</TableHead>
                 <TableHead>Trạng thái</TableHead>
                 <TableHead>Ngày tạo</TableHead>
@@ -314,73 +419,129 @@ export function WithdrawRequestTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {withdrawRequests.map((request) => (
-                <TableRow key={request.id}>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">
-                        {request.user?.firstName} {request.user?.lastName}
-                      </div>
-                      <div className="text-sm text-gray-500">{request.user?.email}</div>
-                    </div>
+              {withdrawRequests.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={11} className="text-center py-8 text-gray-500">
+                    Không có yêu cầu rút tiền nào
                   </TableCell>
-                  <TableCell className="font-medium">{formatCurrency(request.amount)}</TableCell>
-                  <TableCell>
-                    {request.bankName && (
-                      <div className="text-sm">
-                        <div>{request.bankName}</div>
-                        <div className="text-gray-500">{request.bankAccountNumber}</div>
+                </TableRow>
+              ) : (
+                withdrawRequests.map((request) => (
+                  <TableRow key={request.id}>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">
+                          {request.user?.firstName || ''} {request.user?.lastName || ''}
+                        </div>
+                        <div className="text-sm text-gray-500">{request.user?.email || ''}</div>
                       </div>
-                    )}
-                  </TableCell>
-                  <TableCell>{getRequestTypeBadge(request.requestType)}</TableCell>
-                  <TableCell>{getStatusBadge(request.status)}</TableCell>
-                  <TableCell className="text-sm">{formatDate(request.createdAt)}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex gap-1 justify-end">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => setActionDialog({ open: true, type: 'view', request })}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      {request.status === 0 && (
-                        <>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="text-green-600 hover:text-green-700"
-                            onClick={() => setActionDialog({ open: true, type: 'approve', request })}
-                          >
-                            <Check className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="text-red-600 hover:text-red-700"
-                            onClick={() => setActionDialog({ open: true, type: 'reject', request })}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </>
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {request.amount ? formatCurrency(request.amount) : '0 ₫'}
+                    </TableCell>
+                    <TableCell className="font-medium text-green-600">
+                      {formatCurrency(request.netAmount || request.amount * 0.8 || 0)}
+                    </TableCell>
+                    <TableCell className="text-orange-600">
+                      {formatCurrency(request.platformFeeAmount || request.amount * 0.2 || 0)}
+                      {request.platformFeePercentage && (
+                        <div className="text-xs text-gray-500">({request.platformFeePercentage}%)</div>
                       )}
-                      {request.status === 1 && (
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {request.bankAccountNumber || '-'}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {request.bankName || '-'}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {request.bankAccountName || '-'}
+                    </TableCell>
+                    <TableCell>{request.requestType !== undefined ? getRequestTypeBadge(request.requestType) : '-'}</TableCell>
+                    <TableCell>{request.status !== undefined ? getStatusBadge(request.status) : '-'}</TableCell>
+                    <TableCell className="text-sm">{formatDate(request.createdAt)}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex gap-1 justify-end">
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="text-blue-600 hover:text-blue-700"
-                          onClick={() => setActionDialog({ open: true, type: 'complete', request })}
+                          onClick={() => setActionDialog({ open: true, type: 'view', request })}
+                          title="Xem chi tiết"
                         >
-                          <DollarSign className="h-4 w-4" />
+                          <Eye className="h-4 w-4" />
                         </Button>
-                      )}
-                    </div>
-                  </TableCell>
+                        {request.status === 0 && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-green-600 hover:text-green-700"
+                              onClick={() => setActionDialog({ open: true, type: 'approve', request })}
+                              title="Duyệt yêu cầu"
+                            >
+                              <Check className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-red-600 hover:text-red-700"
+                              onClick={() => setActionDialog({ open: true, type: 'reject', request })}
+                              title="Từ chối"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
+                        {request.status === 1 && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-blue-600 hover:text-blue-700"
+                            onClick={() => setActionDialog({ open: true, type: 'complete', request })}
+                            title="Đánh dấu hoàn thành"
+                          >
+                            <DollarSign className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
                 </TableRow>
-              ))}
+              ))
+              )}
             </TableBody>
           </Table>
+          
+          {/* Pagination */}
+          {totalCount > pageSize && (
+            <div className="flex items-center justify-between px-4 py-4 border-t">
+              <div className="text-sm text-gray-500">
+                Hiển thị {((currentPage - 1) * pageSize) + 1} - {Math.min(currentPage * pageSize, totalCount)} trong tổng số {totalCount} yêu cầu
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Trước
+                </Button>
+                <div className="text-sm">
+                  Trang {currentPage} / {Math.ceil(totalCount / pageSize)}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(p => Math.min(Math.ceil(totalCount / pageSize), p + 1))}
+                  disabled={currentPage >= Math.ceil(totalCount / pageSize)}
+                >
+                  Sau
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -388,6 +549,14 @@ export function WithdrawRequestTable() {
         if (!open) {
           setActionDialog({ open: false, type: null, request: null })
           setAdminNotes('')
+          setBankInfo({ bankName: '', bankAccountNumber: '', bankAccountName: '' })
+        } else if (actionDialog.request) {
+          // Pre-fill bank info if exists
+          setBankInfo({
+            bankName: actionDialog.request.bankName || '',
+            bankAccountNumber: actionDialog.request.bankAccountNumber || '',
+            bankAccountName: actionDialog.request.bankAccountName || ''
+          })
         }
       }}>
         <DialogContent>
@@ -401,17 +570,24 @@ export function WithdrawRequestTable() {
             <DialogDescription>
               {actionDialog.request && (
                 <div className="space-y-2 mt-4">
-                  <p><strong>Người dùng:</strong> {actionDialog.request.user?.firstName} {actionDialog.request.user?.lastName}</p>
-                  <p><strong>Email:</strong> {actionDialog.request.user?.email}</p>
-                  <p><strong>Số tiền:</strong> {formatCurrency(actionDialog.request.amount)}</p>
-                  {actionDialog.request.bankName && (
-                    <>
-                      <p><strong>Ngân hàng:</strong> {actionDialog.request.bankName}</p>
-                      <p><strong>Số tài khoản:</strong> {actionDialog.request.bankAccountNumber}</p>
-                      <p><strong>Tên tài khoản:</strong> {actionDialog.request.bankAccountName}</p>
-                    </>
-                  )}
-                  <p><strong>Loại yêu cầu:</strong> {actionDialog.request.requestType === 1 ? 'Thủ công' : 'Tự động hàng tháng'}</p>
+                  <p><strong>Người dùng:</strong> {actionDialog.request.user?.firstName || ''} {actionDialog.request.user?.lastName || ''}</p>
+                  <p><strong>Email:</strong> {actionDialog.request.user?.email || '-'}</p>
+                  <p><strong>Tổng tiền rút:</strong> {actionDialog.request.amount ? formatCurrency(actionDialog.request.amount) : '0 ₫'}</p>
+                  <div className="p-3 bg-gray-50 rounded-md space-y-1">
+                    <p className="text-green-600">
+                      <strong>Freelancer nhận:</strong> {formatCurrency(actionDialog.request.netAmount || actionDialog.request.amount * 0.8 || 0)}
+                    </p>
+                    <p className="text-orange-600">
+                      <strong>Hoa hồng platform:</strong> {formatCurrency(actionDialog.request.platformFeeAmount || actionDialog.request.amount * 0.2 || 0)}
+                      {actionDialog.request.platformFeePercentage && ` (${actionDialog.request.platformFeePercentage}%)`}
+                    </p>
+                  </div>
+                  <div className="border-t pt-2">
+                    <p><strong>Ngân hàng:</strong> {actionDialog.request.bankName || '-'}</p>
+                    <p><strong>Số tài khoản:</strong> {actionDialog.request.bankAccountNumber || '-'}</p>
+                    <p><strong>Tên tài khoản:</strong> {actionDialog.request.bankAccountName || '-'}</p>
+                  </div>
+                  <p><strong>Loại yêu cầu:</strong> {actionDialog.request.requestType === 1 ? 'Thủ công' : actionDialog.request.requestType === 2 ? 'Tự động hàng tháng' : '-'}</p>
                   <p><strong>Ngày tạo:</strong> {formatDate(actionDialog.request.createdAt)}</p>
                   {actionDialog.request.adminNotes && (
                     <p><strong>Ghi chú admin:</strong> {actionDialog.request.adminNotes}</p>
@@ -424,14 +600,56 @@ export function WithdrawRequestTable() {
           {actionDialog.type !== 'view' && (
             <div className="space-y-4">
               {actionDialog.type === 'approve' && (
-                <div>
-                  <label className="text-sm font-medium">Ghi chú (tùy chọn)</label>
-                  <Textarea
-                    placeholder="Nhập ghi chú cho yêu cầu này..."
-                    value={adminNotes}
-                    onChange={(e) => setAdminNotes(e.target.value)}
-                  />
-                </div>
+                <>
+                  {!actionDialog.request?.bankName && (
+                    <div className="space-y-4">
+                      <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                        <p className="text-sm text-yellow-800">
+                          ⚠️ Yêu cầu này chưa có thông tin ngân hàng. Vui lòng nhập thông tin bên dưới.
+                        </p>
+                      </div>
+                      
+                      <div>
+                        <label className="text-sm font-medium">Tên ngân hàng *</label>
+                        <Input
+                          placeholder="VD: Vietcombank, ACB, Techcombank..."
+                          value={bankInfo.bankName}
+                          onChange={(e) => setBankInfo({...bankInfo, bankName: e.target.value})}
+                          required
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="text-sm font-medium">Số tài khoản *</label>
+                        <Input
+                          placeholder="Nhập số tài khoản ngân hàng"
+                          value={bankInfo.bankAccountNumber}
+                          onChange={(e) => setBankInfo({...bankInfo, bankAccountNumber: e.target.value})}
+                          required
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="text-sm font-medium">Tên chủ tài khoản *</label>
+                        <Input
+                          placeholder="Nhập tên chủ tài khoản"
+                          value={bankInfo.bankAccountName}
+                          onChange={(e) => setBankInfo({...bankInfo, bankAccountName: e.target.value})}
+                          required
+                        />
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div>
+                    <label className="text-sm font-medium">Ghi chú (tùy chọn)</label>
+                    <Textarea
+                      placeholder="Nhập ghi chú cho yêu cầu này..."
+                      value={adminNotes}
+                      onChange={(e) => setAdminNotes(e.target.value)}
+                    />
+                  </div>
+                </>
               )}
               {actionDialog.type === 'reject' && (
                 <div>
