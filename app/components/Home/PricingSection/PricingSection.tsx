@@ -168,16 +168,6 @@ export function PricingSection() {
     }
   ]
 
-  const colorMap: Record<string, { text: string; button: string }> = {
-    'Miễn phí': {
-      text: 'text-black',
-      button: 'bg-black text-white'
-    },
-    'Cao cấp': {
-      text: 'text-primary',
-      button: 'bg-primary text-white'
-    }
-  }
   return (
     <section className='py-16'>
       <div className='container mx-auto px-4'>
@@ -195,24 +185,41 @@ export function PricingSection() {
           viewport={{ once: true, amount: 0.2 }}
         >
           {plans.map((plan, index) => (
-            <motion.div key={index} variants={fadeInUp}>
-              <Card className='h-full'>
+            <motion.div key={index} variants={fadeInUp} className='relative'>
+              {plan.isPremium && (
+                <div className='absolute -top-4 left-1/2 -translate-x-1/2 z-10'>
+                  <span className='bg-gradient-to-r from-primary to-secondary text-white px-4 py-1 rounded-full text-sm font-semibold shadow-lg'>
+                    Phổ biến nhất
+                  </span>
+                </div>
+              )}
+              <Card
+                className={`h-full transition-all duration-300 ${
+                  plan.isPremium
+                    ? 'border-primary/50 shadow-lg shadow-primary/20 md:scale-105 hover:scale-110 hover:shadow-xl hover:shadow-primary/30'
+                    : 'hover:-translate-y-1 hover:shadow-md'
+                }`}
+              >
                 <CardHeader className='text-center'>
-                  <CardTitle className={`text-3xl font-bold ${colorMap[plan.title].text}`}>{plan.title}</CardTitle>
+                  <CardTitle className={`text-3xl font-bold ${plan.isPremium ? 'text-primary' : 'text-foreground'}`}>
+                    {plan.title}
+                  </CardTitle>
                   <p className='text-muted-foreground'>{plan.description}</p>
                   <div>
-                    <span className={`text-3xl font-bold ${colorMap[plan.title].text}`}>{plan.price}</span>/
-                    <span className='font-bold'>tháng</span>
+                    <span className={`text-3xl font-bold ${plan.isPremium ? 'text-primary' : 'text-foreground'}`}>
+                      {plan.price}
+                    </span>
+                    /<span className='font-bold'>tháng</span>
                   </div>
                 </CardHeader>
                 <CardContent className='flex flex-col gap-4 h-full'>
                   <ul className='flex flex-col gap-3 flex-1'>
                     {plan.features.map((feature, index) => (
-                      <li className='flex items-center' key={index}>
-                        <span className='text-green-500 mr-2'>
+                      <li className='flex items-center gap-2' key={index}>
+                        <span className='text-green-500 shrink-0'>
                           <BadgeCheck />
                         </span>
-                        {feature}
+                        <span className='text-sm'>{feature}</span>
                       </li>
                     ))}
                   </ul>

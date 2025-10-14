@@ -46,10 +46,7 @@ export function PortfolioEditTab({ initialItems, onSave, onCancel }: PortfolioEd
           <h3 className='text-xl font-bold text-gray-900'>Portfolio của bạn</h3>
           <p className='text-sm text-gray-600 mt-1'>Thêm và quản lý các dự án của bạn</p>
         </div>
-        <Button
-          onClick={handleAddPortfolio}
-          className='bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700'
-        >
+        <Button onClick={handleAddPortfolio} variant='shine'>
           <Plus className='h-4 w-4 mr-2' />
           Thêm dự án mới
         </Button>
@@ -136,14 +133,11 @@ export function PortfolioEditTab({ initialItems, onSave, onCancel }: PortfolioEd
         </div>
       )}
 
-      <div className='flex justify-end gap-3 pt-4 border-t sticky bottom-0 bg-white'>
+      <div className='sticky -mx-6 bottom-0 flex justify-end gap-3 border-t border-border/60 bg-card/90 px-6 py-4 backdrop-blur supports-[backdrop-filter]:backdrop-blur-md'>
         <Button type='button' variant='outline' onClick={onCancel}>
           Hủy
         </Button>
-        <Button
-          onClick={handleSave}
-          className='bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700'
-        >
+        <Button onClick={handleSave} variant='shine'>
           Lưu Portfolio
         </Button>
       </div>

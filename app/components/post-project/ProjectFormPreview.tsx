@@ -1,5 +1,6 @@
 import { format } from 'date-fns'
-import { Card, CardContent } from '~/components/ui/card'
+import { Calendar, DollarSign, FolderOpen, Wrench } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { Badge } from '~/components/ui/badge'
 import type { PostProjectStep1FormValues } from '~/lib/validations/post-project.schema'
 import type { RecruitmentCategory, Skill } from '~/types/recruitment.type'
@@ -13,57 +14,92 @@ interface ProjectFormPreviewProps {
 }
 
 export function ProjectFormPreview({ formData, categories, skills, startDate, endDate }: ProjectFormPreviewProps) {
+  const selectedCategory = categories.find((c) => c.id === formData.category)
+  const selectedSkills = formData.skills
+    ?.map((id) => skills.find((s) => s.id === id))
+    .filter((s): s is Skill => s !== undefined)
+
   return (
     <Card>
-      <CardContent className='p-6'>
-        <h3 className='font-semibold mb-4'>Xem trước dự án</h3>
-
-        <div className='space-y-3'>
-          <div>
-            <span className='text-sm text-gray-600'>Tiêu đề</span>
-            <p className='text-sm font-medium'>{formData.title || 'Chưa nhập'}</p>
+      <CardHeader>
+        <CardTitle className='text-lg'>Xem trước dự án</CardTitle>
+      </CardHeader>
+      <CardContent data-slot='card-content' className='space-y-5'>
+        {/* Title */}
+        <div>
+          <div className='flex items-center gap-2 mb-2'>
+            <FolderOpen className='h-4 w-4 text-muted-foreground' />
+            <span className='text-sm font-medium text-muted-foreground'>Tiêu đề</span>
           </div>
+          <p className='text-sm font-semibold'>
+            {formData.title || <span className='text-muted-foreground italic'>Chưa nhập tiêu đề</span>}
+          </p>
+        </div>
 
-          <div>
-            <span className='text-sm text-gray-600'>Danh mục</span>
-            <p className='text-sm font-medium'>
-              {categories.find((c) => c.id === formData.category)?.title || 'Chưa chọn'}
-            </p>
+        {/* Category */}
+        <div>
+          <div className='flex items-center gap-2 mb-2'>
+            <FolderOpen className='h-4 w-4 text-muted-foreground' />
+            <span className='text-sm font-medium text-muted-foreground'>Danh mục</span>
           </div>
+          <p className='text-sm font-semibold'>
+            {selectedCategory ? (
+              selectedCategory.title
+            ) : (
+              <span className='text-muted-foreground italic'>Chưa chọn danh mục</span>
+            )}
+          </p>
+        </div>
 
-          <div>
-            <span className='text-sm text-gray-600'>Ngân sách</span>
-            <p className='text-sm font-medium'>
-              {formData.budget ? `${formData.budget.toLocaleString()} VNĐ` : 'Chưa nhập'}
-            </p>
+        {/* Budget */}
+        <div>
+          <div className='flex items-center gap-2 mb-2'>
+            <DollarSign className='h-4 w-4 text-muted-foreground' />
+            <span className='text-sm font-medium text-muted-foreground'>Ngân sách</span>
           </div>
+          <p className='text-2xl font-bold text-primary'>
+            {formData.budget ? (
+              <>{formData.budget.toLocaleString('vi-VN')} VNĐ</>
+            ) : (
+              <span className='text-base font-semibold text-muted-foreground italic'>Chưa nhập ngân sách</span>
+            )}
+          </p>
+        </div>
 
-          <div>
-            <span className='text-sm text-gray-600'>Thời gian</span>
-            <p className='text-sm font-medium'>
-              {startDate && endDate
-                ? `${format(startDate, 'dd/MM/yyyy')} - ${format(endDate, 'dd/MM/yyyy')}`
-                : 'Chưa chọn'}
-            </p>
+        {/* Timeline */}
+        <div>
+          <div className='flex items-center gap-2 mb-2'>
+            <Calendar className='h-4 w-4 text-muted-foreground' />
+            <span className='text-sm font-medium text-muted-foreground'>Thời gian</span>
           </div>
+          <p className='text-sm font-semibold'>
+            {startDate && endDate ? (
+              <>
+                {format(startDate, 'dd/MM/yyyy')} - {format(endDate, 'dd/MM/yyyy')}
+              </>
+            ) : (
+              <span className='text-muted-foreground italic'>Chưa chọn thời gian</span>
+            )}
+          </p>
+        </div>
 
-          <div>
-            <span className='text-sm text-gray-600'>Kỹ năng</span>
-            <div className='flex flex-wrap gap-1 mt-1'>
-              {formData.skills && formData.skills.length > 0 ? (
-                formData.skills.map((skillId) => {
-                  const skill = skills.find((s) => s.id === skillId)
-                  return skill ? (
-                    <Badge key={skillId} variant='outline' className='text-xs'>
-                      {skill.name}
-                    </Badge>
-                  ) : null
-                })
-              ) : (
-                <p className='text-sm font-medium'>Chưa chọn</p>
-              )}
+        {/* Skills */}
+        <div>
+          <div className='flex items-center gap-2 mb-2'>
+            <Wrench className='h-4 w-4 text-muted-foreground' />
+            <span className='text-sm font-medium text-muted-foreground'>Kỹ năng yêu cầu</span>
+          </div>
+          {selectedSkills && selectedSkills.length > 0 ? (
+            <div className='flex flex-wrap gap-2'>
+              {selectedSkills.map((skill) => (
+                <Badge key={skill.id} variant='secondary' className='text-xs'>
+                  {skill.name}
+                </Badge>
+              ))}
             </div>
-          </div>
+          ) : (
+            <p className='text-sm font-semibold text-muted-foreground italic'>Chưa chọn kỹ năng</p>
+          )}
         </div>
       </CardContent>
     </Card>

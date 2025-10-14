@@ -6,10 +6,18 @@
 
 /* ===== Design Tokens (Light) ===== */
 :root {
-  --background: linear-gradient(to bottom, #f3feff, #e3f2fd);
+  /* Gradient color stops */
+  --gradient-bg-start: oklch(0.98 0.01 200);
+  --gradient-bg-end: oklch(0.96 0.015 220);
+  --gradient-section-start: oklch(0.7 0.15 220);
+  --gradient-section-end: oklch(0.7 0.12 160);
+
+  /* Background with gradient */
+  --background: linear-gradient(to bottom, var(--gradient-bg-start), var(--gradient-bg-end));
   --foreground: oklch(0.3 0 0);
 
-  --section: linear-gradient(to right, #48acf6 5%, #63c1b1 50%);
+  /* Section gradient for text/backgrounds */
+  --section: linear-gradient(to right, var(--gradient-section-start) 5%, var(--gradient-section-end) 50%);
 
   /* Surfaces trắng để Card/Dialog/Popover đồng bộ */
   --card: oklch(1 0 0);
@@ -17,8 +25,8 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.3 0 0);
 
-  /* Primary theo homepage */
-  --primary: #265dab;
+  /* Primary color - converted from #265dab */
+  --primary: oklch(0.45 0.12 250);
   --primary-foreground: oklch(1 0 0);
 
   --secondary: oklch(0.7 0.12 160);
@@ -170,9 +178,6 @@
 
 /* ===== Base ===== */
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
   body {
     color: var(--foreground);
     background: var(--background); /* giữ gradient của homepage */
@@ -196,29 +201,6 @@
     padding-bottom: 1rem;
   }
 
-  /* Smooth page transitions */
-  .page-transition {
-    transition:
-      opacity 500ms ease-out,
-      transform 500ms ease-out;
-  }
-  .page-enter {
-    opacity: 0;
-    transform: translateX(20px);
-  }
-  .page-enter-active {
-    opacity: 1;
-    transform: translateX(0);
-  }
-  .page-exit {
-    opacity: 1;
-    transform: translateX(0);
-  }
-  .page-exit-active {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-
   /* Hide scrollbars */
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
@@ -226,21 +208,5 @@
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
-  }
-
-  /* ===== THEME UTILITIES (dùng trực tiếp ở Button/Card/Dialog) ===== */
-
-  /* Submit / primary action — đen/trắng */
-  .btn-submit {
-    @apply bg-black text-white hover:bg-neutral-800 border border-black;
-  }
-  /* Cancel / secondary — trắng/đen */
-  .btn-cancel {
-    @apply bg-white text-black border border-black hover:bg-neutral-100;
-  }
-
-  /* Bề mặt trắng (ép trắng nếu cần) */
-  .surface {
-    @apply bg-white text-foreground border border-border rounded-lg;
   }
 }

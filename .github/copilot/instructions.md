@@ -1,0 +1,21 @@
+## InkspireFE Copilot Guide
+
+- React Router v7 + Vite SSR; `app/root.tsx` wires QueryClient, theming, and the auth/chat/video-call providers that every screen depends on.
+- All routes are declared in `app/routes.ts` using `@react-router/dev` helpers; layouts live in `app/layouts/**` and must render an `<Outlet/>` to nest child routes.
+- Environment variables come from `.env` (not committed); `VITE_API_URL` is required by the axios client and several route loaders.
+- Auth is token based: `AuthProvider` watches localStorage, `PersistLogin` silently refreshes sessions, and protected areas go through `ProtectedLayout` (redirect paths stored in `app/constants/path.ts`).
+- Local auth helpers in `app/utils/auth.ts` centralise LS access, JWT parsing, and custom events; call those instead of duplicating storage logic.
+- HTTP calls go through the configured client in `app/lib/axios.ts` (base `VITE_API_URL`, auto-attach tokens, refresh lock/queue). Wrap API surfaces in `app/apis/*.api.ts` and reuse those factories inside React Query hooks.
+- Server state uses `@tanstack/react-query`; follow existing patterns in `app/routes/post-project.tsx` or `app/hooks/useProjects.ts` for `useQuery` keys, caching, and toast-based error reporting.
+- Forms standardise on `react-hook-form` with zod schemas from `app/lib/validations/**`; leverage the shared field components in `app/components/ui/form.tsx` to get consistent labels, errors, and accessibility.
+- UI components follow the shadcn-inspired primitives in `app/components/ui/*`; compose them with Tailwind classes via the `cn` helper in `app/lib/utils.ts`. Avoid pulling directly from `lucide-react` icons without matching the existing sizing and color conventions.
+- UI copy is primarily Vietnamese; reuse existing phrases and constants to stay consistent.
+- Context cross-talk: message flows live in `ChatContext`, real-time sessions in `VideoCallContext`, and recruitment wizard state in `RecruitmentFormContext`; consult these before introducing new global state.
+- Styling relies on Tailwind (see `app/app.css` for tokens). Maintain spacing rhythm manually instead of blanket `space-y-*` unless the surrounding codebase already uses it.
+- Build/test commands: `npm run dev` (SSR dev server), `npm run build` (server + client bundles in `build/`), `npm run start` (serve built app), `npm run typecheck`, `npm run lint`, `npm run prettier`.
+- Dark mode is handled by `next-themes` in `root.tsx` with the `vite-ui-theme` storage key; respect this when adding new color tokens or CSS overrides.
+- When adding routes, keep `app/routes.ts` and any navigation menus in sync; nested layouts need matching directories.
+- Shared types live in `app/types/**`; keep API payload contracts and context values typed there before reusing in components.
+- Feature directories such as `app/components/jobs/**` or `app/components/post-project/**` encapsulate UI plus helper logic; extend them rather than scattering related files across the tree.
+- When introducing user feedback, reuse the `sonner` toaster (`toast.success|error`) already imported across flows.
+- Deployment scripts (`verify-deployment.mjs`, Dockerfile) expect the default build output; avoid changing build paths without updating these utilities.
