@@ -2,10 +2,11 @@ import { Link } from 'react-router'
 import { Button } from '~/components/ui/button'
 import logo from '~/assets/logo.svg'
 import { Input } from '~/components/ui/input'
-import { BellDot, MessageSquareDot, Search, User, Wallet } from 'lucide-react'
+import { BellDot, MessageSquareDot, Search, User, Wallet, Crown } from 'lucide-react'
 import { PATH } from '~/constants/path'
 import { useAuth } from '~/contexts/AuthContext'
 import { useWallet } from '~/hooks/useWallet'
+import { usePremiumStatus } from '~/hooks/usePremiumStatus'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +21,9 @@ import { UserRole } from '~/types/user.type'
 export function Header() {
   const { userName, isAuthenticated, authReady, profile } = useAuth()
   const { data: wallet } = useWallet(profile?.id, isAuthenticated)
+  const { data: isPremium } = usePremiumStatus(profile?.id, isAuthenticated)
+  console.log("wallet", wallet)
+  console.log("isPremium", isPremium)
 
   // Determine if user is a client (CLIENT role) or freelancer (other roles)
   const isClient = profile?.role === UserRole.CLIENT
@@ -118,6 +122,11 @@ export function Header() {
                           {userInitials}
                         </AvatarFallback>
                       </Avatar>
+                      {isPremium && (
+                        <div className='absolute -bottom-1 -right-1 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full p-1 border-2 border-white shadow-md'>
+                          <Crown className='h-3 w-3 text-white' fill='white' />
+                        </div>
+                      )}
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align='end'>
@@ -134,9 +143,11 @@ export function Header() {
                       <Link to={PATH.manageProjects}>Quản lý dự án</Link>
                     </DropdownMenuItem>
                     {isClient && (
-                      <DropdownMenuItem>
-                        <Link to={PATH.managePostProject}>Quản lý bài đăng</Link>
-                      </DropdownMenuItem>
+                      <>
+                        <DropdownMenuItem>
+                          <Link to={PATH.managePostProject}>Quản lý bài đăng</Link>
+                        </DropdownMenuItem>
+                      </>
                     )}
                     {isFreelancer && (
                       <DropdownMenuItem>

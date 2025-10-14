@@ -32,7 +32,8 @@ import {
   Settings,
   BarChart3,
   SquarePen,
-  LogOut
+  LogOut,
+  Banknote
 } from 'lucide-react'
 import { useAuth } from '~/contexts/AuthContext'
 import { cn } from '~/lib/utils'
@@ -49,7 +50,9 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/admin', label: 'Trang chủ', icon: Home, end: true },
   { to: '/admin/users', label: 'Quản lý người dùng', icon: Users2 },
   { to: '/admin/projects', label: 'Quản lý dự án', icon: FolderKanban },
+  { to: '/admin/subscriptions', label: 'Quản lý gói đăng ký', icon: CreditCard },
   { to: '/admin/transactions', label: 'Giao dịch & Thanh toán', icon: CreditCard },
+  { to: '/admin/withdraws', label: 'Yêu cầu rút tiền', icon: Banknote },
   { to: '/admin/moderation', label: 'Kiểm duyệt nội dung', icon: ShieldCheck },
   { to: '/admin/support', label: 'Hỗ trợ & Phản hồi', icon: LifeBuoy },
   { to: '/admin/settings', label: 'Cài đặt hệ thống', icon: Settings },
