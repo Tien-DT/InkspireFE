@@ -130,6 +130,12 @@
         "file": "./routes/post-recruitment.tsx",
         "path": "post-recruitment"
       },
+      "routes/subscriptions": {
+        "id": "routes/subscriptions",
+        "parentId": "layouts/ProtectedLayout/ProtectedLayout",
+        "file": "./routes/subscriptions.tsx",
+        "path": "subscriptions"
+      },
       "layouts/AdminLayout/AdminLayout": {
         "id": "layouts/AdminLayout/AdminLayout",
         "parentId": "root",
@@ -158,6 +164,12 @@
         "parentId": "layouts/AdminLayout/AdminLayout",
         "file": "./routes/admin/users/users-page.tsx",
         "path": "admin/users"
+      },
+      "routes/admin/subscriptions/subscriptions-page": {
+        "id": "routes/admin/subscriptions/subscriptions-page",
+        "parentId": "layouts/AdminLayout/AdminLayout",
+        "file": "./routes/admin/subscriptions/subscriptions-page.tsx",
+        "path": "admin/subscriptions"
       },
       "layouts/auth-layout": {
         "id": "layouts/auth-layout",
@@ -337,6 +349,12 @@
         "file": "./routes/post-recruitment.tsx",
         "path": "post-recruitment"
       },
+      "routes/subscriptions": {
+        "id": "routes/subscriptions",
+        "parentId": "layouts/ProtectedLayout/ProtectedLayout",
+        "file": "./routes/subscriptions.tsx",
+        "path": "subscriptions"
+      },
       "layouts/AdminLayout/AdminLayout": {
         "id": "layouts/AdminLayout/AdminLayout",
         "parentId": "root",
@@ -365,6 +383,12 @@
         "parentId": "layouts/AdminLayout/AdminLayout",
         "file": "./routes/admin/users/users-page.tsx",
         "path": "admin/users"
+      },
+      "routes/admin/subscriptions/subscriptions-page": {
+        "id": "routes/admin/subscriptions/subscriptions-page",
+        "parentId": "layouts/AdminLayout/AdminLayout",
+        "file": "./routes/admin/subscriptions/subscriptions-page.tsx",
+        "path": "admin/subscriptions"
       },
       "layouts/auth-layout": {
         "id": "layouts/auth-layout",
@@ -495,6 +519,10 @@
                   {
                     "file": "./routes/post-recruitment.tsx",
                     "path": "post-recruitment"
+                  },
+                  {
+                    "file": "./routes/subscriptions.tsx",
+                    "path": "subscriptions"
                   }
                 ]
               }
@@ -518,6 +546,10 @@
               {
                 "file": "./routes/admin/users/users-page.tsx",
                 "path": "admin/users"
+              },
+              {
+                "file": "./routes/admin/subscriptions/subscriptions-page.tsx",
+                "path": "admin/subscriptions"
               }
             ]
           },

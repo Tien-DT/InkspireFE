@@ -20,6 +20,7 @@ import { UserRole } from '~/types/user.type'
 export function Header() {
   const { userName, isAuthenticated, authReady, profile } = useAuth()
   const { data: wallet } = useWallet(profile?.id, isAuthenticated)
+  console.log("wallet", wallet)
 
   // Determine if user is a client (CLIENT role) or freelancer (other roles)
   const isClient = profile?.role === UserRole.CLIENT
@@ -134,9 +135,14 @@ export function Header() {
                       <Link to={PATH.manageProjects}>Quản lý dự án</Link>
                     </DropdownMenuItem>
                     {isClient && (
-                      <DropdownMenuItem>
-                        <Link to={PATH.managePostProject}>Quản lý bài đăng</Link>
-                      </DropdownMenuItem>
+                      <>
+                        <DropdownMenuItem>
+                          <Link to={PATH.managePostProject}>Quản lý bài đăng</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <Link to='/subscriptions'>Gói đăng ký</Link>
+                        </DropdownMenuItem>
+                      </>
                     )}
                     {isFreelancer && (
                       <DropdownMenuItem>
