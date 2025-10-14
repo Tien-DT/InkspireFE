@@ -1,4 +1,4 @@
-import { ArrowLeft, CheckCircle2, Loader2 } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, Loader2, Crown } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Button } from '~/components/ui/button'
@@ -8,10 +8,21 @@ import { AuthErrorBoundary } from '~/components/errors'
 import { useRecruitmentForm } from '~/contexts/RecruitmentFormContext'
 import { useAuth } from '~/contexts/AuthContext'
 import { recruitmentApi } from '~/apis/recruitment.api'
+import { projectApi } from '~/apis/project.api'
 import type { RecruitmentCategory, Skill } from '~/types/recruitment.type'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
 import { getAccessTokenFromLS, parseJwtPayload } from '~/utils/auth'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '~/components/ui/alert-dialog'
 
 function PostProjectConfirmPage() {
   const navigate = useNavigate()
@@ -24,6 +35,12 @@ function PostProjectConfirmPage() {
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [categories, setCategories] = useState<RecruitmentCategory[]>([])
   const [skills, setSkills] = useState<Skill[]>([])
+  const [showLimitDialog, setShowLimitDialog] = useState(false)
+  const [limitInfo, setLimitInfo] = useState<{
+    projectsThisMonth: number
+    limit: number | null
+    remaining: number | null
+  } | null>(null)
 
   useEffect(() => {
     setCurrentStep(2)
@@ -91,6 +108,20 @@ function PostProjectConfirmPage() {
     setIsSubmitting(true)
 
     try {
+      // Check post limit first
+      const limitCheck = await projectApi.checkPostLimit(userId)
+
+      if (!limitCheck.data.canPost) {
+        setLimitInfo({
+          projectsThisMonth: limitCheck.data.projectsThisMonth,
+          limit: limitCheck.data.limit,
+          remaining: limitCheck.data.remaining
+        })
+        setShowLimitDialog(true)
+        setIsSubmitting(false)
+        return
+      }
+
       const dataWithUserId = {
         ...combinedData,
         userId: userId
@@ -248,6 +279,50 @@ function PostProjectConfirmPage() {
           </div>
         )}
       </div>
+
+      <AlertDialog open={showLimitDialog} onOpenChange={setShowLimitDialog}>
+        <AlertDialogContent className='max-w-md'>
+          <AlertDialogHeader>
+            <AlertDialogTitle className='flex items-center gap-2 text-xl'>
+              <span className='text-2xl'>⚠️</span>
+              Đã đạt giới hạn đăng bài
+            </AlertDialogTitle>
+            <AlertDialogDescription className='space-y-3 pt-2'>
+              <p className='text-base'>
+                Gói miễn phí chỉ được đăng tối đa <strong className='text-red-600'>20 dự án/tháng</strong>.
+              </p>
+              {limitInfo && (
+                <div className='bg-gray-50 rounded-lg p-4 space-y-2'>
+                  <div className='flex justify-between text-sm'>
+                    <span className='text-gray-600'>Đã đăng trong tháng:</span>
+                    <span className='font-semibold text-gray-900'>{limitInfo.projectsThisMonth} dự án</span>
+                  </div>
+                  <div className='flex justify-between text-sm'>
+                    <span className='text-gray-600'>Giới hạn:</span>
+                    <span className='font-semibold text-gray-900'>{limitInfo.limit} dự án/tháng</span>
+                  </div>
+                </div>
+              )}
+              <p className='text-base font-medium text-blue-600'>
+                Vui lòng nâng cấp lên gói Cao cấp để tiếp tục đăng không giới hạn!
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className='flex-col sm:flex-row gap-2'>
+            <AlertDialogCancel className='sm:flex-1'>Đóng</AlertDialogCancel>
+            <AlertDialogAction
+              className='sm:flex-1 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white'
+              onClick={() => {
+                setShowLimitDialog(false)
+                navigate('/#pricing')
+              }}
+            >
+              <Crown className='mr-2 h-4 w-4' fill='white' />
+              Nâng cấp ngay
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

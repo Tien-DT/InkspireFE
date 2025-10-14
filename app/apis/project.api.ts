@@ -201,5 +201,29 @@ export const projectApi = {
   }): Promise<any> => {
     const response = await axiosClient.post(`${URL_FILE_EVALUATIONS}/evaluate-url`, body)
     return response.data
+  },
+
+  checkPostLimit: async (userId: string): Promise<{
+    success: boolean
+    message: string
+    data: {
+      canPost: boolean
+      isPremium: boolean
+      projectsThisMonth: number
+      limit: number | null
+      remaining: number | null
+    }
+  }> => {
+    const response = await axiosClient.get(`${URL_PROJECTS}/check-limit/${userId}`)
+    return response.data
+  },
+
+  getProjectCountThisMonth: async (userId: string): Promise<{
+    success: boolean
+    message: string
+    data: number
+  }> => {
+    const response = await axiosClient.get(`${URL_PROJECTS}/count/user/${userId}/current-month`)
+    return response.data
   }
 }
