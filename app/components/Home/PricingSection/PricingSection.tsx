@@ -10,12 +10,14 @@ import { subscriptionApi } from '~/apis/subscription.api'
 import { walletApi } from '~/apis/wallet.api'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
+import { usePremiumStatus } from '~/hooks/usePremiumStatus'
 
 export function PricingSection() {
   const { isAuthenticated, profile } = useAuth()
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
   const [subscriptions, setSubscriptions] = useState<any[]>([])
+  const { data: isPremium } = usePremiumStatus(profile?.id, isAuthenticated)
 
   // Fetch available subscriptions on mount
   useEffect(() => {
@@ -217,10 +219,14 @@ export function PricingSection() {
                   <Button 
                     className={`w-full ${colorMap[plan.title].button}`} 
                     variant='outline'
-                    onClick={plan.isPremium ? handleUpgrade : undefined}
-                    disabled={plan.isPremium && isLoading}
+                    onClick={plan.isPremium && !isPremium ? handleUpgrade : undefined}
+                    disabled={(plan.isPremium && isLoading) || (plan.isPremium && isPremium)}
                   >
-                    {plan.isPremium && isLoading ? 'Đang xử lý...' : plan.textBtn}
+                    {plan.isPremium && isLoading 
+                      ? 'Đang xử lý...' 
+                      : plan.isPremium && isPremium 
+                        ? 'Gói hiện tại' 
+                        : plan.textBtn}
                   </Button>
                 </CardContent>
               </Card>

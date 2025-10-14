@@ -147,9 +147,6 @@ export function Header() {
                         <DropdownMenuItem>
                           <Link to={PATH.managePostProject}>Quản lý bài đăng</Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Link to='/subscriptions'>Gói đăng ký</Link>
-                        </DropdownMenuItem>
                       </>
                     )}
                     {isFreelancer && (
