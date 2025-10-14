@@ -7,10 +7,12 @@ interface ProfileLoadingStateProps {
 
 export function ProfileLoadingState({ message = 'Đang tải thông tin profile...' }: ProfileLoadingStateProps) {
   return (
-    <div className='min-h-screen bg-background flex items-center justify-center'>
+    <div className='flex min-h-screen items-center justify-center bg-gradient-to-br from-muted/30 via-background to-background'>
       <div className='text-center'>
-        <div className='inline-block animate-spin rounded-full h-12 w-12 border-4 border-solid border-blue-600 border-r-transparent mb-4'></div>
-        <p className='text-gray-600'>{message}</p>
+        <div className='mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full border-2 border-primary/30 bg-primary/10'>
+          <span className='h-8 w-8 animate-spin rounded-full border-4 border-transparent border-t-primary' />
+        </div>
+        <p className='text-sm text-muted-foreground'>{message}</p>
       </div>
     </div>
   )
@@ -26,11 +28,11 @@ export function ProfileErrorState({
   onRetry
 }: ProfileErrorStateProps) {
   return (
-    <div className='min-h-screen bg-background flex items-center justify-center'>
-      <Card className='max-w-md mx-4'>
-        <CardContent className='py-12 text-center'>
-          <div className='h-16 w-16 rounded-full bg-red-100 mx-auto flex items-center justify-center mb-4'>
-            <svg className='h-8 w-8 text-red-600' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+    <div className='flex min-h-screen items-center justify-center bg-gradient-to-br from-muted/30 via-background to-background px-4'>
+      <Card className='mx-auto w-full max-w-md overflow-hidden rounded-3xl border border-border/40 bg-card/90 shadow-2xl backdrop-blur'>
+        <CardContent className='py-14 text-center'>
+          <div className='mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-destructive/10 text-destructive'>
+            <svg className='h-10 w-10' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
               <path
                 strokeLinecap='round'
                 strokeLinejoin='round'
@@ -39,9 +41,9 @@ export function ProfileErrorState({
               />
             </svg>
           </div>
-          <h3 className='text-xl font-bold text-gray-900 mb-2'>Có lỗi xảy ra</h3>
-          <p className='text-gray-600 mb-4'>{message}</p>
-          <Button onClick={onRetry || (() => window.location.reload())} className='btn-submit'>
+          <h3 className='text-2xl font-semibold text-foreground'>Có lỗi xảy ra</h3>
+          <p className='mx-auto mt-3 max-w-sm text-sm text-muted-foreground'>{message}</p>
+          <Button onClick={onRetry || (() => window.location.reload())} variant='shine' size='lg' className='mt-8 px-8'>
             Tải lại trang
           </Button>
         </CardContent>

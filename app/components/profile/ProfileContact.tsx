@@ -10,6 +10,12 @@ interface ProfileContactProps {
   isSendingMessage?: boolean
 }
 
+const contactItems = (location: string, email: string, phone: string) => [
+  { icon: MapPin, label: 'Địa điểm', value: location },
+  { icon: Mail, label: 'Email', value: email },
+  { icon: Phone, label: 'Số điện thoại', value: phone }
+]
+
 export function ProfileContact({
   location,
   email,
@@ -19,47 +25,44 @@ export function ProfileContact({
   isSendingMessage
 }: ProfileContactProps) {
   return (
-    <div className='p-6 space-y-4'>
-      <h2 className='text-lg font-semibold text-gray-900 mb-4'>Thông tin liên hệ</h2>
-      <div className='space-y-3'>
-        <div className='flex items-start gap-3'>
-          <MapPin className='h-5 w-5 text-gray-400 mt-0.5 shrink-0' />
-          <div>
-            <p className='text-sm text-gray-500'>Địa điểm</p>
-            <p className='text-gray-900 font-medium'>{location}</p>
-          </div>
-        </div>
-        <div className='flex items-start gap-3'>
-          <Mail className='h-5 w-5 text-gray-400 mt-0.5 shrink-0' />
-          <div>
-            <p className='text-sm text-gray-500'>Email</p>
-            <p className='text-gray-900 font-medium'>{email}</p>
-          </div>
-        </div>
-        <div className='flex items-start gap-3'>
-          <Phone className='h-5 w-5 text-gray-400 mt-0.5 shrink-0' />
-          <div>
-            <p className='text-sm text-gray-500'>Số điện thoại</p>
-            <p className='text-gray-900 font-medium'>{phone}</p>
-          </div>
-        </div>
+    <div className='rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm transition hover:shadow-md backdrop-blur-sm'>
+      <div className='mb-4 flex items-center justify-between'>
+        <h2 className='text-lg font-semibold text-foreground'>Thông tin liên hệ</h2>
+        <span className='rounded-full bg-primary/10 px-3 py-1 text-xs font-medium uppercase tracking-wide text-primary'>
+          Đã xác thực
+        </span>
       </div>
-      <Button className='w-full btn-submit mt-6' onClick={onSendMessage} disabled={isSendingMessage}>
-        {isSendingMessage ? (
-          <>
-            <Loader2 className='h-4 w-4 mr-2 animate-spin' />
-            Đang xử lý...
-          </>
-        ) : (
-          <>
-            <Mail className='h-4 w-4 mr-2' />
-            Gửi tin nhắn
-          </>
-        )}
-      </Button>
-      <Button className='w-full btn-cancel' onClick={onViewFullProfile}>
-        Xem hồ sơ đầy đủ
-      </Button>
+      <div className='space-y-4 text-sm text-muted-foreground'>
+        {contactItems(location, email, phone).map(({ icon: Icon, label, value }) => (
+          <div key={label} className='flex items-start gap-3'>
+            <span className='flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary'>
+              <Icon className='h-4 w-4' />
+            </span>
+            <div className='min-w-0 flex-1'>
+              <p className='text-xs uppercase tracking-wide text-muted-foreground/80'>{label}</p>
+              <p className='truncate text-sm font-semibold text-foreground'>{value || 'Đang cập nhật'}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className='mt-6 space-y-3'>
+        <Button className='w-full' variant='shine' size='lg' onClick={onSendMessage} disabled={isSendingMessage}>
+          {isSendingMessage ? (
+            <>
+              <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+              Đang xử lý...
+            </>
+          ) : (
+            <>
+              <Mail className='mr-2 h-4 w-4' />
+              Gửi tin nhắn
+            </>
+          )}
+        </Button>
+        <Button className='w-full' variant='outline' size='lg' onClick={onViewFullProfile}>
+          Xem hồ sơ đầy đủ
+        </Button>
+      </div>
     </div>
   )
 }

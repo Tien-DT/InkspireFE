@@ -2,10 +2,29 @@ import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { recruitmentApi } from '~/apis/recruitment.api'
 import type { RecruitmentResponse, ApplicationsResponse } from '~/types/recruitment.type'
 
-export const useRecruitments = (page: number, pageSize: number) => {
+interface RecruitmentFilters {
+  page: number
+  pageSize: number
+  keyword?: string
+  category?: string
+  minBudget?: number
+  maxBudget?: number
+}
+
+export const useRecruitments = (filters: RecruitmentFilters) => {
+  const { page, pageSize, keyword, category, minBudget, maxBudget } = filters
+
   return useQuery<RecruitmentResponse>({
-    queryKey: ['recruitments', page, pageSize],
-    queryFn: () => recruitmentApi.getRecruitments({ page, pageSize }),
+    queryKey: ['recruitments', page, pageSize, keyword, category, minBudget, maxBudget],
+    queryFn: () =>
+      recruitmentApi.getRecruitments({
+        page,
+        pageSize,
+        ...(keyword && { keyword }),
+        ...(category && category !== 'all' && { category }),
+        ...(minBudget && { minBudget }),
+        ...(maxBudget && { maxBudget })
+      }),
     placeholderData: keepPreviousData
   })
 }
