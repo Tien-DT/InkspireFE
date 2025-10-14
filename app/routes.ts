@@ -37,7 +37,8 @@ export default [
     route('admin/transactions', './routes/admin/transactions/transactions-page.tsx'),
     route('admin/projects', './routes/admin/projects/projects-page.tsx'),
     route('admin/users', './routes/admin/users/users-page.tsx'),
-    route('admin/subscriptions', './routes/admin/subscriptions/subscriptions-page.tsx')
+    route('admin/subscriptions', './routes/admin/subscriptions/subscriptions-page.tsx'),
+    route('admin/withdraws', './routes/admin/withdraws/withdraws-page.tsx')
   ]),
 
   // Auth routes

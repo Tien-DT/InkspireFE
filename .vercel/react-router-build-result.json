@@ -171,6 +171,12 @@
         "file": "./routes/admin/subscriptions/subscriptions-page.tsx",
         "path": "admin/subscriptions"
       },
+      "routes/admin/withdraws/withdraws-page": {
+        "id": "routes/admin/withdraws/withdraws-page",
+        "parentId": "layouts/AdminLayout/AdminLayout",
+        "file": "./routes/admin/withdraws/withdraws-page.tsx",
+        "path": "admin/withdraws"
+      },
       "layouts/auth-layout": {
         "id": "layouts/auth-layout",
         "parentId": "root",
@@ -390,6 +396,12 @@
         "file": "./routes/admin/subscriptions/subscriptions-page.tsx",
         "path": "admin/subscriptions"
       },
+      "routes/admin/withdraws/withdraws-page": {
+        "id": "routes/admin/withdraws/withdraws-page",
+        "parentId": "layouts/AdminLayout/AdminLayout",
+        "file": "./routes/admin/withdraws/withdraws-page.tsx",
+        "path": "admin/withdraws"
+      },
       "layouts/auth-layout": {
         "id": "layouts/auth-layout",
         "parentId": "root",
@@ -550,6 +562,10 @@
               {
                 "file": "./routes/admin/subscriptions/subscriptions-page.tsx",
                 "path": "admin/subscriptions"
+              },
+              {
+                "file": "./routes/admin/withdraws/withdraws-page.tsx",
+                "path": "admin/withdraws"
               }
             ]
           },
