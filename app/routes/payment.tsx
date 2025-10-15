@@ -14,20 +14,19 @@ import {
 import { useAuth } from '~/contexts/AuthContext'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
-import { useWallet } from '~/hooks/useUser'
+import { useWallet } from '~/hooks/useWallet'
 
 export default function Payment() {
   const navigate = useNavigate()
-  const { profile } = useAuth()
-  const { data: walletData, isLoading: walletLoading } = useWallet(profile?.id)
+  const { profile, isAuthenticated } = useAuth()
+  const { data: wallet, isLoading: walletLoading } = useWallet(profile?.id, isAuthenticated)
   const [amount, setAmount] = useState<number>(0)
   const [showErrorDialog, setShowErrorDialog] = useState(false)
 
   // Get wallet data from API
-  const wallet = walletData?.data
-  const availableBalance = wallet?.balance || 0 // Số dư khả dụng (có thể dùng)
+  const totalBalance = wallet?.balance || 0 // Tổng số dư trong ví
   const balanceFreeze = wallet?.balanceFreeze || 0 // Số đang giữ (escrow)
-  const totalBalance = availableBalance + balanceFreeze // Tổng số dư = khả dụng + đang giữ
+  const availableBalance = totalBalance - balanceFreeze // Số dư khả dụng = tổng - đang giữ
 
   // Quick amount options
   const quickAmounts = [50000, 100000, 200000, 500000, 1000000, 2000000]
