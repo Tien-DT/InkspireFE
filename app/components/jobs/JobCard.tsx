@@ -129,7 +129,7 @@ export function JobCard({ job, onApplyClick, onViewDetail, skillColors = DEFAULT
             {/* Budget */}
             <div className='text-left md:text-right'>
               <div className='text-2xl sm:text-3xl font-bold text-green-600 mb-1'>
-                {(job.budget / 1_000_000).toFixed(1)}M VNĐ
+                {job.budget.toLocaleString('vi-VN')} VNĐ
               </div>
               <div className='text-xs sm:text-sm text-muted-foreground'>Giá cố định</div>
             </div>

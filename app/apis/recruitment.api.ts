@@ -25,9 +25,30 @@ export const URL_APPLY_JOB = '/api/user-cvs/apply'
 export const URL_RECRUITMENT_APPLICATIONS = '/api/user-cvs/recruitment-post'
 
 export const recruitmentApi = {
-  getRecruitments: async ({ page = 1, pageSize = 10 }: { page: number; pageSize: number }) => {
+  getRecruitments: async ({ 
+    page = 1, 
+    pageSize = 10, 
+    keyword, 
+    category, 
+    minBudget, 
+    maxBudget 
+  }: { 
+    page: number
+    pageSize: number
+    keyword?: string
+    category?: string
+    minBudget?: number
+    maxBudget?: number
+  }) => {
+    const params: Record<string, unknown> = { page, pageSize }
+    
+    if (keyword) params.keyword = keyword
+    if (category && category !== 'all') params.category = category
+    if (minBudget !== undefined) params.minBudget = minBudget
+    if (maxBudget !== undefined) params.maxBudget = maxBudget
+
     const response = await axiosClient.get<RecruitmentResponse>(URL_RECRUITMENT_POSTS_PAGINATED, {
-      params: { page, pageSize }
+      params
     })
     return response.data
   },
