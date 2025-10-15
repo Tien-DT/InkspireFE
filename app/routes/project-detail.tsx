@@ -18,7 +18,7 @@ import {
   useUpdateMilestone,
   useUpdateProject,
   useUploadMilestoneDocument,
-  useEvaluateMilestoneFileByUrl
+  useSubmitComplaint
 } from '~/hooks/useProjects'
 import type { Milestone } from '~/apis/project.api'
 import { useWallet } from '~/hooks/useUser'
@@ -34,7 +34,6 @@ import {
 import { AlertCircle, CheckCircle2 } from 'lucide-react'
 import { EvaluationDialog } from '~/components/project/EvaluationDialog'
 import { ComplainDialog } from '~/components/project/ComplainDialog'
-import { EvaluationResultDialog } from '~/components/project/EvaluationResultDialog'
 
 export interface TimelineItem {
   id: string
@@ -128,44 +127,16 @@ function ProjectDetailContent() {
     budget: 0
   })
   const [isComplainDialogOpen, setIsComplainDialogOpen] = useState(false)
-  const [isResultDialogOpen, setIsResultDialogOpen] = useState(false)
-  const [evaluationResult, setEvaluationResult] = useState(null)
   const [currentTimelineForComplain, setCurrentTimelineForComplain] = useState<TimelineItem | null>(null)
 
-  const evaluateMilestoneFileByUrl = useEvaluateMilestoneFileByUrl({
-    onSuccess: async (data) => {
-      setEvaluationResult(data.data)
-      setIsResultDialogOpen(true)
-      
-      // Process complaint based on AI evaluation
-      if (currentTimelineForComplain) {
-        try {
-          if (data.data.meetsRequirements) {
-            // If AI evaluates that the product meets requirements, auto-complete milestone
-            await updateMilestone.mutateAsync({
-              milestoneId: currentTimelineForComplain.id,
-              payload: {
-                status: 3 // Completed
-              }
-            })
-            toast.success('Sản phẩm đáp ứng yêu cầu. Giai đoạn đã được tự động hoàn thành.')
-          } else {
-            // If AI evaluates that the product has issues, request revision
-            await updateMilestone.mutateAsync({
-              milestoneId: currentTimelineForComplain.id,
-              payload: {
-                status: 5 // Pending revision
-              }
-            })
-            toast.success('Sản phẩm chưa đáp ứng yêu cầu. Đã yêu cầu freelancer nộp lại.')
-          }
-        } catch (error) {
-          toast.error('Không thể cập nhật trạng thái khiếu nại.')
-        }
-      }
+  const submitComplaint = useSubmitComplaint({
+    onSuccess: (data) => {
+      toast.success('Khiếu nại đã được gửi. Hệ thống đang xử lý bằng AI, trạng thái sẽ tự động cập nhật.')
+      setIsComplainDialogOpen(false)
     },
-    onError: () => {
-      toast.error('Gửi khiếu nại thất bại.')
+    onError: (error) => {
+      console.error('Complaint submission error:', error)
+      toast.error('Gửi khiếu nại thất bại. Vui lòng thử lại.')
     }
   })
 
@@ -180,11 +151,8 @@ function ProjectDetailContent() {
       return
     }
 
-    const fileName = currentTimelineForComplain.fileUrl.split('/').pop() || 'unknown_file'
-
     let requirementText = ''
     const projectDescription = project?.description || ''
-
     const milestoneNumber = currentTimelineForComplain.milestoneNumber
 
     if (milestoneNumber === 1) {
@@ -197,15 +165,15 @@ function ProjectDetailContent() {
     }
 
     try {
-      await evaluateMilestoneFileByUrl.mutateAsync({
-        requirementText,
-        fileUrl: currentTimelineForComplain.fileUrl,
-        fileName,
-        contentType
+      await submitComplaint.mutateAsync({
+        milestoneId: currentTimelineForComplain.id,
+        body: {
+          requirementText,
+          contentType
+        }
       })
-      toast.success('Khiếu nại của bạn đã được gửi đi.')
     } catch (error) {
-      console.error('Failed to submit complaint for evaluation', error)
+      console.error('Failed to submit complaint', error)
     }
   }
 
@@ -564,12 +532,6 @@ function ProjectDetailContent() {
         fileUrl={currentTimelineForComplain?.fileUrl || ''}
       />
 
-      <EvaluationResultDialog
-        isOpen={isResultDialogOpen}
-        onClose={() => setIsResultDialogOpen(false)}
-        evaluationData={evaluationResult}
-      />
-
       <div className='container mx-auto px-4 py-6 space-y-6 flex min-h-screen bg-background'>
         <div className='w-80 bg-white min-h-screen p-6 rounded-lg'>
           <div className='mb-6'>
@@ -906,10 +868,10 @@ function ProjectDetailContent() {
                                   <Button
                                     size='sm'
                                     onClick={() => handleComplainClick(timeline)}
-                                    disabled={evaluateMilestoneFileByUrl.isPending}
+                                    disabled={submitComplaint.isPending}
                                     className='bg-red-600 hover:bg-red-700 text-white shadow-md disabled:opacity-50'
                                   >
-                                    {evaluateMilestoneFileByUrl.isPending ? (
+                                    {submitComplaint.isPending ? (
                                       <>
                                         <Clock className='h-4 w-4 mr-1.5 animate-spin' />
                                         Đang gửi...

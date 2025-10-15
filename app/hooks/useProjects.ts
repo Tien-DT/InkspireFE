@@ -126,3 +126,32 @@ export const useEvaluateMilestoneFileByUrl = (
     onError: options.onError
   })
 }
+
+export const useSubmitComplaint = (options: { onSuccess?: (data: any) => void; onError?: (error: any) => void } = {}) => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ milestoneId, body }: { milestoneId: string; body: { requirementText: string; contentType?: string } }) =>
+      projectApi.submitComplaint(milestoneId, body),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
+      queryClient.invalidateQueries({ queryKey: ['project'] })
+      queryClient.invalidateQueries({ queryKey: ['milestones'] })
+      options.onSuccess?.(data)
+    },
+    onError: options.onError
+  })
+}
+
+export const useGetComplaint = (complaintId: string) => {
+  return useQuery({
+    queryKey: ['complaint', complaintId],
+    queryFn: () => projectApi.getComplaint(complaintId),
+    enabled: !!complaintId,
+    refetchInterval: (data) => {
+      // Poll every 3 seconds while processing (status 0 or 1)
+      const processingStatus = data?.data?.processingStatus
+      return processingStatus === 0 || processingStatus === 1 ? 3000 : false
+    }
+  })
+}

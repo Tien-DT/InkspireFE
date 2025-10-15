@@ -203,6 +203,16 @@ export const projectApi = {
     return response.data
   },
 
+  submitComplaint: async (milestoneId: string, body: { requirementText: string; contentType?: string }): Promise<any> => {
+    const response = await axiosClient.post(`${URL_PROJECT_MILESTONES}/${milestoneId}/complaints`, body)
+    return response.data
+  },
+
+  getComplaint: async (complaintId: string): Promise<any> => {
+    const response = await axiosClient.get(`${URL_PROJECT_MILESTONES}/complaints/${complaintId}`)
+    return response.data
+  },
+
   checkPostLimit: async (
     userId: string
   ): Promise<{
