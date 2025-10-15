@@ -1,11 +1,11 @@
 import { Outlet, redirect, useMatches } from 'react-router'
-import { IconLayoutGrid } from '@tabler/icons-react'
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 
 import { JobsShowcase } from '~/components/showcase/jobs-showcase'
 import { cn } from '~/utils/cn'
 import { Link } from 'react-router'
+import logo from '~/assets/logo.png'
 import { getAccessTokenFromLS } from '~/utils/auth'
 
 type AuthLayoutProps = {
@@ -49,11 +49,8 @@ export function AuthPanel({ children, footer, className, contentClassName, brand
   return (
     <div className={cn('flex flex-col gap-6 p-6 md:p-10 lg:px-12', className)}>
       <div className='flex justify-center gap-2 md:justify-start'>
-        <Link to={brandHref} className='flex items-center gap-2 font-medium text-slate-900'>
-          <div className='flex size-6 items-center justify-center rounded-md bg-emerald-500 text-white'>
-            <IconLayoutGrid className='size-4' />
-          </div>
-          Inkspire
+        <Link to={brandHref} className='inline-block h-14 w-38 overflow-hidden'>
+          <img src={logo} alt='Logo' className='h-full w-full object-cover object-center align-middle' />
         </Link>
       </div>
       <div className='flex flex-1 items-center justify-center'>

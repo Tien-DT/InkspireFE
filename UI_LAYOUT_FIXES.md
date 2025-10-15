@@ -11,6 +11,7 @@
 ### 1. ProjectCard - Text Overflow Issues
 
 **Vấn đề:**
+
 - Title và description dài có thể phá vỡ layout
 - Không có truncate cho các field dài
 - Badge và icons không có shrink-0 protection
@@ -19,6 +20,7 @@
 **Giải pháp áp dụng:**
 
 #### A. Title & Description Container
+
 ```tsx
 // BEFORE
 <div className='space-y-3'>
@@ -40,6 +42,7 @@
 ```
 
 **Kỹ thuật:**
+
 - `flex-1`: Cho phép container co giãn
 - `min-w-0`: Cho phép flex item shrink nhỏ hơn content width
 - `line-clamp-2` cho title: Giới hạn 2 dòng
@@ -47,6 +50,7 @@
 - `break-words`: Ngắt từ dài nếu cần
 
 #### B. Status Badge Protection
+
 ```tsx
 // AFTER
 <Badge className='flex shrink-0 items-center gap-2 whitespace-nowrap'>
@@ -56,11 +60,13 @@
 ```
 
 **Kỹ thuật:**
+
 - `shrink-0`: Badge không bị co lại
 - `whitespace-nowrap`: Text không wrap
 - Icon cũng có `shrink-0`
 
 #### C. Info Cards (Date, Budget, etc.)
+
 ```tsx
 // BEFORE
 <div className='flex items-center gap-3'>
@@ -82,11 +88,13 @@
 ```
 
 **Kỹ thuật:**
+
 - Icon: `shrink-0` để không bị co
 - Content wrapper: `min-w-0 flex-1` cho phép truncate
 - Text: `truncate` + `title` attribute (tooltip on hover)
 
 #### D. Client/Freelancer Tags
+
 ```tsx
 // AFTER
 <span className='inline-flex max-w-full items-center rounded-full px-3 py-1'>
@@ -95,6 +103,7 @@
 ```
 
 **Kỹ thuật:**
+
 - Outer: `inline-flex max-w-full` để giới hạn width
 - Inner: `truncate` để cắt text dài
 
@@ -103,6 +112,7 @@
 ### 2. UnifiedStatsCards - Grid Distribution
 
 **Vấn đề:**
+
 - Grid cố định `xl:grid-cols-5` không đẹp khi có 4 cards
 - Cards không dàn đều khi số lượng khác 5
 
@@ -113,18 +123,20 @@
 <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5'>
 
 // AFTER
-const gridCols = cards.length <= 4 
-  ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4' 
+const gridCols = cards.length <= 4
+  ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
   : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5'
 
 <div className={cn('grid gap-4', gridCols)}>
 ```
 
 **Logic:**
+
 - ≤4 cards: Dàn đều thành 4 cột (lg breakpoint)
 - ≥5 cards: Dùng 5 cột (xl breakpoint)
 
 **Text Protection trong Cards:**
+
 ```tsx
 <div className='min-w-0 flex-1'>
   <p className='truncate text-xs uppercase' title={label}>
@@ -138,6 +150,7 @@ const gridCols = cards.length <= 4
 ```
 
 **Kỹ thuật:**
+
 - Label: `truncate` + `title` tooltip
 - Description: `line-clamp-2` để giới hạn 2 dòng
 - Icon: `shrink-0` protection
@@ -190,25 +203,27 @@ const gridCols = cards.length <= 4
 ## 🎨 CSS Techniques Summary
 
 ### 1. Flexbox Truncation Pattern
+
 ```css
 .container {
   display: flex;
-  min-width: 0;  /* Key: allows flex children to shrink below content size */
+  min-width: 0; /* Key: allows flex children to shrink below content size */
 }
 
 .content {
-  flex: 1;       /* Allows growth */
-  min-width: 0;  /* Allows truncation */
+  flex: 1; /* Allows growth */
+  min-width: 0; /* Allows truncation */
 }
 
 .text {
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;  /* or use line-clamp for multiline */
+  white-space: nowrap; /* or use line-clamp for multiline */
 }
 ```
 
 ### 2. Line Clamping
+
 ```css
 .line-clamp-2 {
   display: -webkit-box;
@@ -219,16 +234,18 @@ const gridCols = cards.length <= 4
 ```
 
 ### 3. Shrink Protection
+
 ```css
 .shrink-0 {
-  flex-shrink: 0;  /* Prevents element from shrinking */
+  flex-shrink: 0; /* Prevents element from shrinking */
 }
 ```
 
 ### 4. Word Breaking
+
 ```css
 .break-words {
-  overflow-wrap: break-word;  /* Breaks long words */
+  overflow-wrap: break-word; /* Breaks long words */
   word-break: break-word;
 }
 ```
@@ -238,6 +255,7 @@ const gridCols = cards.length <= 4
 ## ✅ Testing Checklist
 
 ### Desktop (≥1024px)
+
 - [x] Long titles (>100 chars) truncate correctly
 - [x] Long descriptions show ellipsis after 3 lines
 - [x] Stats cards distribute evenly (4 cards = 4 cols, 5 cards = 5 cols)
@@ -245,11 +263,13 @@ const gridCols = cards.length <= 4
 - [x] Client/Freelancer names truncate properly
 
 ### Tablet (768px - 1023px)
+
 - [x] Cards stack to 2 columns
 - [x] All text remains readable
 - [x] Buttons don't wrap unnecessarily
 
 ### Mobile (<768px)
+
 - [x] Single column layout
 - [x] All content fits without horizontal scroll
 - [x] Touch targets are adequate (min 44px)
@@ -259,25 +279,31 @@ const gridCols = cards.length <= 4
 ## 📊 Before/After Comparison
 
 ### Issue: Long Title
+
 **Before:**
+
 ```
 Title text flows beyond card boundary and breaks layout causing horizontal scroll
 ```
 
 **After:**
+
 ```
 Title text flows beyond card bou...
 (truncated cleanly with ellipsis)
 ```
 
 ### Issue: 4 Stats Cards
+
 **Before:**
+
 ```
 [Card] [Card] [Card] [Card] [Empty]
 (5-column grid with one empty space)
 ```
 
 **After:**
+
 ```
 [Card] [Card] [Card] [Card]
 (4-column grid, evenly distributed)
@@ -319,7 +345,7 @@ Title text flows beyond card bou...
 ✅ **Responsive**: Tested on all breakpoints  
 ✅ **Browser Compat**: CSS features supported in all modern browsers  
 ✅ **Performance**: No runtime overhead  
-✅ **Maintainability**: Consistent patterns across all cards  
+✅ **Maintainability**: Consistent patterns across all cards
 
 ---
 

@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router'
-import logo from '~/assets/logo.svg'
+import logo from '~/assets/logo.png'
 import {
   DropdownMenu,
   DropdownMenuContent,

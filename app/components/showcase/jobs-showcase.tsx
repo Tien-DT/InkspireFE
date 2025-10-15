@@ -1,4 +1,10 @@
 import { DraggableCardBody, DraggableCardContainer } from '~/components/ui/draggable-card'
+import inkun from '~/assets/Untitled design.jpg'
+import inkun2 from '~/assets/Inkun-Wave.png'
+import inkun3 from '~/assets/Inkun-Face.png'
+import inkun4 from '~/assets/Gemini_Generated_Image_54ielh54ielh54ie.png'
+import inkun5 from '~/assets/Gemini_Generated_Image_ifomm8ifomm8ifom.png'
+import inkun6 from '~/assets/Gemini_Generated_Image_q1f7oaq1f7oaq1f7.png'
 
 type ShowcaseItem = {
   title: string
@@ -9,44 +15,32 @@ type ShowcaseItem = {
 const items: ShowcaseItem[] = [
   {
     title: 'Tyler Durden',
-    image:
-      'https://images.unsplash.com/photo-1732310216648-603c0255c000?q=80&w=3540&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    image: inkun3,
     className: 'absolute top-10 left-[20%] rotate-[-5deg]'
   },
   {
     title: 'The Narrator',
-    image:
-      'https://images.unsplash.com/photo-1697909623564-3dae17f6c20b?q=80&w=2667&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    image: inkun4,
     className: 'absolute top-40 left-[25%] rotate-[-7deg]'
   },
   {
     title: 'Iceland',
-    image:
-      'https://images.unsplash.com/photo-1501854140801-50d01698950b?q=80&w=2600&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    image: inkun5,
     className: 'absolute top-5 left-[40%] rotate-[8deg]'
   },
   {
     title: 'Japan',
-    image:
-      'https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f?q=80&w=3648&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    image: inkun6,
     className: 'absolute top-32 left-[55%] rotate-[10deg]'
   },
   {
-    title: 'Norway',
-    image:
-      'https://images.unsplash.com/photo-1421789665209-c9b2a435e3dc?q=80&w=3542&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    className: 'absolute top-20 right-[35%] rotate-[2deg]'
-  },
-  {
     title: 'New Zealand',
-    image:
-      'https://images.unsplash.com/photo-1505142468610-359e7d316be0?q=80&w=3070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    image: inkun2,
     className: 'absolute top-24 left-[45%] rotate-[-7deg]'
   },
   {
-    title: 'Canada',
-    image:
-      'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2560&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    title: 'Inkun nè',
+    image: inkun,
     className: 'absolute top-8 left-[30%] rotate-[4deg]'
   }
 ]

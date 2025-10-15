@@ -1,111 +1,319 @@
 # Inkspire Frontend - AI Agent Guide
 
-A Vietnamese freelance marketplace built with React Router v7 (SSR), TypeScript, TanStack Query, SignalR real-time messaging, and shadcn/ui.
+Vietnamese freelance marketplace built with React Router v7 (CSR mode), TypeScript, TanStack Query, SignalR real-time messaging, and shadcn/ui.
 
 ## Architecture Overview
 
 ### Routing & Layouts (React Router v7)
 
-- **Routes**: `app/routes.ts` defines all pages with nested layouts; each route is a `*.tsx` file in `app/routes/`
-- **Layouts**: Wrap routes for shared UI patterns
-  - `MainLayout`: Public header/footer for unauthenticated pages
-  - `ProtectedLayout`: Auth gate that waits for `authReady` flag before rendering; redirects to `/login` via `PATH.login` constant
-  - `AdminLayout`: Admin sidebar nav; update `NAV_ITEMS` array when adding admin routes
-  - `AuthLayout`: Split-panel auth screens (login/register); expose `handle.authPanel` to customize left panel (see `app/routes/login/login-page.tsx`)
-- **Navigation sync**: When adding routes, update `app/routes.ts`, `app/constants/path.ts` PATH constants, and relevant sidebar menus in one go
+React Router v7 in **CSR mode** (`ssr: false` in `react-router.config.ts`). Routes defined in `app/routes.ts` with nested layout pattern:
+
+```typescript
+// app/routes.ts structure
+layout('./layouts/MainLayout/MainLayout.tsx', [
+  index('./routes/home.tsx'),
+  layout('./layouts/ProtectedLayout/ProtectedLayout.tsx', [
+    route('profile', './routes/profile.tsx')
+    // Protected routes...
+  ])
+])
+```
+
+**Layout Hierarchy**:
+
+- `MainLayout`: Public header/footer wrapper for all top-level routes
+- `ProtectedLayout`: Auth gate—waits for `authReady` flag, redirects to `/login` if unauthenticated (pass `from` URL param for post-login redirect)
+- `AdminLayout`: Admin sidebar nav; update `NAV_ITEMS` array when adding admin routes
+- `AuthLayout`: Split-panel auth screens (login/register); expose `handle.authPanel` to customize left panel
+
+**Adding Routes Checklist**:
+
+1. Add to `app/routes.ts` under appropriate layout
+2. Create route file in `app/routes/<name>.tsx` or `app/routes/<name>/<name>-page.tsx`
+3. Update `app/constants/path.ts` PATH constants
+4. Update relevant layout nav (MainLayout header, AdminLayout sidebar)
 
 ### Authentication & Session Management
 
-- **Auth flow**: `AuthContext` (`app/contexts/AuthContext.tsx`) manages `isAuthenticated`, `profile`, `userName`, `authReady` state
-  - Uses localStorage with cross-tab sync via `storage` events
-  - Always call `app/utils/auth.ts` helpers (`getAccessTokenFromLS`, `setAccessTokenToLS`, etc.) instead of direct `localStorage` access
-- **Silent refresh**: `PersistLogin.tsx` runs on mount; checks token expiry, calls `authApi.refreshToken(refreshToken)`, updates context
-- **Token refresh on 401**: `app/lib/axios.ts` interceptor queues requests during refresh, retries with new token, redirects to login on failure
-- **Session timeout**: `useSessionManager.ts` tracks user activity (mouse, keyboard, scroll); extends timeout on `session:refreshed` or `api:success` custom events; fires `onTimeout` callback when idle
-- **Auth error handling**: Wrap components in `AuthErrorBoundary` (`app/components/errors/AuthErrorBoundary.tsx`) to catch 401/403 errors; auto-clears tokens and redirects to login if `autoRedirectToLogin={true}`
+**Auth State**: Centralized in `AuthContext` (`app/contexts/AuthContext.tsx`)
+
+- `isAuthenticated`, `profile`, `userName`, `authReady` (loading flag for protected routes)
+- Multi-tab sync via `storage` events and custom `LocalStorageEventTarget`
+- Always use `app/utils/auth.ts` helpers (`getAccessTokenFromLS`, `setAccessTokenToLS`, `clearAllAuth`) instead of direct `localStorage` access for SSR safety
+
+**Auth Flow**:
+
+1. `PersistLogin.tsx` runs on mount; checks token expiry, calls `authApi.refreshToken(refreshToken)` if expired
+2. `app/lib/axios.ts` interceptor auto-refreshes on 401 with **request queueing** to prevent race conditions:
+   ```typescript
+   // Lock mechanism in axios.ts
+   let isRefreshing = false
+   let waiters: Array<(token: string) => void> = []
+   ```
+3. On refresh failure, clears auth and redirects to `/login?from=<currentPath>`
+
+**Session Timeout**: `useSessionManager.ts` tracks activity (mouse, keyboard, scroll); extends timeout on `session:refreshed` or `api:success` custom events; calls `onTimeout` when idle
+
+**Error Boundaries**: Wrap protected routes in `AuthErrorBoundary` (`app/components/errors/AuthErrorBoundary.tsx`) to catch 401/403 errors and auto-redirect to login if `autoRedirectToLogin={true}`
+
+**SSR Safety**: All auth utils check `typeof window !== 'undefined'` before accessing `localStorage`, `document`, or `window`
 
 ### HTTP & State Management
 
-- **API client**: `app/lib/axios.ts` Axios instance with `VITE_API_URL` base, JWT Bearer header, 401 refresh logic
-- **API modules**: `app/apis/*.api.ts` export async functions that return `response.data`; follow patterns in `auth.api.ts` and `project.api.ts`
-- **React Query**: All server state via `@tanstack/react-query`
-  - Follow naming in `app/hooks/useProjects.ts`: scoped keys `['projects', userId, role]`, invalidate on mutations
-  - Use `staleTime`, `enabled`, `retry` options consistently
-  - Invalidate queries in mutation `onSuccess` (e.g., `queryClient.invalidateQueries({ queryKey: ['projects'] })`)
+**Axios Client** (`app/lib/axios.ts`):
+
+- Base URL from `VITE_API_URL`, JWT Bearer header auto-attached
+- Interceptor queues requests during token refresh to prevent duplicate refresh calls
+- Retry original request after successful refresh
+
+**API Layer Pattern** (`app/apis/*.api.ts`):
+
+```typescript
+// Always export async functions that return response.data
+export const userApi = {
+  getUserById: async (userId: string): Promise<UserProfileResponse> => {
+    const response = await axiosClient.get<UserProfileResponse>(`/api/users/${userId}`)
+    return response.data
+  }
+}
+```
+
+**React Query Patterns** (`app/hooks/use*.ts`):
+
+- Scoped query keys: `['projects', userId, role]`, `['user-profile', userId]`
+- Use `staleTime`, `enabled`, `retry` consistently
+- Invalidate in mutation `onSuccess`:
+  ```typescript
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['projects'] })
+    queryClient.invalidateQueries({ queryKey: ['project'] })
+  }
+  ```
+- Polling pattern: `refetchInterval` with conditional logic (see `useGetComplaint`)
 
 ### Real-Time Communication (SignalR)
 
-- **Chat**: `app/lib/signalr.ts` singleton service connects to `/hubs/chat` with JWT; manages message events, typing indicators, online status
-  - `ChatContext` (`app/contexts/ChatContext.tsx`) wraps app; provides `conversations`, `messages`, `sendMessage`, `joinConversation`, etc.
-  - Local cache in `app/utils/chat-storage.ts` (localStorage with sync); update both when changing `Message` or `Conversation` types
-- **Video calls**: Same SignalR hub; `VideoCallContext` handles WebRTC (ICE servers, offer/answer/candidate flow); study before modifying call UI
+**SignalR Service** (`app/lib/signalr.ts`):
+
+- Singleton `signalRChatService` connects to `/hubs/chat` with JWT
+- Auto-reconnect with exponential backoff (max 5 attempts)
+- Registers server event handlers: `MessageCreated`, `UserTyping`, `CallOffer`, etc.
+
+**Chat Context** (`app/contexts/ChatContext.tsx`):
+
+- Wraps app in `root.tsx`; provides `conversations`, `messages`, `sendMessage`, `joinConversation`, etc.
+- **Local cache** via `app/utils/chat-storage.ts` (localStorage with SSR guards); sync state across tabs
+- Always update both SignalR state and localStorage when modifying `Message` or `Conversation` types
+
+**Video Calls**:
+
+- Same SignalR hub; `VideoCallContext` handles WebRTC (offer/answer/candidate flow, ICE servers)
+- Study `app/lib/signalr.ts` call methods before modifying call UI
+
+**Adding Real-Time Features**:
+
+1. Add event handler to `signalRChatService.registerClientHandlers()` in `signalr.ts`
+2. Update `ChatContext` or `VideoCallContext` to consume events
+3. Update TypeScript types in `app/types/chat.type.ts` or `app/types/call.type.ts`
 
 ### Forms & Validation
 
-- **Forms**: `react-hook-form` + `zod` schemas in `app/lib/validations/**` (e.g., `post-project.schema.ts`)
-- **UI wrappers**: Use `Form`, `FormField`, `FormItem`, `FormLabel`, `FormControl`, `FormMessage` from `app/components/ui/form.tsx` for consistent error rendering
-- **Multi-step forms**: See `RecruitmentFormContext` for sessionStorage persistence; call `resetForm()` after submission
+**Standard Pattern** (Zod + React Hook Form):
+
+```typescript
+// 1. Define schema in app/lib/validations/<feature>.schema.ts
+export const profileFormSchema = z.object({
+  name: z.string().min(2, { message: 'Họ và tên phải có ít nhất 2 ký tự' }),
+  email: z.string().email({ message: 'Email không hợp lệ' })
+})
+export type ProfileFormValues = z.infer<typeof profileFormSchema>
+
+// 2. Use in component
+const { register, handleSubmit, formState: { errors } } = useForm<ProfileFormValues>({
+  resolver: zodResolver(profileFormSchema)
+})
+
+// 3. Consistent error UI
+<Input {...register('name')} aria-invalid={!!errors.name} />
+{errors.name && <p className='text-sm text-red-600 mt-1'>{errors.name.message}</p>}
+```
+
+**Multi-Step Forms**: See `RecruitmentFormContext` for sessionStorage persistence pattern; call `resetForm()` after successful submission
 
 ### UI Components & Styling
 
-### UI Components & Styling
+**Shared Components** (`app/components/shared/`):
 
-- **Primitives**: shadcn-inspired components in `app/components/ui/`; use `cn()` helper from `app/lib/utils.ts` for conditional classes
-- **Feature folders**: Colocate related UI in `app/components/Home/`, `app/components/profile/`, `app/components/manage-project/`, etc.
-- **Shared components**: Reusable page-level components in `app/components/shared/` (PageHeader, UnifiedStatsCards, FilterTabs)
-  - Use these for consistent layouts across management pages (manage-projects, manage-post-project-new)
-  - Stats cards follow gradient accent pattern with icons in top-right corner
-  - Filter tabs show count badges and use rounded-full pill style
-- **Theming**: `next-themes` in `root.tsx` for dark mode; tokens in `app/app.css` and Tailwind config
-- **Toasts**: `toast.success()` / `toast.error()` from Sonner (`~/components/ui/sonner.tsx`)
-- **Vietnamese UI**: Match existing Vietnamese copy in components and error messages
-- **Layout consistency**: Management pages use same structure: header section with badge/title/description/action button, stats cards grid, filter tabs, content section
+- `PageHeader`: Badge + title + description + action button for management pages
+- `UnifiedStatsCards`: Stats grid with gradient accents and icons (see `StatsCardConfig` interface)
+- `FilterTabs`: Pill-style tabs with count badges
+
+**Management Page Layout Pattern**:
+
+```tsx
+<main className='min-h-screen bg-gradient-to-br from-background via-background to-muted/30 py-10'>
+  <div className='mx-auto flex w-full max-w-[1200px] flex-col gap-8 px-4 md:px-6 lg:px-10'>
+    <section className='rounded-3xl border border-border/40 bg-card/95 p-6 shadow-md backdrop-blur-sm md:p-10'>
+      <PageHeader badge='...' title='...' description='...' actionLabel='...' actionHref={PATH.x} />
+      <div className='mt-8 space-y-6'>
+        <UnifiedStatsCards cards={statsCards} isLoading={isLoading} />
+        <FilterTabs options={filterOptions} activeFilter={filter} onFilterChange={setFilter} />
+      </div>
+    </section>
+    <section className='rounded-3xl border border-border/40 bg-card/95 p-6 shadow-md md:p-8'>{/* Content */}</section>
+  </div>
+</main>
+```
+
+**Design Tokens**:
+
+- Container: `max-w-[1200px] mx-auto`
+- Border radius: `rounded-3xl` (sections), `rounded-2xl` (cards), `rounded-full` (buttons)
+- Spacing: `gap-8` (sections), `gap-6` (internal), `p-6 md:p-10` (header), `p-6 md:p-8` (content)
+- Typography: `text-3xl md:text-4xl` (page titles), `text-xl` (card titles), `text-xs uppercase tracking-wide text-muted-foreground` (labels)
+
+**Theming**: `next-themes` in `root.tsx` for dark mode; tokens in `app/app.css` and Tailwind config
+
+**UI Library**: shadcn/ui components only (`app/components/ui/`); use `cn()` helper for conditional classes; **no MUI, Ant Design, or other libraries**
+
+**Vietnamese UI**: All user-facing text in Vietnamese; match existing copy in components and error messages
 
 ### Environment & Configuration
 
-- **Required env vars**: `VITE_API_URL`, `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_MESSAGING_SENDER_ID`, `VITE_FIREBASE_APP_ID`
-- **Path alias**: `~/*` resolves to `app/*` (see `tsconfig.json`, `vite.config.ts`)
-- **Firebase**: Google OAuth provider setup in `app/lib/firebase.ts`; adjust provider params there (e.g., `prompt: 'select_account'`)
+**Required Env Vars** (`.env`):
+
+- `VITE_API_URL`: Backend API base URL
+- `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_MESSAGING_SENDER_ID`, `VITE_FIREBASE_APP_ID`: Google OAuth
+
+**Path Alias**: `~/*` resolves to `app/*` (configured in `tsconfig.json`, `vite.config.ts`)
+
+**Firebase**: Google OAuth provider in `app/lib/firebase.ts`; adjust provider params there (e.g., `prompt: 'select_account'`)
 
 ## Development Workflows
 
-### Running the App
+### Running & Building
 
-- `npm run dev`: React Router dev server at `http://localhost:3000`
-- `npm run build`: Generates `build/client/` (static) and `build/server/` (SSR)
-- `npm run start`: Serves production build via `react-router-serve`
+- `npm run dev`: React Router dev server at `http://localhost:5173` (Vite default)
+- `npm run build`: Generates `build/client/` (static assets) and `build/server/` (unused in CSR mode)
+- `npm run start`: Production server via `react-router-serve`
+- `npm run start:csr`: Vite preview for client-only debugging
+
+### Code Quality
+
 - `npm run typecheck`: Runs `react-router typegen` + `tsc` for type safety
-- `npm run lint` / `npm run lint:fix`: ESLint checks
-- `npm run prettier` / `npm run prettier:fix`: Code formatting (2-space, single quotes, no semicolons, 120-char width)
+- `npm run lint` / `npm run lint:fix`: ESLint (React hooks, refresh rules)
+- `npm run prettier` / `npm run prettier:fix`: 2-space indent, single quotes, no semicolons, 120-char width
 
-### Pre-Deployment Checks
+### Pre-Deployment
 
-- `npm run verify-deploy`: Runs `verify-deployment.mjs` to check package.json, build output, and optional dependencies before Vercel deploy
-- Deployment: Vercel reads `vercel.json` for build config; outputs to `build/client/`; SSR is disabled in `react-router.config.ts` (`ssr: false`)
+- `npm run verify-deploy`: Runs `verify-deployment.mjs` to check package.json, build output, optional dependencies
+- Deployment: Vercel (`vercel.json` config); outputs to `build/client/`; SSR disabled in `react-router.config.ts`
 
-### Adding Features
+### Adding Features Checklist
 
-1. **New route**: Add to `app/routes.ts`, create `app/routes/<name>.tsx`, update `PATH` constants, add to relevant layout nav
-2. **New API**: Create `app/apis/<domain>.api.ts`, export typed functions, wire to React Query hook in `app/hooks/use<Domain>.ts`
-3. **New protected route**: Nest under `ProtectedLayout` in `app/routes.ts`; component auto-receives auth context
-4. **New form**: Define zod schema in `app/lib/validations/`, use `useForm` + shadcn form components
-5. **New real-time feature**: Register SignalR handler in `signalRChatService.registerHandlers()`, update `ChatContext` or `VideoCallContext`
+**New Route**:
+
+1. Add to `app/routes.ts` under appropriate layout
+2. Create `app/routes/<name>/<name>-page.tsx`
+3. Update `app/constants/path.ts` PATH constants
+4. Add to layout nav (MainLayout header, AdminLayout sidebar)
+
+**New API**:
+
+1. Create `app/apis/<domain>.api.ts` with typed async functions
+2. Define response/request types in `app/types/<domain>.type.ts`
+3. Wire to React Query hook in `app/hooks/use<Domain>.ts`
+4. Follow naming: `queryKey: ['<domain>', <id>, <param>]`, invalidate on mutations
+
+**New Protected Route**:
+
+1. Nest under `ProtectedLayout` in `app/routes.ts`
+2. Wrap in `AuthErrorBoundary` if handling sensitive auth errors
+
+**New Form**:
+
+1. Define Zod schema in `app/lib/validations/<feature>.schema.ts`
+2. Use `react-hook-form` + `zodResolver`
+3. Apply consistent error UI pattern (see Forms & Validation above)
+
+**New Real-Time Feature**:
+
+1. Add event handler to `signalRChatService.registerClientHandlers()` in `signalr.ts`
+2. Update `ChatContext` or `VideoCallContext` to consume events
+3. Update types in `app/types/chat.type.ts` or `app/types/call.type.ts`
 
 ## Project-Specific Conventions
 
-- **TypeScript**: Strict types everywhere; define interfaces in `app/types/*.type.ts`; add enums for status/role constants
-- **SSR safety**: Always check `typeof window !== 'undefined'` before accessing `localStorage`, `document`, or `window` APIs in contexts/utilities
-- **Event-driven sync**: Use custom events (`session:refreshed`, `api:success`, `auth:logout`) to coordinate auth state across tabs and session timeouts
-- **Component naming**: PascalCase for components, camelCase for utilities, UPPER_SNAKE_CASE for constants, hooks prefixed with `use`
-- **File structure**: Colocate route components (`<route>-page.tsx`), loaders/actions (`data.ts`), and use `~` alias for app imports
-- **Testing**: No automated tests yet; rely on `typecheck`, `lint`, and manual QA; when adding tests, use Vitest + React Testing Library
+**Naming**:
 
-## Key Files to Reference
+- Components: PascalCase (`ProfileHeader`, `PageHeader`)
+- Hooks: `use` prefix (`useProjects`, `useAuth`)
+- Types: PascalCase interfaces (`User`, `Message`, `StatsCardConfig`)
+- Constants: UPPER_SNAKE_CASE (`PATH`, `AUTH_CHANGE_EVENT`)
+- Utilities: camelCase (`getAccessTokenFromLS`, `cn`)
+
+**File Structure**:
+
+- Route components: `app/routes/<name>/<name>-page.tsx`
+- Loaders/actions: `app/routes/<name>/data.ts` (if needed)
+- Use `~` alias for app imports to avoid deep relatives
+
+**TypeScript**:
+
+- Strict types everywhere; no `any` (use `unknown` if needed)
+- Define interfaces in `app/types/*.type.ts`
+- Add enums for status/role constants (see `app/types/user.type.ts` for `UserRole`, `UserStatus`)
+
+**SSR Safety**:
+
+- Always check `typeof window !== 'undefined'` before accessing `localStorage`, `document`, `window` in contexts/utilities
+- Use guards in `app/utils/auth.ts`, `app/utils/chat-storage.ts` as reference
+
+**Event-Driven Sync**:
+
+- Custom events for cross-tab state sync: `session:refreshed`, `api:success`, `auth:logout`
+- Listen to `storage` events in contexts for multi-tab auth state
+
+**Testing**:
+
+- No automated tests yet; rely on `npm run typecheck`, `npm run lint`, manual QA
+- When adding tests: use Vitest + React Testing Library in `app/__tests__` or adjacent `*.test.tsx`
+
+## Key Files Reference
+
+**Core Architecture**:
 
 - `app/root.tsx`: App shell with QueryClient, AuthProvider, ChatProvider, VideoCallProvider, ThemeProvider
-- `app/lib/axios.ts`: HTTP client with 401 refresh queue
-- `app/contexts/AuthContext.tsx`: Auth state management
-- `app/utils/auth.ts`: Token storage helpers, JWT parsing
-- `app/hooks/useProjects.ts`: React Query patterns for projects domain
+- `app/routes.ts`: Route definitions with nested layouts
+- `react-router.config.ts`: CSR mode (`ssr: false`), Vercel preset
+
+**Auth & HTTP**:
+
+- `app/lib/axios.ts`: HTTP client with 401 refresh queue and lock mechanism
+- `app/contexts/AuthContext.tsx`: Auth state management with multi-tab sync
+- `app/utils/auth.ts`: Token storage helpers (SSR-safe), JWT parsing
+- `app/components/PersistLogin.tsx`: Silent refresh on mount
+
+**State Management**:
+
+- `app/hooks/useProjects.ts`: React Query pattern reference (scoped keys, invalidation)
+- `app/hooks/useAuth.ts`: Auth mutations (login, register, logout)
+
+**Real-Time**:
+
 - `app/lib/signalr.ts`: SignalR client for chat and video calls
-- `AUTH_FLOW_REPORT.md`, `CODE_QUALITY_AUDIT.md`: Detailed auth flow and quality guidelines
+- `app/contexts/ChatContext.tsx`: Chat state, message handling, local cache
+- `app/utils/chat-storage.ts`: localStorage cache with SSR guards
+
+**UI Patterns**:
+
+- `app/components/shared/`: PageHeader, UnifiedStatsCards, FilterTabs (management page building blocks)
+- `app/lib/validations/`: Zod schemas for forms
+- `app/components/ui/`: shadcn/ui primitives
+
+**Documentation**:
+
+- `AUTH_FLOW_REPORT.md`: Detailed auth flow analysis and security checklist
+- `CODE_QUALITY_AUDIT.md`: TypeScript, naming, validation, error boundary standards
+- `UI_UNIFICATION_REPORT.md`: Shared component patterns, design tokens, layout structure
+- `AGENTS.md`: Repository-wide coding conventions and guidelines

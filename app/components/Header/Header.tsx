@@ -1,6 +1,6 @@
 import { Link } from 'react-router'
 import { Button } from '~/components/ui/button'
-import logo from '~/assets/logo.svg'
+import logo from '~/assets/logo.png'
 import { Input } from '~/components/ui/input'
 import { BellDot, MessageSquareDot, Search, User, Wallet, Crown } from 'lucide-react'
 import { PATH } from '~/constants/path'
@@ -55,8 +55,8 @@ export function Header() {
       <div className='container mx-auto px-4 py-2'>
         <div className='flex items-center justify-between'>
           <div className='flex items-center space-x-8'>
-            <Link to='/'>
-              <img src={logo} alt='Logo' className='h-12 w-auto md:h-14 object-fill inline-block' />
+            <Link to='/' className='inline-block h-14 w-38 overflow-hidden'>
+              <img src={logo} alt='Logo' className='h-full w-full object-cover object-center align-middle' />
             </Link>
             <nav className='hidden md:flex items-center space-x-6'>
               {profile?.role !== UserRole.FREELANCER && (
