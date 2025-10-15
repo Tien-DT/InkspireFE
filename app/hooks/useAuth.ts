@@ -84,9 +84,7 @@ export const useLogin = () => {
           description: 'Vui lòng kiểm tra email và xác thực tài khoản của bạn.'
         })
       } else if (err?.response?.status === 401) {
-        toast.error('Đăng nhập thất bại', {
-          description: 'Email hoặc mật khẩu không đúng.'
-        })
+        toast.error('Sai email hoặc mật khẩu')
       } else {
         toast.error('Đã có lỗi xảy ra', {
           description: errorMessage || 'Vui lòng thử lại sau.'

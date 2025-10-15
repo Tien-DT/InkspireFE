@@ -16,6 +16,8 @@ import {
 import { useAuth } from '~/contexts/AuthContext'
 import { toast } from 'sonner'
 import type { AuthError, GoogleLoginRequest, GoogleLoginResponse } from '~/types/auth.type'
+import { UserRole } from '~/types/user.type'
+import { RoleSelectionDialog } from './role-selection-dialog'
 
 interface GoogleLoginButtonProps {
   rememberMe?: boolean
@@ -25,6 +27,12 @@ interface GoogleLoginButtonProps {
 
 export function GoogleLoginButton({ rememberMe = false, onSuccess, onError }: GoogleLoginButtonProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [showRoleDialog, setShowRoleDialog] = useState(false)
+  const [pendingGoogleAuth, setPendingGoogleAuth] = useState<{
+    idToken: string
+    firstName?: string
+    lastName?: string
+  } | null>(null)
   const navigate = useNavigate()
   const { refreshAuth } = useAuth()
 
@@ -79,11 +87,38 @@ export function GoogleLoginButton({ rememberMe = false, onSuccess, onError }: Go
       }
     },
     onError: (error: AuthError) => {
-      console.error('Google login error:', error)
+      console.error('Google login error FULL:', JSON.stringify(error, null, 2))
+      console.log('Error response data:', error?.response?.data)
+      console.log('Error status:', error?.response?.status)
+
+      // Check ROLE_REQUIRED in any part of the error
+      const errorString = JSON.stringify(error)
+      if (errorString.includes('ROLE_REQUIRED')) {
+        console.log('⚠️ ROLE_REQUIRED found in error, showing dialog')
+        setShowRoleDialog(true)
+        setIsLoading(false)
+        return
+      }
 
       // Xử lý các loại lỗi cụ thể từ backend
       if (error?.response?.status === 400) {
-        if (error?.response?.data?.error === 'INVALID_CREDENTIALS') {
+        // Check if this is a role required error for new user
+        const errorCode = error?.response?.data?.error
+        const errorMessage = error?.response?.data?.message
+        
+        console.log('Error code:', errorCode)
+        console.log('Error message:', errorMessage)
+        
+        if (errorCode === 'ROLE_REQUIRED' || 
+            (errorCode === 'google_auth_failed' && errorMessage?.includes('ROLE_REQUIRED'))) {
+          console.log('ROLE_REQUIRED detected, showing dialog')
+          // Don't show error toast, just open role selection dialog
+          setShowRoleDialog(true)
+          setIsLoading(false)
+          return
+        }
+        
+        if (errorCode === 'INVALID_CREDENTIALS') {
           toast.error('Email hoặc mật khẩu không đúng')
         } else if (error?.response?.data?.error === 'EMAIL_NOT_VERIFIED') {
           toast.error('Email chưa được xác thực', {
@@ -124,6 +159,9 @@ export function GoogleLoginButton({ rememberMe = false, onSuccess, onError }: Go
       const firstName = nameParts[0] || undefined
       const lastName = nameParts.slice(1).join(' ') || undefined
 
+      // Store pending auth info in case role selection is needed
+      setPendingGoogleAuth({ idToken, firstName, lastName })
+
       // Call backend API with the ID token
       googleLoginMutation.mutate({
         idToken,
@@ -159,27 +197,53 @@ export function GoogleLoginButton({ rememberMe = false, onSuccess, onError }: Go
     }
   }
 
+  const handleRoleSelected = (role: UserRole) => {
+    if (pendingGoogleAuth) {
+      googleLoginMutation.mutate({
+        idToken: pendingGoogleAuth.idToken,
+        firstName: pendingGoogleAuth.firstName,
+        lastName: pendingGoogleAuth.lastName,
+        rememberMe,
+        role
+      })
+      setPendingGoogleAuth(null)
+    }
+  }
+
+  const handleDialogClose = () => {
+    setShowRoleDialog(false)
+    setPendingGoogleAuth(null)
+    setIsLoading(false)
+  }
+
   const isButtonLoading = isLoading || googleLoginMutation.isPending
 
   return (
-    <Button
-      type='button'
-      variant='outline'
-      className='w-full justify-center gap-3 rounded-xl border-muted/40 bg-background text-sm font-semibold shadow-sm hover:bg-slate-50'
-      onClick={handleGoogleLogin}
-      disabled={isButtonLoading}
-    >
-      {isButtonLoading ? (
-        <>
-          <div className='h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600' />
-          Đang đăng nhập...
-        </>
-      ) : (
-        <>
-          <GoogleIcon className='size-5' />
-          Đăng nhập với Google
-        </>
-      )}
-    </Button>
+    <>
+      <Button
+        type='button'
+        variant='outline'
+        className='w-full justify-center gap-3 rounded-xl border-muted/40 bg-background text-sm font-semibold shadow-sm hover:bg-slate-50'
+        onClick={handleGoogleLogin}
+        disabled={isButtonLoading}
+      >
+        {isButtonLoading ? (
+          <>
+            <div className='h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600' />
+            Đang đăng nhập...
+          </>
+        ) : (
+          <>
+            <GoogleIcon className='size-5' />
+            Đăng nhập với Google
+          </>
+        )}
+      </Button>
+      <RoleSelectionDialog
+        open={showRoleDialog}
+        onClose={handleDialogClose}
+        onSelectRole={handleRoleSelected}
+      />
+    </>
   )
 }
