@@ -40,7 +40,7 @@ export interface TimelineItem {
   id: string
   title: string
   description: string
-  status: 'pending-payment' | 'paid' | 'completed' | 'pending-confirmation'
+  status: 'pending-payment' | 'paid' | 'completed' | 'pending-confirmation' | 'pending-revision'
   createdDate: string
   budget: number
   isPaid: boolean
@@ -83,7 +83,10 @@ const mapMilestoneToTimeline = (milestone: Milestone): TimelineItem => {
     status = 'paid' // Đã thanh toán
   else if (milestone.status === 3)
     status = 'completed' // Đã hoàn thành
-  else if (milestone.status === 4) status = 'pending-confirmation' // Chờ xác nhận
+  else if (milestone.status === 4)
+    status = 'pending-confirmation' // Chờ xác nhận
+  else if (milestone.status === 5)
+    status = 'pending-revision' // Chờ sửa lại
 
   return {
     id: milestone.id,
@@ -92,7 +95,7 @@ const mapMilestoneToTimeline = (milestone: Milestone): TimelineItem => {
     status,
     createdDate: milestone.createdAt,
     budget: milestone.budget,
-    isPaid: milestone.status === 2 || milestone.status === 3 || milestone.status === 4,
+    isPaid: milestone.status === 2 || milestone.status === 3 || milestone.status === 4 || milestone.status === 5,
     fileUrl: milestone.fileUrl,
     milestoneNumber: milestone.milestoneNumber
   }
@@ -130,14 +133,34 @@ function ProjectDetailContent() {
   const [currentTimelineForComplain, setCurrentTimelineForComplain] = useState<TimelineItem | null>(null)
 
   const evaluateMilestoneFileByUrl = useEvaluateMilestoneFileByUrl({
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       setEvaluationResult(data.data)
       setIsResultDialogOpen(true)
-      if (data.data.meetsRequirements) {
-        // Find the timeline that was complained about
-        if (currentTimelineForComplain) {
-          handleCompleteTimeline(currentTimelineForComplain)
-          toast.success('Milestone tự động được hoàn thành do đạt yêu cầu.')
+      
+      // Process complaint based on AI evaluation
+      if (currentTimelineForComplain) {
+        try {
+          if (data.data.meetsRequirements) {
+            // If AI evaluates that the product meets requirements, auto-complete milestone
+            await updateMilestone.mutateAsync({
+              milestoneId: currentTimelineForComplain.id,
+              payload: {
+                status: 3 // Completed
+              }
+            })
+            toast.success('Sản phẩm đáp ứng yêu cầu. Giai đoạn đã được tự động hoàn thành.')
+          } else {
+            // If AI evaluates that the product has issues, request revision
+            await updateMilestone.mutateAsync({
+              milestoneId: currentTimelineForComplain.id,
+              payload: {
+                status: 5 // Pending revision
+              }
+            })
+            toast.success('Sản phẩm chưa đáp ứng yêu cầu. Đã yêu cầu freelancer nộp lại.')
+          }
+        } catch (error) {
+          toast.error('Không thể cập nhật trạng thái khiếu nại.')
         }
       }
     },
@@ -411,6 +434,8 @@ function ProjectDetailContent() {
         return { icon: Clock, color: 'bg-yellow-500', badge: 'bg-yellow-100 text-yellow-800', label: 'Chờ thanh toán' }
       case 'pending-confirmation':
         return { icon: Clock, color: 'bg-orange-500', badge: 'bg-orange-100 text-orange-800', label: 'Chờ xác nhận' }
+      case 'pending-revision':
+        return { icon: X, color: 'bg-red-500', badge: 'bg-red-100 text-red-800', label: 'Chờ sửa lại' }
       default:
         return { icon: Clock, color: 'bg-gray-300', badge: 'bg-gray-100 text-gray-600', label: 'Chờ thanh toán' }
     }
@@ -896,6 +921,14 @@ function ProjectDetailContent() {
                                 </div>
                               )}
 
+                              {/* Show "Chờ freelancer sửa lại" when status is pending-revision */}
+                              {timeline.status === 'pending-revision' && (
+                                <div className='flex items-center gap-2 text-red-600 text-base font-semibold'>
+                                  <X className='h-5 w-5' />
+                                  Chờ freelancer sửa lại
+                                </div>
+                              )}
+
                               {/* Show completion badge when status is 'completed' (status 3) */}
                               {isCompleted && (
                                 <div className='flex items-center gap-2 text-green-600 text-base font-semibold'>
@@ -930,6 +963,31 @@ function ProjectDetailContent() {
                             <div className='flex items-center gap-2 text-orange-600 text-base font-semibold'>
                               <Clock className='h-5 w-5' />
                               Chờ xác nhận
+                            </div>
+                          )}
+
+                          {isFreelancer && timeline.status === 'pending-revision' && (
+                            <div className='flex flex-col gap-3'>
+                              <div className='flex items-center gap-2 text-red-600 text-base font-semibold'>
+                                <X className='h-5 w-5' />
+                                Khách hàng không chấp nhận file, vui lòng nộp lại (Chờ sửa lại)
+                              </div>
+                              <div className='flex items-center gap-2'>
+                                <Button
+                                  size='sm'
+                                  variant='outline'
+                                  onClick={() => {
+                                    setCurrentMilestone(timeline)
+                                    setIsEvaluating(true)
+                                  }}
+                                >
+                                  Kiểm tra sản phẩm bằng AI
+                                </Button>
+                                <Input type='file' accept='.pdf,.jpg,.jpeg,.png,.svg' onChange={handleFileChange} />
+                                <Button onClick={() => handleSubmitFile(timeline.id)} disabled={!selectedFile}>
+                                  Nộp lại file
+                                </Button>
+                              </div>
                             </div>
                           )}
 
