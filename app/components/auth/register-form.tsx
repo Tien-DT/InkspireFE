@@ -198,10 +198,7 @@ export function RegisterForm() {
                     Chọn vai trò của bạn
                   </option>
                   <option value='client'>Khách hàng</option>
-                  <option value='designer'>Nhà thiết kế</option>
-                  <option value='developer'>Lập trình viên</option>
-                  <option value='marketer'>Marketing</option>
-                  <option value='project-manager'>Quản lý dự án</option>
+                  <option value='freelancer'>Freelancer</option>
                 </select>
                 <IconChevronDown className='pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/70' />
               </div>
