@@ -599,27 +599,9 @@ function ProjectDetailContent() {
             </div>
           </div>
 
-          <div>
-            <h3 className='text-lg font-semibold text-gray-900 mb-4'>Tệp đính kèm</h3>
-            <div className='space-y-3'>
-              <div className='flex items-center justify-between p-3 bg-white rounded-lg border'>
-                <div className='flex items-center'>
-                  <FileText className='h-5 w-5 text-red-500 mr-3' />
-                  <span className='text-sm text-gray-900'>Yêu cầu kỹ thuật.pdf</span>
-                </div>
-                <Download className='h-4 w-4 text-gray-400' />
-              </div>
-
-              <div className='flex items-center justify-between p-3 bg-white rounded-lg border'>
-                <div className='flex items-center'>
-                  <ImageIcon className='h-5 w-5 text-green-500 mr-3' />
-                  <span className='text-sm text-gray-900'>Mockup thiết kế.jpg</span>
-                </div>
-                <Download className='h-4 w-4 text-gray-400' />
-              </div>
-            </div>
+         
           </div>
-        </div>
+       
 
         {/* Main Content Area */}
         <div className='flex-1 p-6'>
