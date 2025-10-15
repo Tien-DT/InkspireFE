@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import {
   Calendar,
   DollarSign,
@@ -10,7 +10,8 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  Loader2
 } from 'lucide-react'
 import { Card, CardContent, CardHeader } from '~/components/ui/card'
 import { Badge } from '~/components/ui/badge'
@@ -20,8 +21,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import { Avatar, AvatarFallback } from '~/components/ui/avatar'
 import { format } from 'date-fns'
 import { vi } from 'date-fns/locale'
+import { useAuth } from '~/contexts/AuthContext'
+import { useProposalsByFreelancer } from '~/hooks/useProposals'
+import type { Proposal, ProposalStatus as ProposalStatusEnum } from '~/types/proposal.type'
 
-// Mock data - Danh sách công việc mà freelancer đã ứng tuyển
 interface JobApplication {
   id: string
   jobId: string
@@ -48,155 +51,81 @@ interface JobApplication {
   estimatedTime: string
 }
 
-const mockApplications: JobApplication[] = [
-  {
-    id: '1',
-    jobId: 'job-001',
-    jobTitle: 'Thiết kế Logo cho Startup công nghệ AI',
-    companyName: 'TechVision AI',
-    companyLogo: '',
-    location: 'Hà Nội, Việt Nam',
-    budget: {
-      min: 5000000,
-      max: 10000000,
-      currency: 'VND'
-    },
-    appliedDate: '2024-10-01',
-    status: 'pending',
-    jobDescription:
-      'Chúng tôi đang tìm kiếm một designer tài năng để thiết kế logo và bộ nhận diện thương hiệu cho startup AI. Logo cần thể hiện sự hiện đại, công nghệ và đáng tin cậy.',
-    requiredSkills: ['Logo Design', 'Brand Identity', 'Adobe Illustrator', 'Figma'],
-    projectDuration: '2-3 tuần',
-    teamSize: 1,
-    postedDate: '2024-09-25',
-    deadline: '2024-10-15',
-    categories: ['Design', 'Branding'],
-    coverLetter:
-      'Tôi có hơn 5 năm kinh nghiệm trong thiết kế logo và brand identity, đặc biệt là cho các công ty công nghệ. Tôi đã thiết kế logo cho nhiều startup trong lĩnh vực AI và blockchain.',
-    proposedRate: 8000000,
-    estimatedTime: '2 tuần'
-  },
-  {
-    id: '2',
-    jobId: 'job-002',
-    jobTitle: 'Phát triển Website thương mại điện tử',
-    companyName: 'ShopMart Vietnam',
-    companyLogo: '',
-    location: 'TP. Hồ Chí Minh',
-    budget: {
-      min: 20000000,
-      max: 35000000,
-      currency: 'VND'
-    },
-    appliedDate: '2024-09-28',
-    status: 'accepted',
-    jobDescription:
-      'Cần phát triển website thương mại điện tử hoàn chỉnh với tính năng giỏ hàng, thanh toán online, quản lý đơn hàng. Yêu cầu responsive design và tối ưu SEO.',
-    requiredSkills: ['React', 'Node.js', 'MongoDB', 'Payment Integration'],
-    projectDuration: '2-3 tháng',
-    teamSize: 2,
-    postedDate: '2024-09-20',
-    deadline: '2024-10-20',
-    categories: ['Web Development', 'E-commerce'],
-    coverLetter:
-      'Tôi đã phát triển nhiều website thương mại điện tử cho các doanh nghiệp vừa và nhỏ. Có kinh nghiệm tích hợp các cổng thanh toán như VNPay, MoMo.',
-    proposedRate: 30000000,
-    estimatedTime: '2.5 tháng'
-  },
-  {
-    id: '3',
-    jobId: 'job-003',
-    jobTitle: 'Thiết kế UI/UX cho ứng dụng Mobile Banking',
-    companyName: 'FinTech Solutions',
-    companyLogo: '',
-    location: 'Đà Nẵng',
-    budget: {
-      min: 15000000,
-      max: 25000000,
-      currency: 'VND'
-    },
-    appliedDate: '2024-09-25',
-    status: 'rejected',
-    jobDescription:
-      'Thiết kế giao diện và trải nghiệm người dùng cho ứng dụng mobile banking. Cần đảm bảo tính bảo mật, dễ sử dụng và hiện đại.',
-    requiredSkills: ['UI/UX Design', 'Figma', 'Mobile Design', 'Prototyping'],
-    projectDuration: '1-2 tháng',
-    teamSize: 1,
-    postedDate: '2024-09-18',
-    deadline: '2024-10-10',
-    categories: ['UI/UX', 'Mobile'],
-    coverLetter:
-      'Với kinh nghiệm thiết kế UI/UX cho các ứng dụng fintech, tôi hiểu rõ các yêu cầu về bảo mật và trải nghiệm người dùng trong lĩnh vực tài chính.',
-    proposedRate: 20000000,
-    estimatedTime: '1.5 tháng'
-  },
-  {
-    id: '4',
-    jobId: 'job-004',
-    jobTitle: 'Viết Content Marketing cho Website',
-    companyName: 'Digital Marketing Pro',
-    companyLogo: '',
-    location: 'Remote',
-    budget: {
-      min: 3000000,
-      max: 6000000,
-      currency: 'VND'
-    },
-    appliedDate: '2024-10-02',
-    status: 'pending',
-    jobDescription:
-      'Cần viết content cho website doanh nghiệp, blog posts, bài viết SEO. Yêu cầu có kiến thức về digital marketing và SEO.',
-    requiredSkills: ['Content Writing', 'SEO', 'Digital Marketing', 'Copywriting'],
-    projectDuration: '1 tháng',
-    teamSize: 1,
-    postedDate: '2024-09-29',
-    deadline: '2024-10-12',
-    categories: ['Content', 'Marketing'],
-    coverLetter:
-      'Tôi có 3 năm kinh nghiệm viết content marketing và SEO. Đã giúp nhiều website tăng traffic organic từ 50-200%.',
-    proposedRate: 5000000,
-    estimatedTime: '1 tháng'
-  },
-  {
-    id: '5',
-    jobId: 'job-005',
-    jobTitle: 'Phát triển ứng dụng React Native',
-    companyName: 'Mobile Apps Studio',
-    companyLogo: '',
-    location: 'Hà Nội',
-    budget: {
-      min: 25000000,
-      max: 40000000,
-      currency: 'VND'
-    },
-    appliedDate: '2024-09-30',
-    status: 'pending',
-    jobDescription:
-      'Phát triển ứng dụng mobile đa nền tảng bằng React Native. App quản lý công việc cá nhân với tính năng đồng bộ cloud.',
-    requiredSkills: ['React Native', 'Firebase', 'Redux', 'Mobile Development'],
-    projectDuration: '3-4 tháng',
-    teamSize: 2,
-    postedDate: '2024-09-26',
-    deadline: '2024-10-18',
-    categories: ['Mobile Development', 'React Native'],
-    coverLetter:
-      'Tôi có kinh nghiệm phát triển nhiều ứng dụng React Native với hơn 100k+ downloads trên cả iOS và Android.',
-    proposedRate: 35000000,
-    estimatedTime: '3 tháng'
+const mapProposalStatus = (status: number | null): 'pending' | 'accepted' | 'rejected' | 'withdrawn' => {
+  switch (status) {
+    case 0:
+      return 'pending'
+    case 1:
+      return 'accepted'
+    case 2:
+      return 'rejected'
+    case 3:
+      return 'withdrawn'
+    default:
+      return 'pending'
   }
-]
+}
+
+const transformProposalToApplication = (proposal: Proposal): JobApplication => {
+  const project = proposal.project
+  const recruitmentPost = project.recruitmentPost
+  const client = project.client
+
+  return {
+    id: proposal.id,
+    jobId: project.id,
+    jobTitle: project.title || recruitmentPost?.title || 'Không có tiêu đề',
+    companyName:
+      client
+        ? `${client.firstName || ''} ${client.lastName || ''}`.trim() || client.email
+        : recruitmentPost?.user
+          ? `${recruitmentPost.user.firstName || ''} ${recruitmentPost.user.lastName || ''}`.trim() ||
+            recruitmentPost.user.email
+          : 'N/A',
+    location: 'Việt Nam',
+    budget: {
+      min: project.budgetMin || 0,
+      max: project.budgetMax || 0,
+      currency: project.currency || 'VND'
+    },
+    appliedDate: proposal.createdAt,
+    status: mapProposalStatus(proposal.status),
+    jobDescription: project.description || recruitmentPost?.description || 'Không có mô tả',
+    requiredSkills:
+      recruitmentPost?.recruitmentPostSkills?.map((skill) => skill.skill.name) || ['Không có kỹ năng yêu cầu'],
+    projectDuration: recruitmentPost?.duration || 'Chưa xác định',
+    teamSize: parseInt(recruitmentPost?.teamSize || '1'),
+    postedDate: project.createdAt || '',
+    deadline: project.deadline || recruitmentPost?.postExpired || '',
+    categories:
+      recruitmentPost?.recruitmentPostCategories?.map((cat) => cat.recruitmentCategory.title) || ['Không có danh mục'],
+    coverLetter: proposal.coverLetter || 'Không có thư xin việc',
+    proposedRate: proposal.bidAmount || 0,
+    estimatedTime: proposal.bidDays ? `${proposal.bidDays} ngày` : 'Chưa xác định'
+  }
+}
 
 export default function ManageApplications() {
+  const { profile } = useAuth()
   const [selectedApplication, setSelectedApplication] = useState<JobApplication | null>(null)
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'accepted' | 'rejected'>('all')
+
+  // Fetch proposals from API
+  const { data: proposalsData, isLoading, error } = useProposalsByFreelancer(profile?.id)
+
+  // Transform API data to applications
+  const applications = useMemo(() => {
+    if (!proposalsData?.data) return []
+    return proposalsData.data.map(transformProposalToApplication)
+  }, [proposalsData])
 
   const handleViewApplication = (application: JobApplication) => {
     setSelectedApplication(application)
     setIsViewDialogOpen(true)
   }
 
-  const filteredApplications = mockApplications.filter((app) => {
+  const filteredApplications = applications.filter((app) => {
     if (filterStatus === 'all') return true
     return app.status === filterStatus
   })
@@ -225,10 +154,49 @@ export default function ManageApplications() {
   }
 
   const stats = {
-    total: mockApplications.length,
-    pending: mockApplications.filter((app) => app.status === 'pending').length,
-    accepted: mockApplications.filter((app) => app.status === 'accepted').length,
-    rejected: mockApplications.filter((app) => app.status === 'rejected').length
+    total: applications.length,
+    pending: applications.filter((app) => app.status === 'pending').length,
+    accepted: applications.filter((app) => app.status === 'accepted').length,
+    rejected: applications.filter((app) => app.status === 'rejected').length
+  }
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className='min-h-screen bg-background'>
+        <div className='container mx-auto px-4 py-8'>
+          <div className='mb-8'>
+            <h1 className='text-4xl font-bold text-gradient mb-2'>Quản lý ứng tuyển</h1>
+            <p className='text-gray-600'>Theo dõi và quản lý các công việc bạn đã ứng tuyển</p>
+          </div>
+          <div className='flex items-center justify-center py-16'>
+            <Loader2 className='h-12 w-12 animate-spin text-blue-500' />
+            <span className='ml-3 text-lg text-gray-600'>Đang tải dữ liệu...</span>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className='min-h-screen bg-background'>
+        <div className='container mx-auto px-4 py-8'>
+          <div className='mb-8'>
+            <h1 className='text-4xl font-bold text-gradient mb-2'>Quản lý ứng tuyển</h1>
+            <p className='text-gray-600'>Theo dõi và quản lý các công việc bạn đã ứng tuyển</p>
+          </div>
+          <Card>
+            <CardContent className='py-16 text-center'>
+              <AlertCircle className='h-16 w-16 text-red-500 mx-auto mb-4' />
+              <h3 className='text-lg font-semibold text-gray-900 mb-2'>Không thể tải dữ liệu</h3>
+              <p className='text-gray-600'>Đã xảy ra lỗi khi tải danh sách ứng tuyển. Vui lòng thử lại sau.</p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
   }
 
   return (

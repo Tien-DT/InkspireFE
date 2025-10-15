@@ -11,7 +11,6 @@ interface FilterTabsProps {
 const filters = [
   { value: 'all' as const, label: 'Tất cả' },
   { value: 'pending' as const, label: 'Đang chờ' },
-  { value: 'accepted' as const, label: 'Được chấp nhận' },
   { value: 'rejected' as const, label: 'Bị từ chối' }
 ]
 

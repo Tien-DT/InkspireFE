@@ -2,7 +2,7 @@ import { Card, CardContent } from '~/components/ui/card'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { Avatar, AvatarFallback } from '~/components/ui/avatar'
-import { Building2, MapPin, DollarSign, Clock, Calendar, Eye, XCircle } from 'lucide-react'
+import { Building2, MapPin, DollarSign, Clock, Calendar, XCircle } from 'lucide-react'
 import { format } from 'date-fns'
 import { vi } from 'date-fns/locale'
 import { getStatusBadge } from '~/components/manage-applications/utils'
@@ -35,7 +35,6 @@ export interface JobApplication {
 
 interface ApplicationCardProps {
   application: JobApplication
-  onView: () => void
   onWithdraw?: () => void
 }
 
@@ -50,7 +49,7 @@ const skillColors = [
   'bg-pink-100 text-pink-700'
 ]
 
-export function ApplicationCard({ application, onView, onWithdraw }: ApplicationCardProps) {
+export function ApplicationCard({ application, onWithdraw }: ApplicationCardProps) {
   return (
     <Card className='hover:shadow-lg transition-shadow'>
       <CardContent className='p-6'>
@@ -77,7 +76,7 @@ export function ApplicationCard({ application, onView, onWithdraw }: Application
                     <span className='font-medium'>{application.companyName}</span>
                   </div>
                 </div>
-                {getStatusBadge(application.status)}
+                {application.status !== 'accepted' && getStatusBadge(application.status)}
               </div>
 
               <div className='grid grid-cols-2 md:grid-cols-4 gap-4 mb-4'>
@@ -112,19 +111,14 @@ export function ApplicationCard({ application, onView, onWithdraw }: Application
                 )}
               </div>
 
-              <div className='flex items-center gap-3'>
-                <Button onClick={onView} className='btn-submit'>
-                  <Eye className='h-4 w-4 mr-2' />
-                  Xem chi tiết
-                </Button>
-
-                {application.status === 'pending' && onWithdraw && (
+              {application.status === 'pending' && onWithdraw && (
+                <div className='flex items-center gap-3'>
                   <Button className='btn-cancel text-red-600 hover:text-red-700 hover:bg-red-50' onClick={onWithdraw}>
                     <XCircle className='h-4 w-4 mr-2' />
-                    Rút ứng tuyển
+                    Hủy nộp CV
                   </Button>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
