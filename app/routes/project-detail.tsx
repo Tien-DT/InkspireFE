@@ -39,7 +39,7 @@ export interface TimelineItem {
   id: string
   title: string
   description: string
-  status: 'pending-payment' | 'paid' | 'completed' | 'pending-confirmation' | 'pending-revision'
+  status: 'pending-payment' | 'paid' | 'completed' | 'pending-confirmation' | 'pending-revision' | 'under-complaint-review'
   createdDate: string
   budget: number
   isPaid: boolean
@@ -86,6 +86,8 @@ const mapMilestoneToTimeline = (milestone: Milestone): TimelineItem => {
     status = 'pending-confirmation' // Chờ xác nhận
   else if (milestone.status === 5)
     status = 'pending-revision' // Chờ sửa lại
+  else if (milestone.status === 6)
+    status = 'under-complaint-review' // Đang kiểm tra khiếu nại
 
   return {
     id: milestone.id,
@@ -94,7 +96,7 @@ const mapMilestoneToTimeline = (milestone: Milestone): TimelineItem => {
     status,
     createdDate: milestone.createdAt,
     budget: milestone.budget,
-    isPaid: milestone.status === 2 || milestone.status === 3 || milestone.status === 4 || milestone.status === 5,
+    isPaid: milestone.status === 2 || milestone.status === 3 || milestone.status === 4 || milestone.status === 5 || milestone.status === 6,
     fileUrl: milestone.fileUrl,
     milestoneNumber: milestone.milestoneNumber
   }
@@ -404,6 +406,8 @@ function ProjectDetailContent() {
         return { icon: Clock, color: 'bg-orange-500', badge: 'bg-orange-100 text-orange-800', label: 'Chờ xác nhận' }
       case 'pending-revision':
         return { icon: X, color: 'bg-red-500', badge: 'bg-red-100 text-red-800', label: 'Chờ sửa lại' }
+      case 'under-complaint-review':
+        return { icon: Clock, color: 'bg-purple-500', badge: 'bg-purple-100 text-purple-800', label: 'Đang kiểm tra khiếu nại' }
       default:
         return { icon: Clock, color: 'bg-gray-300', badge: 'bg-gray-100 text-gray-600', label: 'Chờ thanh toán' }
     }
@@ -883,6 +887,14 @@ function ProjectDetailContent() {
                                 </div>
                               )}
 
+                              {/* Show "Đang kiểm tra khiếu nại" when status is under-complaint-review */}
+                              {timeline.status === 'under-complaint-review' && (
+                                <div className='flex items-center gap-2 text-purple-600 text-base font-semibold'>
+                                  <Clock className='h-5 w-5 animate-pulse' />
+                                  Đang kiểm tra khiếu nại bằng AI
+                                </div>
+                              )}
+
                               {/* Show "Chờ freelancer sửa lại" when status is pending-revision */}
                               {timeline.status === 'pending-revision' && (
                                 <div className='flex items-center gap-2 text-red-600 text-base font-semibold'>
@@ -925,6 +937,13 @@ function ProjectDetailContent() {
                             <div className='flex items-center gap-2 text-orange-600 text-base font-semibold'>
                               <Clock className='h-5 w-5' />
                               Chờ xác nhận
+                            </div>
+                          )}
+
+                          {isFreelancer && timeline.status === 'under-complaint-review' && (
+                            <div className='flex items-center gap-2 text-purple-600 text-base font-semibold'>
+                              <Clock className='h-5 w-5 animate-pulse' />
+                              Khách hàng đã gửi khiếu nại, AI đang kiểm tra
                             </div>
                           )}
 
