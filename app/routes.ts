@@ -27,7 +27,8 @@ export default [
       route('banking-qr', './routes/banking-qr.tsx'),
       route('manage-jobs', './routes/manage-jobs.tsx'),
       route('post-recruitment', './routes/post-recruitment.tsx'),
-      route('subscriptions', './routes/subscriptions.tsx')
+      route('subscriptions', './routes/subscriptions.tsx'),
+      route('freelancer/wallet', './routes/freelancer/wallet/wallet-page.tsx')
     ])
   ]),
 

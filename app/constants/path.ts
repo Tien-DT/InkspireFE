@@ -13,6 +13,7 @@ export const PATH = {
   // Protected routes
   profile: '/profile',
   dashboard: '/dashboard-freelancer',
+  adminDashboard: '/admin',
   postProject: '/post-project',
   postNewProject: '/post-new-project',
   manageProjects: '/manage-projects',

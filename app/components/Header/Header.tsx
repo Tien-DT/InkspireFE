@@ -59,12 +59,16 @@ export function Header() {
               <img src={logo} alt='Logo' className='h-12 w-auto md:h-14 object-fill inline-block' />
             </Link>
             <nav className='hidden md:flex items-center space-x-6'>
-              <Link to={PATH.postProject} className='text-sm text-muted-foreground hover:text-foreground'>
-                Đăng tuyển dụng
-              </Link>
-              <Link to={PATH.jobsFreelancer} className='text-sm text-muted-foreground hover:text-foreground'>
-                Tìm việc làm
-              </Link>
+              {profile?.role !== UserRole.FREELANCER && (
+                <Link to={PATH.postProject} className='text-sm text-muted-foreground hover:text-foreground'>
+                  Đăng tuyển dụng
+                </Link>
+              )}
+              {profile?.role !== UserRole.CLIENT && (
+                <Link to={PATH.jobsFreelancer} className='text-sm text-muted-foreground hover:text-foreground'>
+                  Tìm việc làm
+                </Link>
+              )}
               <Link to='#' className='text-sm text-muted-foreground hover:text-foreground'>
                 Cách thức hoạt động
               </Link>
@@ -150,9 +154,17 @@ export function Header() {
                       </>
                     )}
                     {isFreelancer && (
-                      <DropdownMenuItem>
-                        <Link to={PATH.manageApplications}>Quản lý ứng tuyển</Link>
-                      </DropdownMenuItem>
+                      <>
+                        <DropdownMenuItem>
+                          <Link to={PATH.manageApplications}>Quản lý ứng tuyển</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <Link to='/freelancer/wallet' className='flex items-center'>
+                            <Wallet className='mr-2 h-4 w-4' />
+                            Ví & Rút tiền
+                          </Link>
+                        </DropdownMenuItem>
+                      </>
                     )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild className='text-destructive'>

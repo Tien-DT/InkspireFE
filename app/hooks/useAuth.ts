@@ -5,6 +5,7 @@ import { authApi } from '~/apis/auth.api'
 import type { LoginRequest, RegisterRequest } from '~/types/auth.type'
 import { setAccessTokenToLS, setRefreshTokenToLS, setProfileToLS, extractUserFromToken } from '~/utils/auth'
 import { useAuth } from '~/contexts/AuthContext'
+import { UserRole } from '~/types/user.type'
 
 /**
  * Custom hook for user login
@@ -59,8 +60,15 @@ export const useLogin = () => {
       // Small delay for smooth transition
       await new Promise((resolve) => setTimeout(resolve, 500))
 
-      // Redirect to homepage
-      navigate('/')
+      // Redirect based on user role
+      const userProfile = response.user || extractUserFromToken(response.access_token)
+      if (userProfile?.role === UserRole.MARKETER || userProfile?.role === UserRole.PROJECT_MANAGER) {
+        // Admin roles redirect to admin dashboard
+        navigate('/admin')
+      } else {
+        // Other roles redirect to homepage
+        navigate('/')
+      }
     },
     onError: (error: unknown) => {
       // Handle different error cases
