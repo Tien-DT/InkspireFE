@@ -12,6 +12,7 @@ export interface GoogleLoginRequest {
   firstName?: string | null
   lastName?: string | null
   rememberMe?: boolean
+  role?: UserRole
 }
 
 export interface RegisterRequest {

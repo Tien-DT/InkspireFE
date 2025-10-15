@@ -10,7 +10,6 @@ import {
   IconUserCircle
 } from '@tabler/icons-react'
 
-import { GoogleIcon } from '~/components/icons/google-icon'
 import { Button } from '~/components/ui/button'
 import { Checkbox } from '~/components/ui/checkbox'
 import { Input } from '~/components/ui/input'
@@ -21,6 +20,7 @@ import { useRegister } from '~/hooks/useAuth'
 import { toast } from 'sonner'
 import { ROLE_MAP, type RoleType } from '~/constants/auth.constants'
 import { Link } from 'react-router'
+import { GoogleRegisterButton } from './google-register-button'
 
 export function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false)
@@ -91,16 +91,7 @@ export function RegisterForm() {
         </p>
       </div>
       <div className='space-y-6'>
-        <Button
-          asChild
-          variant='outline'
-          className='w-full justify-center gap-3 rounded-xl border-muted/40 bg-background text-sm font-semibold shadow-sm hover:bg-muted/60'
-        >
-          <Link to='/auth/google' onClick={() => localStorage.setItem('last_provider', 'google')}>
-            <GoogleIcon className='size-5' />
-            Đăng ký với Google
-          </Link>
-        </Button>
+        <GoogleRegisterButton />
         <div className='flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.35em] text-muted-foreground'>
           <Separator className='flex-1 bg-muted' />
           hoặc điền thông tin
