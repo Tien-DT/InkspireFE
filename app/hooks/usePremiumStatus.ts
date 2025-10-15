@@ -6,7 +6,7 @@ export const usePremiumStatus = (userId: string | undefined, isAuthenticated: bo
     queryKey: ['premium-status', userId],
     queryFn: async () => {
       if (!userId) return false
-      
+
       try {
         const subscriptions = await subscriptionApi.getActiveSubscriptions(userId)
         // User has premium if they have any active subscription

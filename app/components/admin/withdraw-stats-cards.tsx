@@ -19,29 +19,27 @@ export function WithdrawRequestStatsCards() {
   const fetchStats = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/WithdrawRequests?$select=id,status,amount`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/WithdrawRequests?$select=id,status,amount`, {
+        headers: {
+          Authorization: `Bearer ${token}`
         }
-      )
-      
+      })
+
       if (response.ok) {
         const data = await response.json()
         const requests = data.value || data
-        
+
         const stats = {
           totalRequests: requests.length,
           pendingRequests: requests.filter((r: any) => r.status === 0).length,
           approvedRequests: requests.filter((r: any) => r.status === 1).length,
           rejectedRequests: requests.filter((r: any) => r.status === 2).length,
           totalAmount: requests.reduce((sum: number, r: any) => sum + (r.amount || 0), 0),
-          pendingAmount: requests.filter((r: any) => r.status === 0)
+          pendingAmount: requests
+            .filter((r: any) => r.status === 0)
             .reduce((sum: number, r: any) => sum + (r.amount || 0), 0)
         }
-        
+
         setStats(stats)
       }
     } catch (error) {
@@ -65,9 +63,7 @@ export function WithdrawRequestStatsCards() {
         </CardHeader>
         <CardContent>
           <div className='text-2xl font-bold'>{stats.totalRequests}</div>
-          <p className='text-xs text-muted-foreground'>
-            Tổng số tiền: {formatCurrency(stats.totalAmount)}
-          </p>
+          <p className='text-xs text-muted-foreground'>Tổng số tiền: {formatCurrency(stats.totalAmount)}</p>
         </CardContent>
       </Card>
 
@@ -78,9 +74,7 @@ export function WithdrawRequestStatsCards() {
         </CardHeader>
         <CardContent>
           <div className='text-2xl font-bold'>{stats.pendingRequests}</div>
-          <p className='text-xs text-muted-foreground'>
-            Số tiền: {formatCurrency(stats.pendingAmount)}
-          </p>
+          <p className='text-xs text-muted-foreground'>Số tiền: {formatCurrency(stats.pendingAmount)}</p>
         </CardContent>
       </Card>
 

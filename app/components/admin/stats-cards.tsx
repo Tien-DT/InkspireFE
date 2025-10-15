@@ -153,9 +153,7 @@ export function StatsCards() {
       {stats.map((stat) => {
         const Icon = stat.icon
         const isTrendingUp = stat.trend === 'up'
-        const trendClasses = isTrendingUp
-          ? 'bg-emerald-100 text-emerald-600'
-          : 'bg-rose-100 text-rose-600'
+        const trendClasses = isTrendingUp ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'
         const TrendIcon = isTrendingUp ? TrendingUp : TrendingDown
 
         return (
@@ -167,7 +165,9 @@ export function StatsCards() {
                   <span>{stat.title}</span>
                 </div>
                 <p className='text-2xl font-semibold tracking-tight text-slate-900'>{stat.value}</p>
-                <div className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${trendClasses}`}>
+                <div
+                  className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${trendClasses}`}
+                >
                   <TrendIcon className='h-3 w-3' />
                   <span>{stat.change}</span>
                 </div>

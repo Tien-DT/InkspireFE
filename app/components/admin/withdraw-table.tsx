@@ -1,13 +1,5 @@
 import { useState, useEffect } from 'react'
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '~/components/ui/table'
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '~/components/ui/table'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
@@ -18,7 +10,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
+  DialogTitle
 } from '~/components/ui/dialog'
 import { Textarea } from '~/components/ui/textarea'
 import { Input } from '~/components/ui/input'
@@ -69,16 +61,16 @@ export function WithdrawRequestTable() {
         `${import.meta.env.VITE_API_URL}/api/WithdrawRequests?$expand=user,wallet&$orderby=createdAt desc`,
         {
           headers: {
-            'Authorization': `Bearer ${token}`
+            Authorization: `Bearer ${token}`
           }
         }
       )
-      
+
       if (response.ok) {
         const data = await response.json()
         console.log('Withdraw requests data:', data)
         // Check if data is wrapped in 'value' property (OData response) or is direct array
-        const requests = Array.isArray(data) ? data : (data.value || [])
+        const requests = Array.isArray(data) ? data : data.value || []
         setWithdrawRequests(requests)
       }
     } catch (error) {
@@ -91,7 +83,7 @@ export function WithdrawRequestTable() {
 
   const handleApprove = async () => {
     if (!actionDialog.request) return
-    
+
     try {
       const token = localStorage.getItem('token')
       const response = await fetch(
@@ -99,13 +91,13 @@ export function WithdrawRequestTable() {
         {
           method: 'PUT',
           headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({ adminNotes })
         }
       )
-      
+
       if (response.ok) {
         toast.success('Đã duyệt yêu cầu rút tiền')
         fetchWithdrawRequests()
@@ -125,7 +117,7 @@ export function WithdrawRequestTable() {
       toast.error('Vui lòng nhập lý do từ chối')
       return
     }
-    
+
     try {
       const token = localStorage.getItem('token')
       const response = await fetch(
@@ -133,13 +125,13 @@ export function WithdrawRequestTable() {
         {
           method: 'PUT',
           headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({ reason: adminNotes })
         }
       )
-      
+
       if (response.ok) {
         toast.success('Đã từ chối yêu cầu rút tiền')
         fetchWithdrawRequests()
@@ -156,7 +148,7 @@ export function WithdrawRequestTable() {
 
   const handleComplete = async () => {
     if (!actionDialog.request) return
-    
+
     try {
       const token = localStorage.getItem('token')
       const response = await fetch(
@@ -164,13 +156,13 @@ export function WithdrawRequestTable() {
         {
           method: 'PUT',
           headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({ transactionReference: adminNotes })
         }
       )
-      
+
       if (response.ok) {
         toast.success('Đã hoàn thành yêu cầu rút tiền')
         fetchWithdrawRequests()
@@ -193,17 +185,14 @@ export function WithdrawRequestTable() {
     setTriggeringMonthly(true)
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/WithdrawRequests/trigger-monthly`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/WithdrawRequests/trigger-monthly`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
-      )
-      
+      })
+
       if (response.ok) {
         const result = await response.json()
         toast.success(
@@ -224,26 +213,42 @@ export function WithdrawRequestTable() {
   const getStatusBadge = (status: number) => {
     switch (status) {
       case 0:
-        return <Badge variant="outline" className="border-yellow-500 text-yellow-700">Chờ xử lý</Badge>
+        return (
+          <Badge variant='outline' className='border-yellow-500 text-yellow-700'>
+            Chờ xử lý
+          </Badge>
+        )
       case 1:
-        return <Badge variant="outline" className="border-green-500 text-green-700">Đã duyệt</Badge>
+        return (
+          <Badge variant='outline' className='border-green-500 text-green-700'>
+            Đã duyệt
+          </Badge>
+        )
       case 2:
-        return <Badge variant="outline" className="border-red-500 text-red-700">Từ chối</Badge>
+        return (
+          <Badge variant='outline' className='border-red-500 text-red-700'>
+            Từ chối
+          </Badge>
+        )
       case 3:
-        return <Badge variant="outline" className="border-blue-500 text-blue-700">Hoàn thành</Badge>
+        return (
+          <Badge variant='outline' className='border-blue-500 text-blue-700'>
+            Hoàn thành
+          </Badge>
+        )
       default:
-        return <Badge variant="outline">Không xác định</Badge>
+        return <Badge variant='outline'>Không xác định</Badge>
     }
   }
 
   const getRequestTypeBadge = (type: number) => {
     switch (type) {
       case 1:
-        return <Badge variant="secondary">Thủ công</Badge>
+        return <Badge variant='secondary'>Thủ công</Badge>
       case 2:
-        return <Badge variant="default">Tự động hàng tháng</Badge>
+        return <Badge variant='default'>Tự động hàng tháng</Badge>
       default:
-        return <Badge variant="outline">Không xác định</Badge>
+        return <Badge variant='outline'>Không xác định</Badge>
     }
   }
 
@@ -273,26 +278,24 @@ export function WithdrawRequestTable() {
     <>
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className='flex items-center justify-between'>
             <div>
               <CardTitle>Danh sách yêu cầu rút tiền</CardTitle>
-              <CardDescription>
-                Quản lý và xử lý các yêu cầu rút tiền từ người dùng
-              </CardDescription>
+              <CardDescription>Quản lý và xử lý các yêu cầu rút tiền từ người dùng</CardDescription>
             </div>
-            <Button 
+            <Button
               onClick={handleTriggerMonthly}
               disabled={triggeringMonthly}
-              className="bg-blue-600 hover:bg-blue-700"
+              className='bg-blue-600 hover:bg-blue-700'
             >
               {triggeringMonthly ? (
                 <>
-                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                  <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
                   Đang tạo...
                 </>
               ) : (
                 <>
-                  <RefreshCw className="mr-2 h-4 w-4" />
+                  <RefreshCw className='mr-2 h-4 w-4' />
                   Tạo lệnh rút tiền tháng
                 </>
               )}
@@ -310,7 +313,7 @@ export function WithdrawRequestTable() {
                 <TableHead>Loại</TableHead>
                 <TableHead>Trạng thái</TableHead>
                 <TableHead>Ngày tạo</TableHead>
-                <TableHead className="text-right">Thao tác</TableHead>
+                <TableHead className='text-right'>Thao tác</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -318,61 +321,61 @@ export function WithdrawRequestTable() {
                 <TableRow key={request.id}>
                   <TableCell>
                     <div>
-                      <div className="font-medium">
+                      <div className='font-medium'>
                         {request.user?.firstName} {request.user?.lastName}
                       </div>
-                      <div className="text-sm text-gray-500">{request.user?.email}</div>
+                      <div className='text-sm text-gray-500'>{request.user?.email}</div>
                     </div>
                   </TableCell>
-                  <TableCell className="font-medium">{formatCurrency(request.amount)}</TableCell>
+                  <TableCell className='font-medium'>{formatCurrency(request.amount)}</TableCell>
                   <TableCell>
                     {request.bankName && (
-                      <div className="text-sm">
+                      <div className='text-sm'>
                         <div>{request.bankName}</div>
-                        <div className="text-gray-500">{request.bankAccountNumber}</div>
+                        <div className='text-gray-500'>{request.bankAccountNumber}</div>
                       </div>
                     )}
                   </TableCell>
                   <TableCell>{getRequestTypeBadge(request.requestType)}</TableCell>
                   <TableCell>{getStatusBadge(request.status)}</TableCell>
-                  <TableCell className="text-sm">{formatDate(request.createdAt)}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex gap-1 justify-end">
+                  <TableCell className='text-sm'>{formatDate(request.createdAt)}</TableCell>
+                  <TableCell className='text-right'>
+                    <div className='flex gap-1 justify-end'>
                       <Button
-                        size="sm"
-                        variant="ghost"
+                        size='sm'
+                        variant='ghost'
                         onClick={() => setActionDialog({ open: true, type: 'view', request })}
                       >
-                        <Eye className="h-4 w-4" />
+                        <Eye className='h-4 w-4' />
                       </Button>
                       {request.status === 0 && (
                         <>
                           <Button
-                            size="sm"
-                            variant="ghost"
-                            className="text-green-600 hover:text-green-700"
+                            size='sm'
+                            variant='ghost'
+                            className='text-green-600 hover:text-green-700'
                             onClick={() => setActionDialog({ open: true, type: 'approve', request })}
                           >
-                            <Check className="h-4 w-4" />
+                            <Check className='h-4 w-4' />
                           </Button>
                           <Button
-                            size="sm"
-                            variant="ghost"
-                            className="text-red-600 hover:text-red-700"
+                            size='sm'
+                            variant='ghost'
+                            className='text-red-600 hover:text-red-700'
                             onClick={() => setActionDialog({ open: true, type: 'reject', request })}
                           >
-                            <X className="h-4 w-4" />
+                            <X className='h-4 w-4' />
                           </Button>
                         </>
                       )}
                       {request.status === 1 && (
                         <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-blue-600 hover:text-blue-700"
+                          size='sm'
+                          variant='ghost'
+                          className='text-blue-600 hover:text-blue-700'
                           onClick={() => setActionDialog({ open: true, type: 'complete', request })}
                         >
-                          <DollarSign className="h-4 w-4" />
+                          <DollarSign className='h-4 w-4' />
                         </Button>
                       )}
                     </div>
@@ -384,12 +387,15 @@ export function WithdrawRequestTable() {
         </CardContent>
       </Card>
 
-      <Dialog open={actionDialog.open} onOpenChange={(open) => {
-        if (!open) {
-          setActionDialog({ open: false, type: null, request: null })
-          setAdminNotes('')
-        }
-      }}>
+      <Dialog
+        open={actionDialog.open}
+        onOpenChange={(open) => {
+          if (!open) {
+            setActionDialog({ open: false, type: null, request: null })
+            setAdminNotes('')
+          }
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
@@ -400,34 +406,54 @@ export function WithdrawRequestTable() {
             </DialogTitle>
             <DialogDescription>
               {actionDialog.request && (
-                <div className="space-y-2 mt-4">
-                  <p><strong>Người dùng:</strong> {actionDialog.request.user?.firstName} {actionDialog.request.user?.lastName}</p>
-                  <p><strong>Email:</strong> {actionDialog.request.user?.email}</p>
-                  <p><strong>Số tiền:</strong> {formatCurrency(actionDialog.request.amount)}</p>
+                <div className='space-y-2 mt-4'>
+                  <p>
+                    <strong>Người dùng:</strong> {actionDialog.request.user?.firstName}{' '}
+                    {actionDialog.request.user?.lastName}
+                  </p>
+                  <p>
+                    <strong>Email:</strong> {actionDialog.request.user?.email}
+                  </p>
+                  <p>
+                    <strong>Số tiền:</strong> {formatCurrency(actionDialog.request.amount)}
+                  </p>
                   {actionDialog.request.bankName && (
                     <>
-                      <p><strong>Ngân hàng:</strong> {actionDialog.request.bankName}</p>
-                      <p><strong>Số tài khoản:</strong> {actionDialog.request.bankAccountNumber}</p>
-                      <p><strong>Tên tài khoản:</strong> {actionDialog.request.bankAccountName}</p>
+                      <p>
+                        <strong>Ngân hàng:</strong> {actionDialog.request.bankName}
+                      </p>
+                      <p>
+                        <strong>Số tài khoản:</strong> {actionDialog.request.bankAccountNumber}
+                      </p>
+                      <p>
+                        <strong>Tên tài khoản:</strong> {actionDialog.request.bankAccountName}
+                      </p>
                     </>
                   )}
-                  <p><strong>Loại yêu cầu:</strong> {actionDialog.request.requestType === 1 ? 'Thủ công' : 'Tự động hàng tháng'}</p>
-                  <p><strong>Ngày tạo:</strong> {formatDate(actionDialog.request.createdAt)}</p>
+                  <p>
+                    <strong>Loại yêu cầu:</strong>{' '}
+                    {actionDialog.request.requestType === 1 ? 'Thủ công' : 'Tự động hàng tháng'}
+                  </p>
+                  <p>
+                    <strong>Ngày tạo:</strong> {formatDate(actionDialog.request.createdAt)}
+                  </p>
                   {actionDialog.request.adminNotes && (
-                    <p><strong>Ghi chú admin:</strong> {actionDialog.request.adminNotes}</p>
+                    <p>
+                      <strong>Ghi chú admin:</strong> {actionDialog.request.adminNotes}
+                    </p>
                   )}
                 </div>
               )}
             </DialogDescription>
           </DialogHeader>
-          
+
           {actionDialog.type !== 'view' && (
-            <div className="space-y-4">
+            <div className='space-y-4'>
               {actionDialog.type === 'approve' && (
                 <div>
-                  <label className="text-sm font-medium">Ghi chú (tùy chọn)</label>
+                  <label className='text-sm font-medium'>Ghi chú (tùy chọn)</label>
                   <Textarea
-                    placeholder="Nhập ghi chú cho yêu cầu này..."
+                    placeholder='Nhập ghi chú cho yêu cầu này...'
                     value={adminNotes}
                     onChange={(e) => setAdminNotes(e.target.value)}
                   />
@@ -435,9 +461,9 @@ export function WithdrawRequestTable() {
               )}
               {actionDialog.type === 'reject' && (
                 <div>
-                  <label className="text-sm font-medium">Lý do từ chối *</label>
+                  <label className='text-sm font-medium'>Lý do từ chối *</label>
                   <Textarea
-                    placeholder="Nhập lý do từ chối yêu cầu..."
+                    placeholder='Nhập lý do từ chối yêu cầu...'
                     value={adminNotes}
                     onChange={(e) => setAdminNotes(e.target.value)}
                     required
@@ -446,9 +472,9 @@ export function WithdrawRequestTable() {
               )}
               {actionDialog.type === 'complete' && (
                 <div>
-                  <label className="text-sm font-medium">Mã giao dịch chuyển khoản</label>
+                  <label className='text-sm font-medium'>Mã giao dịch chuyển khoản</label>
                   <Input
-                    placeholder="Nhập mã giao dịch..."
+                    placeholder='Nhập mã giao dịch...'
                     value={adminNotes}
                     onChange={(e) => setAdminNotes(e.target.value)}
                   />
@@ -456,39 +482,39 @@ export function WithdrawRequestTable() {
               )}
             </div>
           )}
-          
+
           <DialogFooter>
             {actionDialog.type === 'view' && (
-              <Button variant="outline" onClick={() => setActionDialog({ open: false, type: null, request: null })}>
+              <Button variant='outline' onClick={() => setActionDialog({ open: false, type: null, request: null })}>
                 Đóng
               </Button>
             )}
             {actionDialog.type === 'approve' && (
               <>
-                <Button variant="outline" onClick={() => setActionDialog({ open: false, type: null, request: null })}>
+                <Button variant='outline' onClick={() => setActionDialog({ open: false, type: null, request: null })}>
                   Hủy
                 </Button>
-                <Button onClick={handleApprove} className="bg-green-600 hover:bg-green-700">
+                <Button onClick={handleApprove} className='bg-green-600 hover:bg-green-700'>
                   Duyệt yêu cầu
                 </Button>
               </>
             )}
             {actionDialog.type === 'reject' && (
               <>
-                <Button variant="outline" onClick={() => setActionDialog({ open: false, type: null, request: null })}>
+                <Button variant='outline' onClick={() => setActionDialog({ open: false, type: null, request: null })}>
                   Hủy
                 </Button>
-                <Button onClick={handleReject} className="bg-red-600 hover:bg-red-700">
+                <Button onClick={handleReject} className='bg-red-600 hover:bg-red-700'>
                   Từ chối yêu cầu
                 </Button>
               </>
             )}
             {actionDialog.type === 'complete' && (
               <>
-                <Button variant="outline" onClick={() => setActionDialog({ open: false, type: null, request: null })}>
+                <Button variant='outline' onClick={() => setActionDialog({ open: false, type: null, request: null })}>
                   Hủy
                 </Button>
-                <Button onClick={handleComplete} className="bg-blue-600 hover:bg-blue-700">
+                <Button onClick={handleComplete} className='bg-blue-600 hover:bg-blue-700'>
                   Đánh dấu hoàn thành
                 </Button>
               </>

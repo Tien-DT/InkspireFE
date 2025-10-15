@@ -1,21 +1,19 @@
-import { isAxiosError } from 'axios'
-import { Plus } from 'lucide-react'
-import { Suspense, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
-import { Link, useSearchParams, useNavigate } from 'react-router'
+import { isAxiosError } from 'axios'
+import { Briefcase, CheckCircle2, Lock, Megaphone, PenSquare } from 'lucide-react'
+import { Suspense, useMemo, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router'
 import { toast } from 'sonner'
 
-import { HydrateFallback } from '~/components/ui'
-import { Button } from '~/components/ui/button'
-import { PATH } from '~/constants/path'
-import { useUserRecruitmentsByUserId, useRecruitmentApplications } from '~/hooks/useRecruitments'
-import { getProfileFromLS } from '~/utils/auth'
-import { ProjectCard, ProjectDetailsDialog, EmptyProjectsState } from '~/components/manage-post-project'
-import PaginationDemo from '~/components/Pagination'
 import { AuthErrorBoundary } from '~/components/errors'
+import { EmptyProjectsState, ProjectCard, ProjectDetailsDialog } from '~/components/manage-post-project'
+import PaginationDemo from '~/components/Pagination'
+import { PageHeader, UnifiedStatsCards, FilterTabs } from '~/components/shared'
+import type { StatsCardConfig as SharedStatsCardConfig, FilterOption } from '~/components/shared'
 import { projectApi } from '~/apis/project.api'
 import { useChat } from '~/contexts/ChatContext'
-import { RecruitmentPostListSkeleton } from '~/components/skeletons'
+import { useRecruitmentApplications, useUserRecruitmentsByUserId } from '~/hooks/useRecruitments'
+import { PATH } from '~/constants/path'
 import {
   Dialog,
   DialogContent,
@@ -24,7 +22,36 @@ import {
   DialogHeader,
   DialogTitle
 } from '~/components/ui/dialog'
+import { HydrateFallback } from '~/components/ui'
+import { Button } from '~/components/ui/button'
+import { RecruitmentPostListSkeleton } from '~/components/skeletons'
 import { ProjectStatus, type Application } from '~/types/recruitment.type'
+import { getProfileFromLS } from '~/utils/auth'
+
+type StatusFilter = 'all' | 'active' | 'draft' | 'closed' | 'completed'
+
+const STATUS_VALUES: StatusFilter[] = ['all', 'active', 'draft', 'closed', 'completed']
+
+const isStatusFilter = (value: string | null): value is StatusFilter => {
+  return value ? (STATUS_VALUES as string[]).includes(value) : false
+}
+
+const STATUS_MAP: Record<Exclude<StatusFilter, 'all'>, ProjectStatus> = {
+  active: ProjectStatus.ACTIVE,
+  draft: ProjectStatus.DRAFT,
+  closed: ProjectStatus.CLOSED,
+  completed: ProjectStatus.COMPLETED
+}
+
+const PAGE_SIZE = 5
+
+interface StatusCounts {
+  all: number
+  active: number
+  draft: number
+  closed: number
+  completed: number
+}
 
 interface UserRecruitmentPost {
   id: string
@@ -48,8 +75,10 @@ function ManagePostProjectPage() {
   const { data, isLoading, error, refetch: refetchPosts } = useUserRecruitmentsByUserId(profile?.id)
 
   const [searchParams, setSearchParams] = useSearchParams()
-  const currentPage = Number(searchParams.get('page')) || 1
-  const pageSize = 5
+  const parsedPage = Number(searchParams.get('page') ?? '1')
+  const currentPage = Number.isFinite(parsedPage) && parsedPage > 0 ? Math.floor(parsedPage) : 1
+  const currentStatus = searchParams.get('status')
+  const activeStatus: StatusFilter = isStatusFilter(currentStatus) ? currentStatus : 'all'
   const [selectedPost, setSelectedPost] = useState<UserRecruitmentPost | null>(null)
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
   const [pendingApplicationId, setPendingApplicationId] = useState<string | null>(null)
@@ -112,15 +141,110 @@ function ManagePostProjectPage() {
     }
   })
 
-  const applications = applicationsData?.data?.items || []
-  const recruitmentPosts = data?.data || []
-  const totalPages = Math.ceil(recruitmentPosts.length / pageSize)
-  const startIndex = (currentPage - 1) * pageSize
-  const endIndex = startIndex + pageSize
-  const currentPosts = recruitmentPosts.slice(startIndex, endIndex)
+  const applications = applicationsData?.data?.items ?? []
+  const recruitmentPosts = useMemo(() => data?.data ?? [], [data])
+
+  const sortedPosts = useMemo(() => {
+    return [...recruitmentPosts].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  }, [recruitmentPosts])
+
+  const statusCounts = useMemo<StatusCounts>(
+    () =>
+      sortedPosts.reduce<StatusCounts>(
+        (acc, post) => {
+          acc.all += 1
+          if (post.status === ProjectStatus.DRAFT) acc.draft += 1
+          if (post.status === ProjectStatus.ACTIVE) acc.active += 1
+          if (post.status === ProjectStatus.CLOSED) acc.closed += 1
+          if (post.status === ProjectStatus.COMPLETED) acc.completed += 1
+          return acc
+        },
+        { all: 0, active: 0, draft: 0, closed: 0, completed: 0 }
+      ),
+    [sortedPosts]
+  )
+
+  const filteredPosts = useMemo(() => {
+    if (activeStatus === 'all') return sortedPosts
+    const targetStatus = STATUS_MAP[activeStatus]
+    return sortedPosts.filter((post) => post.status === targetStatus)
+  }, [sortedPosts, activeStatus])
+
+  const totalPages = Math.max(1, Math.ceil(filteredPosts.length / PAGE_SIZE))
+  const safeCurrentPage = Math.min(currentPage, totalPages)
+  const startIndex = (safeCurrentPage - 1) * PAGE_SIZE
+  const currentPosts = filteredPosts.slice(startIndex, startIndex + PAGE_SIZE)
+
+  const statsCards = useMemo<SharedStatsCardConfig[]>(
+    () => [
+      {
+        key: 'all',
+        label: 'Tổng bài đăng',
+        description: 'Tất cả tin tuyển dụng của bạn',
+        value: statusCounts.all,
+        icon: Briefcase,
+        accent: 'from-primary/20 via-primary/5 to-transparent'
+      },
+      {
+        key: 'active',
+        label: 'Đang tuyển',
+        description: 'Đang hiển thị và nhận hồ sơ',
+        value: statusCounts.active,
+        icon: Megaphone,
+        accent: 'from-emerald-200/40 via-transparent to-transparent'
+      },
+      {
+        key: 'draft',
+        label: 'Bản nháp',
+        description: 'Đang chỉnh sửa trước khi đăng',
+        value: statusCounts.draft,
+        icon: PenSquare,
+        accent: 'from-slate-200/40 via-transparent to-transparent'
+      },
+      {
+        key: 'closed',
+        label: 'Đã đóng',
+        description: 'Tạm dừng tuyển ứng viên',
+        value: statusCounts.closed,
+        icon: Lock,
+        accent: 'from-amber-200/40 via-transparent to-transparent'
+      },
+      {
+        key: 'completed',
+        label: 'Hoàn thành',
+        description: 'Đã tuyển đủ nhân sự',
+        value: statusCounts.completed,
+        icon: CheckCircle2,
+        accent: 'from-blue-200/40 via-transparent to-transparent'
+      }
+    ],
+    [statusCounts]
+  )
+
+  const filterOptions = useMemo<FilterOption[]>(
+    () => [
+      { value: 'all', label: 'Tất cả', count: statusCounts.all },
+      { value: 'active', label: 'Đang tuyển', count: statusCounts.active },
+      { value: 'draft', label: 'Bản nháp', count: statusCounts.draft },
+      { value: 'closed', label: 'Đã đóng', count: statusCounts.closed },
+      { value: 'completed', label: 'Hoàn thành', count: statusCounts.completed }
+    ],
+    [statusCounts]
+  )
+
+  const handleStatusChange = (status: string) => {
+    if (!isStatusFilter(status)) return
+    const params = new URLSearchParams(searchParams)
+    params.set('status', status)
+    params.set('page', '1')
+    setSearchParams(params)
+  }
 
   const handlePageChange = (newPage: number) => {
-    setSearchParams({ page: newPage.toString() })
+    const params = new URLSearchParams(searchParams)
+    params.set('page', Math.max(1, newPage).toString())
+    params.set('status', activeStatus)
+    setSearchParams(params)
   }
 
   const handleViewPost = (post: UserRecruitmentPost) => {
@@ -206,68 +330,61 @@ function ManagePostProjectPage() {
     })
   }
 
-  if (isLoading) {
-    return (
-      <div className='container mx-auto px-4 py-8 min-h-screen bg-background'>
-        <div className='mb-8'>
-          <h1 className='text-3xl font-bold text-gray-900'>Quản lý bài đăng tuyển dụng</h1>
-          <p className='text-gray-600 mt-2'>Quản lý và theo dõi các bài đăng tuyển dụng của bạn</p>
-        </div>
-        <RecruitmentPostListSkeleton />
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className='container mx-auto px-4 py-8 min-h-screen bg-background'>
-        <div className='bg-red-50 border border-red-200 rounded-lg p-8 text-center'>
-          <h3 className='text-lg font-semibold text-red-900 mb-2'>Có lỗi xảy ra</h3>
-          <p className='text-red-600'>Không thể tải dữ liệu bài đăng. Vui lòng thử lại sau.</p>
-        </div>
-      </div>
-    )
-  }
+  const hasError = Boolean(error)
+  const applicationsErrorEntity = applicationsError instanceof Error ? applicationsError : null
 
   return (
     <Suspense fallback={<HydrateFallback variant='details' showHeader />}>
-      <div className='container mx-auto px-4 py-8 min-h-screen bg-background'>
-        <div className='flex items-center justify-between mb-8'>
-          <div>
-            <h1 className='text-3xl font-bold text-gray-900'>Quản lý bài đăng tuyển dụng</h1>
-            <p className='text-gray-600 mt-2'>Quản lý và theo dõi các bài đăng tuyển dụng của bạn</p>
-          </div>
-          <Button asChild className='btn-submit'>
-            <Link to={PATH.postProject}>
-              <Plus className='h-5 w-5 mr-2' />
-              Đăng tin tuyển dụng mới
-            </Link>
-          </Button>
+      <main className='min-h-screen bg-gradient-to-br from-background via-background to-muted/30 py-10'>
+        <div className='mx-auto flex w-full max-w-[1200px] flex-col gap-8 px-4 md:px-6 lg:px-10'>
+          <section className='rounded-3xl border border-border/40 bg-card/95 p-6 shadow-md backdrop-blur-sm md:p-10'>
+            <PageHeader
+              badge='Quản lý tuyển dụng'
+              title='Quản lý bài đăng tuyển dụng'
+              description='Theo dõi tiến độ, xem ứng viên và cập nhật tin tuyển dụng trong một nơi.'
+              actionLabel='Đăng tin mới'
+              actionHref={PATH.postProject}
+            />
+
+            <div className='mt-8 space-y-6'>
+              <UnifiedStatsCards cards={statsCards} isLoading={isLoading} />
+              <FilterTabs options={filterOptions} activeValue={activeStatus} onChange={handleStatusChange} />
+            </div>
+          </section>
+
+          <section className='rounded-3xl border border-border/40 bg-card/95 p-6 shadow-md backdrop-blur-sm md:p-8'>
+            {hasError ? (
+              <div className='rounded-3xl border border-destructive/30 bg-destructive/10 p-10 text-center text-destructive'>
+                <h3 className='text-lg font-semibold'>Có lỗi xảy ra</h3>
+                <p className='mt-2 text-sm text-destructive/80'>
+                  Không thể tải dữ liệu bài đăng. Vui lòng thử lại sau.
+                </p>
+              </div>
+            ) : isLoading ? (
+              <RecruitmentPostListSkeleton />
+            ) : currentPosts.length === 0 ? (
+              <EmptyProjectsState />
+            ) : (
+              <div className='grid gap-6'>
+                {currentPosts.map((post) => (
+                  <ProjectCard
+                    key={post.id}
+                    post={post}
+                    onView={() => handleViewPost(post)}
+                    onEdit={() => console.log('Edit:', post.id)}
+                    onDelete={() => console.log('Delete:', post.id)}
+                    onShare={() => console.log('Share:', post.id)}
+                    onViewApplicants={() => handleViewPost(post)}
+                  />
+                ))}
+              </div>
+            )}
+
+            {!isLoading && !hasError && filteredPosts.length > 0 && totalPages > 1 && (
+              <PaginationDemo currentPage={safeCurrentPage} totalPages={totalPages} onPageChange={handlePageChange} />
+            )}
+          </section>
         </div>
-
-        {currentPosts.length === 0 ? (
-          <EmptyProjectsState />
-        ) : (
-          <>
-            <div className='grid gap-6'>
-              {currentPosts.map((post) => (
-                <ProjectCard
-                  key={post.id}
-                  post={post}
-                  onView={() => handleViewPost(post)}
-                  onEdit={() => console.log('Edit:', post.id)}
-                  onDelete={() => console.log('Delete:', post.id)}
-                  onShare={() => console.log('Share:', post.id)}
-                  onViewApplicants={() => handleViewPost(post)}
-                />
-              ))}
-            </div>
-
-            <div className='mt-8'>
-              <PaginationDemo currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
-            </div>
-          </>
-        )}
 
         <ProjectDetailsDialog
           open={isViewDialogOpen}
@@ -275,7 +392,7 @@ function ManagePostProjectPage() {
           project={selectedPost}
           applications={applications}
           applicationsLoading={applicationsLoading}
-          applicationsError={applicationsError}
+          applicationsError={applicationsErrorEntity}
           onAcceptApplicant={handleAcceptApplicant}
           onRejectApplicant={handleRejectApplicant}
           onSendMessage={handleSendMessage}
@@ -284,61 +401,45 @@ function ManagePostProjectPage() {
         />
 
         <Dialog open={confirmState.isOpen} onOpenChange={handleConfirmDialogOpenChange}>
-          <DialogContent className='sm:max-w-md bg-white'>
-            <DialogHeader className='mb-5'>
-              <div className='flex flex-col items-center text-center'>
-                <div className='w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4'>
-                  <svg
-                    className='w-8 h-8 text-blue-600'
-                    fill='none'
-                    stroke='currentColor'
-                    viewBox='0 0 24 24'
-                    xmlns='http://www.w3.org/2000/svg'
-                  >
-                    <path
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                      strokeWidth={2}
-                      d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
-                    />
-                  </svg>
-                </div>
-                <DialogTitle className='text-2xl font-bold text-gray-900 mb-2'>Xác nhận chấp nhận ứng viên</DialogTitle>
-                <DialogDescription className='text-gray-600'>
-                  {confirmState.application ? (
-                    <>
-                      Bạn có chắc chắn muốn chấp nhận ứng viên{' '}
-                      <span className='font-semibold text-gray-900'>
-                        {getApplicantDisplayName(confirmState.application)}
-                      </span>{' '}
-                      cho dự án này không?
-                      <br />
-                    </>
-                  ) : (
-                    'Bạn có chắc chắn muốn chấp nhận ứng viên này không?'
-                  )}
-                </DialogDescription>
+          <DialogContent className='sm:max-w-md rounded-3xl border border-border/40 bg-card/95 p-8 text-center shadow-xl'>
+            <DialogHeader className='mb-4 space-y-3 text-center'>
+              <div className='mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary'>
+                <CheckCircle2 className='h-8 w-8' />
               </div>
+              <DialogTitle className='text-2xl font-semibold text-foreground'>Xác nhận chấp nhận ứng viên</DialogTitle>
+              <DialogDescription className='text-sm text-muted-foreground'>
+                {confirmState.application ? (
+                  <>
+                    Bạn có chắc chắn muốn chấp nhận ứng viên{' '}
+                    <span className='font-semibold text-foreground'>
+                      {getApplicantDisplayName(confirmState.application)}
+                    </span>{' '}
+                    cho dự án này không?
+                  </>
+                ) : (
+                  'Bạn có chắc chắn muốn chấp nhận ứng viên này không?'
+                )}
+              </DialogDescription>
             </DialogHeader>
-            <DialogFooter className='flex-row gap-3 sm:justify-between'>
+            <DialogFooter className='flex-row justify-between gap-3'>
               <Button
-                variant='outline'
+                variant='ghost'
                 onClick={() => handleConfirmDialogOpenChange(false)}
                 disabled={acceptApplicantMutation.isPending}
-                className='flex-1'
+                className='flex-1 rounded-full border border-border/40 px-4 text-sm font-medium text-muted-foreground hover:border-border'
               >
                 Hủy bỏ
               </Button>
               <Button
                 onClick={handleConfirmAccept}
                 disabled={acceptApplicantMutation.isPending}
-                className='flex-1 bg-black hover:bg-black/90 text-white'
+                className='flex-1 rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90'
               >
                 {acceptApplicantMutation.isPending ? (
-                  <>
-                    <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2'></div>
+                  <span className='flex items-center justify-center gap-2'>
+                    <span className='h-4 w-4 animate-spin rounded-full border-2 border-foreground/30 border-t-transparent' />
                     Đang xử lý...
-                  </>
+                  </span>
                 ) : (
                   'Chấp nhận'
                 )}
@@ -346,7 +447,7 @@ function ManagePostProjectPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
+      </main>
     </Suspense>
   )
 }

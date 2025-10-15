@@ -50,44 +50,40 @@ export function ChatHeader({ conversation }: ChatHeaderProps) {
   }
 
   const handleVoiceCall = () => {
-    console.log('[ChatHeader] Voice call clicked', { otherUserId: otherUser?.id, isInCall, conversationId: conversation.id })
+    console.log('[ChatHeader] Voice call clicked', {
+      otherUserId: otherUser?.id,
+      isInCall,
+      conversationId: conversation.id
+    })
     if (!otherUser?.id || isInCall) {
       console.log('[ChatHeader] Voice call blocked:', { hasOtherUser: !!otherUser?.id, isInCall })
       return
     }
-    
+
     console.log('[ChatHeader] Initiating voice call...')
-    initiateCall(
-      conversation.id,
-      otherUser.id,
-      displayName(),
-      CallType.Audio
-    )
+    initiateCall(conversation.id, otherUser.id, displayName(), CallType.Audio)
   }
 
   const handleVideoCall = () => {
-    console.log('[ChatHeader] Video call clicked', { otherUserId: otherUser?.id, isInCall, conversationId: conversation.id })
+    console.log('[ChatHeader] Video call clicked', {
+      otherUserId: otherUser?.id,
+      isInCall,
+      conversationId: conversation.id
+    })
     if (!otherUser?.id || isInCall) {
       console.log('[ChatHeader] Video call blocked:', { hasOtherUser: !!otherUser?.id, isInCall })
       return
     }
-    
+
     console.log('[ChatHeader] Initiating video call...')
-    initiateCall(
-      conversation.id,
-      otherUser.id,
-      displayName(),
-      CallType.Video
-    )
+    initiateCall(conversation.id, otherUser.id, displayName(), CallType.Video)
   }
 
   return (
     <header className='flex h-16 items-center justify-between gap-4 border-b px-6'>
       <div className='flex items-center gap-3'>
         <Avatar className='h-10 w-10'>
-          <AvatarFallback className='bg-muted text-sm font-medium text-foreground'>
-            {getInitials()}
-          </AvatarFallback>
+          <AvatarFallback className='bg-muted text-sm font-medium text-foreground'>{getInitials()}</AvatarFallback>
         </Avatar>
         <div className='flex flex-col gap-0.5'>
           <h3 className='text-sm font-semibold text-foreground'>{displayName()}</h3>
@@ -97,22 +93,10 @@ export function ChatHeader({ conversation }: ChatHeaderProps) {
         </div>
       </div>
       <div className='flex items-center gap-1'>
-        <Button
-          variant='ghost'
-          size='icon'
-          onClick={handleVoiceCall}
-          disabled={isInCall}
-          title='Gọi thoại'
-        >
+        <Button variant='ghost' size='icon' onClick={handleVoiceCall} disabled={isInCall} title='Gọi thoại'>
           <Phone className='h-5 w-5' />
         </Button>
-        <Button
-          variant='ghost'
-          size='icon'
-          onClick={handleVideoCall}
-          disabled={isInCall}
-          title='Gọi video'
-        >
+        <Button variant='ghost' size='icon' onClick={handleVideoCall} disabled={isInCall} title='Gọi video'>
           <Video className='h-5 w-5' />
         </Button>
         <Button variant='ghost' size='icon' title='Tùy chọn khác'>

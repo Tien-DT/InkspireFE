@@ -4,7 +4,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-  DialogDescription,
+  DialogDescription
 } from '~/components/ui/dialog'
 import { Button } from '~/components/ui/button'
 import { useState, useEffect } from 'react'
@@ -17,7 +17,7 @@ interface ComplainDialogProps {
 }
 
 const getExtensionFromUrl = (url: string) => {
-    return url.split('.').pop()?.toLowerCase() || ''
+  return url.split('.').pop()?.toLowerCase() || ''
 }
 
 export function ComplainDialog({ isOpen, onClose, onSubmit, fileUrl }: ComplainDialogProps) {
@@ -46,7 +46,9 @@ export function ComplainDialog({ isOpen, onClose, onSubmit, fileUrl }: ComplainD
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Hủy</Button>
+          <Button variant='outline' onClick={onClose}>
+            Hủy
+          </Button>
           <Button onClick={handleSubmit}>Xác nhận</Button>
         </DialogFooter>
       </DialogContent>

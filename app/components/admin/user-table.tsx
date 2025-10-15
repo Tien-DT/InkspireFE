@@ -31,8 +31,6 @@ type UserRecord = {
   rating: number | null
 }
 
-
-
 const statusConfig: Record<UserStatus, { label: string; className: string }> = {
   pending: {
     label: 'Chờ duyệt',
@@ -77,7 +75,7 @@ export function UserTable() {
         role: filters.role,
         status: filters.status
       })
-      
+
       if (response.data) {
         setFullUsers(response.data.items)
         const formattedUsers = response.data.items.map((user: AdminUser) => ({
@@ -109,7 +107,7 @@ export function UserTable() {
   }
 
   const handleEditUser = (userId: string) => {
-    const user = fullUsers.find(u => u.id === userId)
+    const user = fullUsers.find((u) => u.id === userId)
     if (user) {
       setSelectedUser(user)
       setDialogMode('edit')
@@ -118,7 +116,7 @@ export function UserTable() {
   }
 
   const handleDeleteClick = (userId: string) => {
-    const user = fullUsers.find(u => u.id === userId)
+    const user = fullUsers.find((u) => u.id === userId)
     if (user) {
       setSelectedUser(user)
       setConfirmDialogOpen(true)
@@ -147,10 +145,14 @@ export function UserTable() {
 
   const getStatusFromCode = (status?: number): UserStatus => {
     switch (status) {
-      case 0: return 'pending'
-      case 1: return 'active'
-      case 2: return 'suspended'
-      default: return 'pending'
+      case 0:
+        return 'pending'
+      case 1:
+        return 'active'
+      case 2:
+        return 'suspended'
+      default:
+        return 'pending'
     }
   }
 
@@ -160,24 +162,24 @@ export function UserTable() {
 
   const handleRoleFilter = (value: string) => {
     if (value === 'all-roles') {
-      setFilters(prev => ({ ...prev, role: undefined }))
+      setFilters((prev) => ({ ...prev, role: undefined }))
     } else if (value === 'freelancer') {
-      setFilters(prev => ({ ...prev, role: 3 }))
+      setFilters((prev) => ({ ...prev, role: 3 }))
     } else if (value === 'customer') {
-      setFilters(prev => ({ ...prev, role: 2 }))
+      setFilters((prev) => ({ ...prev, role: 2 }))
     }
     setCurrentPage(1)
   }
 
   const handleStatusFilter = (value: string) => {
     if (value === 'all-status') {
-      setFilters(prev => ({ ...prev, status: undefined }))
+      setFilters((prev) => ({ ...prev, status: undefined }))
     } else if (value === 'active') {
-      setFilters(prev => ({ ...prev, status: 1 }))
+      setFilters((prev) => ({ ...prev, status: 1 }))
     } else if (value === 'pending') {
-      setFilters(prev => ({ ...prev, status: 0 }))
+      setFilters((prev) => ({ ...prev, status: 0 }))
     } else if (value === 'suspended') {
-      setFilters(prev => ({ ...prev, status: 2 }))
+      setFilters((prev) => ({ ...prev, status: 2 }))
     }
     setCurrentPage(1)
   }

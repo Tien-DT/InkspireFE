@@ -1,7 +1,7 @@
 /**
  * useSepayPayment Hook
  * Custom React hook for managing Sepay payment workflow
- * 
+ *
  * Features:
  * - Auto create payment when mounted
  * - Auto-polling payment status every 5 seconds
@@ -114,14 +114,7 @@ export interface UseSepayPaymentReturn {
  * Custom hook for Sepay payment
  */
 export function useSepayPayment(options: UseSepayPaymentOptions = {}): UseSepayPaymentReturn {
-  const {
-    pollingInterval = 5000,
-    autoPolling = true,
-    onSuccess,
-    onFailure,
-    onExpired,
-    onCancelled
-  } = options
+  const { pollingInterval = 5000, autoPolling = true, onSuccess, onFailure, onExpired, onCancelled } = options
 
   // State
   const [paymentData, setPaymentData] = useState<SepayPaymentResponse | null>(null)
@@ -148,28 +141,31 @@ export function useSepayPayment(options: UseSepayPaymentOptions = {}): UseSepayP
   /**
    * Start countdown timer
    */
-  const startCountdown = useCallback((expiresAt: string) => {
-    // Clear existing interval
-    if (countdownIntervalRef.current) {
-      clearInterval(countdownIntervalRef.current)
-    }
-
-    // Set initial countdown
-    setCountdown(calculateCountdown(expiresAt))
-
-    // Update countdown every second
-    countdownIntervalRef.current = setInterval(() => {
-      const remaining = calculateCountdown(expiresAt)
-      setCountdown(remaining)
-
-      if (remaining <= 0) {
-        if (countdownIntervalRef.current) {
-          clearInterval(countdownIntervalRef.current)
-        }
-        onExpired?.()
+  const startCountdown = useCallback(
+    (expiresAt: string) => {
+      // Clear existing interval
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current)
       }
-    }, 1000)
-  }, [calculateCountdown, onExpired])
+
+      // Set initial countdown
+      setCountdown(calculateCountdown(expiresAt))
+
+      // Update countdown every second
+      countdownIntervalRef.current = setInterval(() => {
+        const remaining = calculateCountdown(expiresAt)
+        setCountdown(remaining)
+
+        if (remaining <= 0) {
+          if (countdownIntervalRef.current) {
+            clearInterval(countdownIntervalRef.current)
+          }
+          onExpired?.()
+        }
+      }, 1000)
+    },
+    [calculateCountdown, onExpired]
+  )
 
   /**
    * Stop countdown timer
@@ -190,13 +186,13 @@ export function useSepayPayment(options: UseSepayPaymentOptions = {}): UseSepayP
     try {
       console.log('[useSepayPayment] Fetching payment status for:', paymentData.transactionId)
       const response = await sepayApi.getPaymentStatus(paymentData.transactionId)
-      
+
       console.log('[useSepayPayment] API response:', {
         success: response.success,
         status: response.data?.status,
         fullData: response.data
       })
-      
+
       if (response.success && response.data) {
         setPaymentStatus(response.data)
 
@@ -284,42 +280,45 @@ export function useSepayPayment(options: UseSepayPaymentOptions = {}): UseSepayP
   /**
    * Create a new payment
    */
-  const createPayment = useCallback(async (request: SepayPaymentRequest) => {
-    setIsLoading(true)
-    setError(null)
+  const createPayment = useCallback(
+    async (request: SepayPaymentRequest) => {
+      setIsLoading(true)
+      setError(null)
 
-    try {
-      const response = await sepayApi.createPayment(request)
+      try {
+        const response = await sepayApi.createPayment(request)
 
-      if (response.success && response.data) {
-        setPaymentData(response.data)
-        setPaymentStatus({
-          transactionId: response.data.transactionId,
-          transactionRef: response.data.transactionRef,
-          status: response.data.status as SepayTransactionStatus,
-          amount: response.data.amount,
-          orderInfo: request.OrderInfo, // PascalCase property name
-          createdAt: new Date().toISOString(),
-          expiresAt: response.data.expiresAt
-        })
+        if (response.success && response.data) {
+          setPaymentData(response.data)
+          setPaymentStatus({
+            transactionId: response.data.transactionId,
+            transactionRef: response.data.transactionRef,
+            status: response.data.status as SepayTransactionStatus,
+            amount: response.data.amount,
+            orderInfo: request.OrderInfo, // PascalCase property name
+            createdAt: new Date().toISOString(),
+            expiresAt: response.data.expiresAt
+          })
 
-        // Start countdown
-        startCountdown(response.data.expiresAt)
+          // Start countdown
+          startCountdown(response.data.expiresAt)
 
-        // Polling will auto-start via useEffect when paymentData is set
-      } else {
-        const errorMsg = response.errorMessage || 'Failed to create payment'
+          // Polling will auto-start via useEffect when paymentData is set
+        } else {
+          const errorMsg = response.errorMessage || 'Failed to create payment'
+          setError(errorMsg)
+          onFailure?.(errorMsg)
+        }
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : 'An error occurred'
         setError(errorMsg)
         onFailure?.(errorMsg)
+      } finally {
+        setIsLoading(false)
       }
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'An error occurred'
-      setError(errorMsg)
-      onFailure?.(errorMsg)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [startCountdown, onFailure])
+    },
+    [startCountdown, onFailure]
+  )
 
   /**
    * Cancel the current payment
@@ -333,7 +332,7 @@ export function useSepayPayment(options: UseSepayPaymentOptions = {}): UseSepayP
       const response = await sepayApi.cancelPayment(paymentData.transactionId)
 
       if (response.success) {
-        setPaymentStatus(prev => prev ? { ...prev, status: 'CANCELLED' as SepayTransactionStatus } : null)
+        setPaymentStatus((prev) => (prev ? { ...prev, status: 'CANCELLED' as SepayTransactionStatus } : null))
         stopPolling()
         stopCountdown()
         onCancelled?.()
@@ -374,7 +373,7 @@ export function useSepayPayment(options: UseSepayPaymentOptions = {}): UseSepayP
     if (paymentData && paymentStatus?.status === 'PENDING') {
       console.log('[useSepayPayment] Payment created, starting auto-polling')
       startPolling()
-      
+
       // Cleanup: stop polling when effect re-runs or unmounts
       return () => {
         console.log('[useSepayPayment] Cleaning up polling')

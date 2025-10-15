@@ -58,7 +58,10 @@ export function LoginForm() {
         <div className='grid gap-3'>
           <div className='flex items-center'>
             <Label htmlFor='login-password'>Mật khẩu</Label>
-            <Link to='/auth/forgot-password' className='ml-auto text-sm font-medium text-emerald-600 underline-offset-4 hover:underline'>
+            <Link
+              to='/auth/forgot-password'
+              className='ml-auto text-sm font-medium text-emerald-600 underline-offset-4 hover:underline'
+            >
               Quên mật khẩu?
             </Link>
           </div>

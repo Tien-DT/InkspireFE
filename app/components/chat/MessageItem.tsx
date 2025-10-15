@@ -48,9 +48,7 @@ export function MessageItem({ message }: MessageItemProps) {
   return (
     <div className='flex items-end gap-3'>
       <Avatar className='h-9 w-9 flex-shrink-0'>
-        <AvatarFallback className='bg-muted text-xs font-medium text-foreground'>
-          {getInitials()}
-        </AvatarFallback>
+        <AvatarFallback className='bg-muted text-xs font-medium text-foreground'>{getInitials()}</AvatarFallback>
       </Avatar>
       <div className='max-w-[70%] space-y-1'>
         <div className='rounded-lg border border-border bg-muted/50 px-4 py-2 text-sm text-foreground'>

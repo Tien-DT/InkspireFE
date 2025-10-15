@@ -89,7 +89,9 @@ export const subscriptionApi = {
   },
 
   // Purchase a subscription (only for clients)
-  purchaseSubscription: async (request: PurchaseSubscriptionRequest): Promise<ApiResponse<PurchaseSubscriptionResponse>> => {
+  purchaseSubscription: async (
+    request: PurchaseSubscriptionRequest
+  ): Promise<ApiResponse<PurchaseSubscriptionResponse>> => {
     const response = await axiosClient.post<ApiResponse<PurchaseSubscriptionResponse>>(
       `${URL_SUBSCRIPTIONS}/purchase`,
       request
@@ -98,7 +100,9 @@ export const subscriptionApi = {
   },
 
   // Purchase a subscription with wallet balance (only for clients)
-  purchaseSubscriptionWithWallet: async (request: PurchaseSubscriptionWithWalletRequest): Promise<ApiResponse<PurchaseSubscriptionWithWalletResponse>> => {
+  purchaseSubscriptionWithWallet: async (
+    request: PurchaseSubscriptionWithWalletRequest
+  ): Promise<ApiResponse<PurchaseSubscriptionWithWalletResponse>> => {
     const response = await axiosClient.post<ApiResponse<PurchaseSubscriptionWithWalletResponse>>(
       `${URL_SUBSCRIPTIONS}/purchase-with-wallet`,
       request

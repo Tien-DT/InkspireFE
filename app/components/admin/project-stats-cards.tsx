@@ -21,10 +21,10 @@ export function ProjectStatsCards() {
       // Gọi tuần tự các API count và log để debug
       const activeProjects = await adminApi.getTotalProjectsCount({ status: 1 })
       console.log('Active projects:', activeProjects, typeof activeProjects)
-      
+
       const completedProjects = await adminApi.getTotalProjectsCount({ status: 2 })
       console.log('Completed projects:', completedProjects, typeof completedProjects)
-      
+
       const pendingProjects = await adminApi.getTotalProjectsCount({ status: 0 })
       console.log('Pending projects:', pendingProjects, typeof pendingProjects)
 
@@ -35,7 +35,7 @@ export function ProjectStatsCards() {
 
       // Tính tổng thực tế
       const actualTotal = active + completed + pending
-      
+
       const formattedStats: ProjectStat[] = [
         { value: actualTotal.toString(), label: 'Tổng dự án', accentClass: 'text-teal-600' },
         { value: active.toString(), label: 'Đang thực hiện', accentClass: 'text-blue-600' },

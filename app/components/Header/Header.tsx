@@ -22,8 +22,8 @@ export function Header() {
   const { userName, isAuthenticated, authReady, profile } = useAuth()
   const { data: wallet } = useWallet(profile?.id, isAuthenticated)
   const { data: isPremium } = usePremiumStatus(profile?.id, isAuthenticated)
-  console.log("wallet", wallet)
-  console.log("isPremium", isPremium)
+  console.log('wallet', wallet)
+  console.log('isPremium', isPremium)
 
   // Determine if user is a client (CLIENT role) or freelancer (other roles)
   const isClient = profile?.role === UserRole.CLIENT

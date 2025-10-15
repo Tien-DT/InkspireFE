@@ -145,10 +145,10 @@ export function upsertConversation(conversation: Conversation): void {
 export function removeConversation(conversationId: string): void {
   const storage = getChatStorage()
   storage.conversations = storage.conversations.filter((c) => c.id !== conversationId)
-  
+
   // Also remove messages for this conversation
   delete storage.messages[conversationId]
-  
+
   saveChatStorage(storage)
 }
 
@@ -167,14 +167,14 @@ export function getStoredMessages(conversationId: string): Message[] {
  */
 export function saveMessages(conversationId: string, messages: Message[]): void {
   const storage = getChatStorage()
-  
+
   // Sort by sendAt descending and take latest MAX_MESSAGES
   const sortedMessages = [...messages].sort((a, b) => {
     const dateA = a.sendAt ? new Date(a.sendAt).getTime() : 0
     const dateB = b.sendAt ? new Date(b.sendAt).getTime() : 0
     return dateB - dateA
   })
-  
+
   storage.messages[conversationId] = sortedMessages.slice(0, MAX_MESSAGES_PER_CONVERSATION)
   saveChatStorage(storage)
 }
@@ -185,22 +185,22 @@ export function saveMessages(conversationId: string, messages: Message[]): void 
 export function upsertMessage(conversationId: string, message: Message): void {
   const storage = getChatStorage()
   const messages = storage.messages[conversationId] || []
-  
+
   const index = messages.findIndex((m) => m.id === message.id)
-  
+
   if (index >= 0) {
     messages[index] = message
   } else {
     messages.push(message)
   }
-  
+
   // Sort and limit
   const sortedMessages = messages.sort((a, b) => {
     const dateA = a.sendAt ? new Date(a.sendAt).getTime() : 0
     const dateB = b.sendAt ? new Date(b.sendAt).getTime() : 0
     return dateB - dateA
   })
-  
+
   storage.messages[conversationId] = sortedMessages.slice(0, MAX_MESSAGES_PER_CONVERSATION)
   saveChatStorage(storage)
 }
@@ -211,7 +211,7 @@ export function upsertMessage(conversationId: string, message: Message): void {
 export function removeMessage(conversationId: string, messageId: string): void {
   const storage = getChatStorage()
   const messages = storage.messages[conversationId] || []
-  
+
   storage.messages[conversationId] = messages.filter((m) => m.id !== messageId)
   saveChatStorage(storage)
 }
@@ -253,11 +253,7 @@ export function mergeConversations(
  * Merge server messages with local storage
  * Server data takes precedence for existing messages
  */
-export function mergeMessages(
-  conversationId: string,
-  serverMessages: Message[],
-  localMessages: Message[]
-): Message[] {
+export function mergeMessages(conversationId: string, serverMessages: Message[], localMessages: Message[]): Message[] {
   const merged = new Map<string, Message>()
 
   // Add local first
@@ -285,10 +281,7 @@ export function mergeMessages(
 /**
  * Sync local storage with server data
  */
-export function syncWithServer(
-  serverConversations: Conversation[],
-  serverMessages: Record<string, Message[]>
-): void {
+export function syncWithServer(serverConversations: Conversation[], serverMessages: Record<string, Message[]>): void {
   const storage = getChatStorage()
 
   // Merge conversations
@@ -297,11 +290,7 @@ export function syncWithServer(
   // Merge messages for each conversation
   Object.keys(serverMessages).forEach((conversationId) => {
     const localMessages = storage.messages[conversationId] || []
-    storage.messages[conversationId] = mergeMessages(
-      conversationId,
-      serverMessages[conversationId],
-      localMessages
-    )
+    storage.messages[conversationId] = mergeMessages(conversationId, serverMessages[conversationId], localMessages)
   })
 
   storage.lastSync = Date.now()
@@ -315,20 +304,20 @@ export const chatStorage = {
   clear: clearChatStorage,
   shouldSync,
   updateLastSync,
-  
+
   // Conversations
   getConversations: getStoredConversations,
   saveConversations,
   upsertConversation,
   removeConversation,
-  
+
   // Messages
   getMessages: getStoredMessages,
   saveMessages,
   upsertMessage,
   removeMessage,
   getAllMessages: getAllStoredMessages,
-  
+
   // Sync
   mergeConversations,
   mergeMessages,

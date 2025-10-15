@@ -116,15 +116,13 @@ export const useEvaluateMilestoneFile = () => {
   })
 }
 
-export const useEvaluateMilestoneFileByUrl = (options: { onSuccess?: (data: any) => void, onError?: (error: any) => void } = {}) => {
+export const useEvaluateMilestoneFileByUrl = (
+  options: { onSuccess?: (data: any) => void; onError?: (error: any) => void } = {}
+) => {
   return useMutation({
-    mutationFn: (body: {
-      requirementText: string
-      fileUrl: string
-      fileName: string
-      contentType: string
-    }) => projectApi.evaluateMilestoneFileByUrl(body),
+    mutationFn: (body: { requirementText: string; fileUrl: string; fileName: string; contentType: string }) =>
+      projectApi.evaluateMilestoneFileByUrl(body),
     onSuccess: options.onSuccess,
-    onError: options.onError,
+    onError: options.onError
   })
 }

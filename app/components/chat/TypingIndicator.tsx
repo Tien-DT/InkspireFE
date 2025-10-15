@@ -10,8 +10,14 @@ export function TypingIndicator() {
       <div className='flex items-center gap-2 text-xs text-muted-foreground'>
         <div className='flex gap-1'>
           <span className='h-2 w-2 animate-bounce rounded-full bg-muted-foreground' style={{ animationDelay: '0ms' }} />
-          <span className='h-2 w-2 animate-bounce rounded-full bg-muted-foreground' style={{ animationDelay: '120ms' }} />
-          <span className='h-2 w-2 animate-bounce rounded-full bg-muted-foreground' style={{ animationDelay: '240ms' }} />
+          <span
+            className='h-2 w-2 animate-bounce rounded-full bg-muted-foreground'
+            style={{ animationDelay: '120ms' }}
+          />
+          <span
+            className='h-2 w-2 animate-bounce rounded-full bg-muted-foreground'
+            style={{ animationDelay: '240ms' }}
+          />
         </div>
         <span>{typingText}</span>
       </div>

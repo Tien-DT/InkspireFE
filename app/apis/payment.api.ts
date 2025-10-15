@@ -32,10 +32,7 @@ export const sepayApi = {
    * @returns Payment response with QR code and payment details
    */
   createPayment: async (request: SepayPaymentRequest) => {
-    const response = await axiosClient.post<SepayApiResponse<SepayPaymentResponse>>(
-      URL_SEPAY_PAYMENTS,
-      request
-    )
+    const response = await axiosClient.post<SepayApiResponse<SepayPaymentResponse>>(URL_SEPAY_PAYMENTS, request)
     return response.data
   },
 
@@ -76,9 +73,7 @@ export const sepayApi = {
    * @returns Success response
    */
   cancelPayment: async (transactionId: string) => {
-    const response = await axiosClient.delete<SepayApiResponse<void>>(
-      `${URL_SEPAY_PAYMENTS}/${transactionId}`
-    )
+    const response = await axiosClient.delete<SepayApiResponse<void>>(`${URL_SEPAY_PAYMENTS}/${transactionId}`)
     return response.data
   },
 
@@ -88,9 +83,7 @@ export const sepayApi = {
    * @returns Bank account information
    */
   getBankInfo: async () => {
-    const response = await axiosClient.get<SepayApiResponse<SepayBankInfo>>(
-      URL_SEPAY_BANK_INFO
-    )
+    const response = await axiosClient.get<SepayApiResponse<SepayBankInfo>>(URL_SEPAY_BANK_INFO)
     return response.data
   },
 
@@ -101,10 +94,9 @@ export const sepayApi = {
    * @returns Paginated transaction list
    */
   getTransactions: async (params?: SepayTransactionListRequest) => {
-    const response = await axiosClient.get<SepayApiResponse<SepayTransactionListResponse>>(
-      URL_SEPAY_TRANSACTIONS,
-      { params }
-    )
+    const response = await axiosClient.get<SepayApiResponse<SepayTransactionListResponse>>(URL_SEPAY_TRANSACTIONS, {
+      params
+    })
     return response.data
   }
 }

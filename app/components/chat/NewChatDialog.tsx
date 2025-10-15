@@ -24,7 +24,7 @@ export const NewChatDialog = ({ open, onOpenChange }: NewChatDialogProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!userId.trim()) {
       setError('Vui lòng nhập User ID')
       return
@@ -40,19 +40,19 @@ export const NewChatDialog = ({ open, onOpenChange }: NewChatDialogProps) => {
     try {
       setIsLoading(true)
       setError(null)
-      
+
       await createNewConversation(userId.trim())
-      
+
       // Close dialog and reset form
       onOpenChange(false)
       setUserId('')
       setError(null)
     } catch (err: any) {
       console.error('Failed to create conversation:', err)
-      
+
       // Parse error message
       const errorMessage = err?.response?.data?.message || err?.message || 'Không thể tạo cuộc trò chuyện'
-      
+
       if (errorMessage.includes('not found')) {
         setError('Không tìm thấy người dùng với ID này')
       } else if (errorMessage.includes('already exists')) {
@@ -78,47 +78,36 @@ export const NewChatDialog = ({ open, onOpenChange }: NewChatDialogProps) => {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className='sm:max-w-[425px]'>
         <DialogHeader>
           <DialogTitle>Tạo cuộc trò chuyện mới</DialogTitle>
-          <DialogDescription>
-            Nhập User ID của người bạn muốn trò chuyện
-          </DialogDescription>
+          <DialogDescription>Nhập User ID của người bạn muốn trò chuyện</DialogDescription>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <label htmlFor="userId" className="text-sm font-medium">
+          <div className='grid gap-4 py-4'>
+            <div className='grid gap-2'>
+              <label htmlFor='userId' className='text-sm font-medium'>
                 User ID
               </label>
               <Input
-                id="userId"
-                placeholder="ví dụ: 123e4567-e89b-12d3-a456-426614174000"
+                id='userId'
+                placeholder='ví dụ: 123e4567-e89b-12d3-a456-426614174000'
                 value={userId}
                 onChange={(e) => setUserId(e.target.value)}
                 disabled={isLoading}
                 className={error ? 'border-red-500' : ''}
               />
-              {error && (
-                <p className="text-sm text-red-500">{error}</p>
-              )}
-              <p className="text-xs text-gray-500">
-                User ID là UUID duy nhất của người dùng
-              </p>
+              {error && <p className='text-sm text-red-500'>{error}</p>}
+              <p className='text-xs text-gray-500'>User ID là UUID duy nhất của người dùng</p>
             </div>
           </div>
-          
+
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => handleOpenChange(false)}
-              disabled={isLoading}
-            >
+            <Button type='button' variant='outline' onClick={() => handleOpenChange(false)} disabled={isLoading}>
               Hủy
             </Button>
-            <Button type="submit" disabled={isLoading}>
+            <Button type='submit' disabled={isLoading}>
               {isLoading ? 'Đang tạo...' : 'Tạo cuộc trò chuyện'}
             </Button>
           </DialogFooter>

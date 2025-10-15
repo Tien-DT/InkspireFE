@@ -167,13 +167,15 @@ class AdminApi {
   }
 
   // Users
-  async getTotalUsersCount(params: {
-    role?: number
-    status?: number
-  } = {}): Promise<number> {
+  async getTotalUsersCount(
+    params: {
+      role?: number
+      status?: number
+    } = {}
+  ): Promise<number> {
     const headers = this.getHeaders()
     const queryParams = new URLSearchParams()
-    
+
     if (params.role !== undefined) queryParams.append('role', params.role.toString())
     if (params.status !== undefined) queryParams.append('status', params.status.toString())
 
@@ -183,16 +185,18 @@ class AdminApi {
     return this.handleResponse<number>(response)
   }
 
-  async getUsers(params: {
-    page?: number
-    pageSize?: number
-    search?: string
-    role?: number
-    status?: number
-  } = {}): Promise<ApiResponse<PagedResult<AdminUser>>> {
+  async getUsers(
+    params: {
+      page?: number
+      pageSize?: number
+      search?: string
+      role?: number
+      status?: number
+    } = {}
+  ): Promise<ApiResponse<PagedResult<AdminUser>>> {
     const headers = this.getHeaders()
     const queryParams = new URLSearchParams()
-    
+
     if (params.page) queryParams.append('page', params.page.toString())
     if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString())
     if (params.search) queryParams.append('search', params.search)
@@ -202,12 +206,12 @@ class AdminApi {
     const response = await fetch(`${API_BASE_URL}/api/admin/users?${queryParams}`, {
       headers
     })
-    
+
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: 'Request failed' }))
       throw new Error(error.message || `HTTP error! status: ${response.status}`)
     }
-    
+
     return response.json()
   }
 
@@ -257,13 +261,16 @@ class AdminApi {
     return this.handleResponse<AdminUser>(response)
   }
 
-  async updateUser(userId: string, data: {
-    firstName?: string
-    lastName?: string
-    phoneNumber?: string
-    role?: number
-    status?: number
-  }): Promise<AdminUser> {
+  async updateUser(
+    userId: string,
+    data: {
+      firstName?: string
+      lastName?: string
+      phoneNumber?: string
+      role?: number
+      status?: number
+    }
+  ): Promise<AdminUser> {
     const headers = this.getHeaders()
     const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}`, {
       method: 'PUT',
@@ -283,12 +290,14 @@ class AdminApi {
   }
 
   // Projects
-  async getTotalProjectsCount(params: {
-    status?: number
-  } = {}): Promise<number> {
+  async getTotalProjectsCount(
+    params: {
+      status?: number
+    } = {}
+  ): Promise<number> {
     const headers = this.getHeaders()
     const queryParams = new URLSearchParams()
-    
+
     if (params.status !== undefined) queryParams.append('status', params.status.toString())
 
     const response = await fetch(`${API_BASE_URL}/api/admin/projects/count?${queryParams}`, {
@@ -297,15 +306,17 @@ class AdminApi {
     return this.handleResponse<number>(response)
   }
 
-  async getProjects(params: {
-    page?: number
-    pageSize?: number
-    search?: string
-    status?: number
-  } = {}): Promise<ApiResponse<PagedResult<AdminProject>>> {
+  async getProjects(
+    params: {
+      page?: number
+      pageSize?: number
+      search?: string
+      status?: number
+    } = {}
+  ): Promise<ApiResponse<PagedResult<AdminProject>>> {
     const headers = this.getHeaders()
     const queryParams = new URLSearchParams()
-    
+
     if (params.page) queryParams.append('page', params.page.toString())
     if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString())
     if (params.search) queryParams.append('search', params.search)
@@ -314,12 +325,12 @@ class AdminApi {
     const response = await fetch(`${API_BASE_URL}/api/admin/projects?${queryParams}`, {
       headers
     })
-    
+
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: 'Request failed' }))
       throw new Error(error.message || `HTTP error! status: ${response.status}`)
     }
-    
+
     return response.json()
   }
 
@@ -360,15 +371,18 @@ class AdminApi {
     return this.handleResponse<AdminProject>(response)
   }
 
-  async updateProject(projectId: string, data: {
-    title?: string
-    description?: string
-    budgetMin?: number
-    budgetMax?: number
-    clientId?: string
-    deadline?: string
-    status?: number
-  }): Promise<AdminProject> {
+  async updateProject(
+    projectId: string,
+    data: {
+      title?: string
+      description?: string
+      budgetMin?: number
+      budgetMax?: number
+      clientId?: string
+      deadline?: string
+      status?: number
+    }
+  ): Promise<AdminProject> {
     const headers = this.getHeaders()
     const response = await fetch(`${API_BASE_URL}/api/admin/projects/${projectId}`, {
       method: 'PUT',
@@ -388,17 +402,19 @@ class AdminApi {
   }
 
   // Transactions
-  async getTransactions(params: {
-    page?: number
-    pageSize?: number
-    type?: string
-    status?: string
-    startDate?: string
-    endDate?: string
-  } = {}): Promise<ApiResponse<PagedResult<AdminTransaction>>> {
+  async getTransactions(
+    params: {
+      page?: number
+      pageSize?: number
+      type?: string
+      status?: string
+      startDate?: string
+      endDate?: string
+    } = {}
+  ): Promise<ApiResponse<PagedResult<AdminTransaction>>> {
     const headers = this.getHeaders()
     const queryParams = new URLSearchParams()
-    
+
     if (params.page) queryParams.append('page', params.page.toString())
     if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString())
     if (params.type) queryParams.append('type', params.type)
@@ -409,12 +425,12 @@ class AdminApi {
     const response = await fetch(`${API_BASE_URL}/api/admin/transactions?${queryParams}`, {
       headers
     })
-    
+
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: 'Request failed' }))
       throw new Error(error.message || `HTTP error! status: ${response.status}`)
     }
-    
+
     return response.json()
   }
 
@@ -429,7 +445,7 @@ class AdminApi {
   async getTransactionStats(startDate?: string, endDate?: string): Promise<any> {
     const headers = this.getHeaders()
     const queryParams = new URLSearchParams()
-    
+
     if (startDate) queryParams.append('startDate', startDate)
     if (endDate) queryParams.append('endDate', endDate)
 
@@ -449,14 +465,16 @@ class AdminApi {
     return response.blob()
   }
 
-  async exportTransactionsReport(params: {
-    startDate?: string
-    endDate?: string
-    format?: string
-  } = {}): Promise<Blob> {
+  async exportTransactionsReport(
+    params: {
+      startDate?: string
+      endDate?: string
+      format?: string
+    } = {}
+  ): Promise<Blob> {
     const headers = this.getHeaders()
     const queryParams = new URLSearchParams()
-    
+
     if (params.startDate) queryParams.append('startDate', params.startDate)
     if (params.endDate) queryParams.append('endDate', params.endDate)
     if (params.format) queryParams.append('format', params.format)

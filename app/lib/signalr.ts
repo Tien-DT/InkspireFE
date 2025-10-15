@@ -2,13 +2,7 @@ import * as signalR from '@microsoft/signalr'
 import type { HubConnection, HubConnectionState } from '@microsoft/signalr'
 import { getAccessTokenFromLS } from '~/utils/auth'
 import type { ChatMessageResponse, SendMessageRequest } from '~/types/chat.type'
-import type {
-  CallOffer,
-  CallAnswer,
-  CallIceCandidate,
-  CallRejection,
-  CallEnd
-} from '~/types/call.type'
+import type { CallOffer, CallAnswer, CallIceCandidate, CallRejection, CallEnd } from '~/types/call.type'
 
 // ===== SignalR Client Interface =====
 export interface IChatClient {
@@ -104,7 +98,7 @@ class SignalRChatService {
       // Start connection
       await this.connection.start()
       console.log('[SignalR] Connected successfully')
-      
+
       // Notify online status
       await this.notifyOnline()
     } catch (error) {
@@ -197,7 +191,7 @@ class SignalRChatService {
     })
 
     // ===== Video Call Events =====
-    
+
     // CallOffer
     this.connection.on('CallOffer', (offer: CallOffer) => {
       console.log('[SignalR] CallOffer received:', offer.callId)
@@ -356,28 +350,35 @@ class SignalRChatService {
     console.log('[SignalR] ===== ATTEMPTING TO SEND CALL OFFER =====')
     console.log('[SignalR] Connection state:', this.connection?.state)
     console.log('[SignalR] Is connected:', this.isConnected())
-    
+
     if (!this.connection) {
       const error = 'SignalR connection is null'
       console.error('[SignalR]', error)
       throw new Error(error)
     }
-    
+
     if (!this.isConnected()) {
       const error = `SignalR not connected (state: ${this.connection.state})`
       console.error('[SignalR]', error)
       throw new Error(error)
     }
-    
+
     try {
-      console.log('[SignalR] Offer details:', JSON.stringify({
-        callId: offer.callId,
-        callType: offer.callType,
-        caller: offer.caller,
-        receiver: offer.receiver,
-        conversationId: offer.conversationId
-      }, null, 2))
-      
+      console.log(
+        '[SignalR] Offer details:',
+        JSON.stringify(
+          {
+            callId: offer.callId,
+            callType: offer.callType,
+            caller: offer.caller,
+            receiver: offer.receiver,
+            conversationId: offer.conversationId
+          },
+          null,
+          2
+        )
+      )
+
       await this.connection.invoke('SendCallOffer', offer)
       console.log('[SignalR] ===== CALL OFFER SENT SUCCESSFULLY =====')
     } catch (error) {
@@ -395,13 +396,13 @@ class SignalRChatService {
     console.log('[SignalR] Connection state:', this.connection?.state)
     console.log('[SignalR] Answer CallId:', answer.callId)
     console.log('[SignalR] Caller ID:', answer.callerId)
-    
+
     if (!this.connection || !this.isConnected()) {
       const error = `SignalR not connected (state: ${this.connection?.state})`
       console.error('[SignalR]', error)
       throw new Error(error)
     }
-    
+
     try {
       await this.connection.invoke('SendCallAnswer', answer)
       console.log('[SignalR] ===== CALL ANSWER SENT SUCCESSFULLY =====')
@@ -457,7 +458,7 @@ class SignalRChatService {
   }
 
   // ===== Call Event Handlers (to be set by VideoCallContext) =====
-  
+
   onCallOffer?: (offer: CallOffer) => void
   onCallAnswer?: (answer: CallAnswer) => void
   onCallIceCandidate?: (data: CallIceCandidate) => void

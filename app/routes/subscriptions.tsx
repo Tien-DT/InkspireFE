@@ -5,7 +5,14 @@ import { Check, Zap, Crown, Star } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '~/components/ui/card'
 import { Badge } from '~/components/ui/badge'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '~/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from '~/components/ui/dialog'
 import { RadioGroup, RadioGroupItem } from '~/components/ui/radio-group'
 import { Label } from '~/components/ui/label'
 import { useProfile } from '~/hooks/useProfile'
@@ -62,7 +69,7 @@ export default function SubscriptionPage() {
   }
 
   const calculatePrice = (basePrice: number, durationMonths: number): number => {
-    const discount = DURATION_OPTIONS.find(d => d.value === durationMonths)?.discount || 0
+    const discount = DURATION_OPTIONS.find((d) => d.value === durationMonths)?.discount || 0
     const totalPrice = basePrice * durationMonths
     const discountAmount = (totalPrice * discount) / 100
     return totalPrice - discountAmount
@@ -95,7 +102,7 @@ export default function SubscriptionPage() {
       }
 
       const response = await subscriptionApi.purchaseSubscription(request)
-      
+
       if (response.success) {
         toast.success('Đang chuyển hướng đến trang thanh toán...')
         // Redirect to payment URL
@@ -114,19 +121,27 @@ export default function SubscriptionPage() {
 
   const getSubscriptionIcon = (type?: number) => {
     switch (type) {
-      case 1: return <Zap className='h-8 w-8' />
-      case 2: return <Crown className='h-8 w-8' />
-      case 3: return <Star className='h-8 w-8' />
-      default: return <Zap className='h-8 w-8' />
+      case 1:
+        return <Zap className='h-8 w-8' />
+      case 2:
+        return <Crown className='h-8 w-8' />
+      case 3:
+        return <Star className='h-8 w-8' />
+      default:
+        return <Zap className='h-8 w-8' />
     }
   }
 
   const getSubscriptionColor = (type?: number) => {
     switch (type) {
-      case 1: return 'text-blue-500'
-      case 2: return 'text-purple-500'
-      case 3: return 'text-yellow-500'
-      default: return 'text-gray-500'
+      case 1:
+        return 'text-blue-500'
+      case 2:
+        return 'text-purple-500'
+      case 3:
+        return 'text-yellow-500'
+      default:
+        return 'text-gray-500'
     }
   }
 
@@ -166,15 +181,11 @@ export default function SubscriptionPage() {
                   {getSubscriptionIcon(subscription.type)}
                 </div>
                 <CardTitle className='text-2xl text-center'>{subscription.title}</CardTitle>
-                <CardDescription className='text-center'>
-                  {subscription.description}
-                </CardDescription>
+                <CardDescription className='text-center'>{subscription.description}</CardDescription>
               </CardHeader>
               <CardContent className='text-center'>
                 <div className='mb-6'>
-                  <span className='text-4xl font-bold'>
-                    {subscription.price.toLocaleString('vi-VN')}
-                  </span>
+                  <span className='text-4xl font-bold'>{subscription.price.toLocaleString('vi-VN')}</span>
                   <span className='text-muted-foreground'> VNĐ/tháng</span>
                 </div>
                 <ul className='space-y-3 text-left'>
@@ -213,8 +224,8 @@ export default function SubscriptionPage() {
               <CardFooter>
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button 
-                      className='w-full' 
+                    <Button
+                      className='w-full'
                       variant={subscription.type === 2 ? 'default' : 'outline'}
                       onClick={() => handlePurchase(subscription)}
                     >
@@ -225,9 +236,7 @@ export default function SubscriptionPage() {
                     <DialogContent className='max-w-md'>
                       <DialogHeader>
                         <DialogTitle>Xác Nhận Mua Gói {selectedSubscription.title}</DialogTitle>
-                        <DialogDescription>
-                          Chọn thời hạn và phương thức thanh toán
-                        </DialogDescription>
+                        <DialogDescription>Chọn thời hạn và phương thức thanh toán</DialogDescription>
                       </DialogHeader>
                       <div className='space-y-6'>
                         {/* Duration Selection */}
@@ -235,7 +244,10 @@ export default function SubscriptionPage() {
                           <Label>Thời hạn đăng ký</Label>
                           <RadioGroup value={duration.toString()} onValueChange={(value) => setDuration(Number(value))}>
                             {DURATION_OPTIONS.map((option) => (
-                              <div key={option.value} className='flex items-center space-x-2 p-3 border rounded-lg hover:bg-accent'>
+                              <div
+                                key={option.value}
+                                className='flex items-center space-x-2 p-3 border rounded-lg hover:bg-accent'
+                              >
                                 <RadioGroupItem value={option.value.toString()} id={`duration-${option.value}`} />
                                 <Label htmlFor={`duration-${option.value}`} className='flex-1 cursor-pointer'>
                                   <div className='flex justify-between items-center'>
@@ -247,7 +259,10 @@ export default function SubscriptionPage() {
                                         </Badge>
                                       )}
                                       <p className='text-sm font-semibold'>
-                                        {calculatePrice(selectedSubscription.price, option.value).toLocaleString('vi-VN')} VNĐ
+                                        {calculatePrice(selectedSubscription.price, option.value).toLocaleString(
+                                          'vi-VN'
+                                        )}{' '}
+                                        VNĐ
                                       </p>
                                     </div>
                                   </div>
@@ -262,7 +277,10 @@ export default function SubscriptionPage() {
                           <Label>Phương thức thanh toán</Label>
                           <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
                             {PAYMENT_METHODS.map((method) => (
-                              <div key={method.value} className='flex items-center space-x-2 p-3 border rounded-lg hover:bg-accent'>
+                              <div
+                                key={method.value}
+                                className='flex items-center space-x-2 p-3 border rounded-lg hover:bg-accent'
+                              >
                                 <RadioGroupItem value={method.value} id={method.value} />
                                 <Label htmlFor={method.value} className='flex-1 cursor-pointer'>
                                   <div>
@@ -295,11 +313,7 @@ export default function SubscriptionPage() {
                           >
                             Hủy
                           </Button>
-                          <Button
-                            className='flex-1'
-                            onClick={confirmPurchase}
-                            disabled={isPurchasing}
-                          >
+                          <Button className='flex-1' onClick={confirmPurchase} disabled={isPurchasing}>
                             {isPurchasing ? 'Đang xử lý...' : 'Xác nhận thanh toán'}
                           </Button>
                         </div>

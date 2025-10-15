@@ -21,29 +21,29 @@ export function TransactionStatsCards() {
     try {
       const data = await adminApi.getTransactionStats()
       const formattedStats: TransactionStat[] = [
-        { 
-          value: `${data.totalRevenue.toLocaleString('vi-VN')}đ`, 
-          label: 'Tổng doanh thu', 
-          subtext: `${data.revenueGrowthPercentage > 0 ? '+' : ''}${data.revenueGrowthPercentage.toFixed(1)}% so với tháng trước`, 
-          accentClass: 'text-teal-600' 
+        {
+          value: `${data.totalRevenue.toLocaleString('vi-VN')}đ`,
+          label: 'Tổng doanh thu',
+          subtext: `${data.revenueGrowthPercentage > 0 ? '+' : ''}${data.revenueGrowthPercentage.toFixed(1)}% so với tháng trước`,
+          accentClass: 'text-teal-600'
         },
-        { 
-          value: `${data.monthlyRevenue.toLocaleString('vi-VN')}đ`, 
-          label: 'Doanh thu tháng', 
-          subtext: 'Trong 30 ngày qua', 
-          accentClass: 'text-blue-600' 
+        {
+          value: `${data.monthlyRevenue.toLocaleString('vi-VN')}đ`,
+          label: 'Doanh thu tháng',
+          subtext: 'Trong 30 ngày qua',
+          accentClass: 'text-blue-600'
         },
-        { 
-          value: `${data.commissionEarned.toLocaleString('vi-VN')}đ`, 
-          label: 'Hoa hồng', 
-          subtext: 'Từ các dự án', 
-          accentClass: 'text-amber-600' 
+        {
+          value: `${data.commissionEarned.toLocaleString('vi-VN')}đ`,
+          label: 'Hoa hồng',
+          subtext: 'Từ các dự án',
+          accentClass: 'text-amber-600'
         },
-        { 
-          value: `${data.serviceFees.toLocaleString('vi-VN')}đ`, 
-          label: 'Phí dịch vụ', 
-          subtext: 'Phí nền tảng', 
-          accentClass: 'text-emerald-600' 
+        {
+          value: `${data.serviceFees.toLocaleString('vi-VN')}đ`,
+          label: 'Phí dịch vụ',
+          subtext: 'Phí nền tảng',
+          accentClass: 'text-emerald-600'
         }
       ]
       setStats(formattedStats)

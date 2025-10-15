@@ -1,21 +1,6 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useCallback,
-  useRef,
-  useEffect,
-  useMemo,
-  type ReactNode
-} from 'react'
+import { createContext, useContext, useState, useCallback, useRef, useEffect, useMemo, type ReactNode } from 'react'
 import { toast } from 'sonner'
-import type {
-  CallState,
-  CallType,
-  CallOffer,
-  CallAnswer,
-  CallIceCandidate
-} from '~/types/call.type'
+import type { CallState, CallType, CallOffer, CallAnswer, CallIceCandidate } from '~/types/call.type'
 import { CallStatus as CallStatusEnum } from '~/types/call.type'
 import { signalRChatService } from '~/lib/signalr'
 import { useAuth } from './AuthContext'
@@ -32,7 +17,12 @@ const ICE_SERVERS: RTCConfiguration = {
 // ===== Context Interface =====
 interface VideoCallContextInterface {
   callState: CallState
-  initiateCall: (conversationId: string, receiverUserId: string, receiverName: string, callType: CallType) => Promise<void>
+  initiateCall: (
+    conversationId: string,
+    receiverUserId: string,
+    receiverName: string,
+    callType: CallType
+  ) => Promise<void>
   acceptCall: () => Promise<void>
   rejectCall: (reason?: string) => void
   endCall: () => void
@@ -56,7 +46,7 @@ interface VideoCallProviderProps {
 
 export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
   const { profile } = useAuth()
-  
+
   // State
   const [callState, setCallState] = useState<CallState>({
     callId: null,
@@ -79,7 +69,7 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
   const remoteStreamRef = useRef<MediaStream | null>(null)
 
   // ===== WebRTC Setup =====
-  
+
   const createPeerConnection = useCallback(() => {
     const pc = new RTCPeerConnection(ICE_SERVERS)
 
@@ -90,15 +80,13 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
         candidate: event.candidate?.candidate,
         callId: callState.callId
       })
-      
+
       if (event.candidate && callState.callId) {
         // Determine target user (the other participant)
         // If I'm the caller, send to receiver; if I'm receiver, send to caller
         const iAmCaller = callState.caller?.userId === profile?.id
-        const targetUserId = iAmCaller 
-          ? callState.receiver?.userId 
-          : callState.caller?.userId
-        
+        const targetUserId = iAmCaller ? callState.receiver?.userId : callState.caller?.userId
+
         console.log('[WebRTC] Sending ICE candidate:', {
           callId: callState.callId,
           iAmCaller,
@@ -106,7 +94,7 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
           targetUserId,
           candidateType: event.candidate.type
         })
-        
+
         if (targetUserId) {
           signalRChatService.sendCallIceCandidate({
             callId: callState.callId,
@@ -130,13 +118,16 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
       console.log('[WebRTC] Track enabled:', event.track.enabled)
       console.log('[WebRTC] Track readyState:', event.track.readyState)
       console.log('[WebRTC] Streams count:', event.streams?.length)
-      
+
       if (event.streams && event.streams[0]) {
         console.log('[WebRTC] Stream id:', event.streams[0].id)
-        console.log('[WebRTC] Stream tracks:', event.streams[0].getTracks().map(t => ({ kind: t.kind, id: t.id })))
-        
+        console.log(
+          '[WebRTC] Stream tracks:',
+          event.streams[0].getTracks().map((t) => ({ kind: t.kind, id: t.id }))
+        )
+
         remoteStreamRef.current = event.streams[0]
-        setCallState(prev => ({
+        setCallState((prev) => ({
           ...prev,
           remoteStream: event.streams[0]
         }))
@@ -153,10 +144,10 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
       console.log('[WebRTC] ICE connection state:', pc.iceConnectionState)
       console.log('[WebRTC] ICE gathering state:', pc.iceGatheringState)
       console.log('[WebRTC] Signaling state:', pc.signalingState)
-      
+
       if (pc.connectionState === 'connected') {
         console.log('[WebRTC] ===== CONNECTION ESTABLISHED =====')
-        setCallState(prev => ({
+        setCallState((prev) => ({
           ...prev,
           status: CallStatusEnum.Connected,
           startTime: Date.now()
@@ -175,17 +166,20 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
     try {
       const constraints: MediaStreamConstraints = {
         audio: true,
-        video: callType === 'video' ? {
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-          frameRate: { ideal: 30 }
-        } : false
+        video:
+          callType === 'video'
+            ? {
+                width: { ideal: 1280 },
+                height: { ideal: 720 },
+                frameRate: { ideal: 30 }
+              }
+            : false
       }
 
       const stream = await navigator.mediaDevices.getUserMedia(constraints)
       localStreamRef.current = stream
-      
-      setCallState(prev => ({
+
+      setCallState((prev) => ({
         ...prev,
         localStream: stream
       }))
@@ -204,7 +198,7 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
   const cleanupStreams = useCallback(() => {
     // Stop all tracks in local stream
     if (localStreamRef.current) {
-      localStreamRef.current.getTracks().forEach(track => track.stop())
+      localStreamRef.current.getTracks().forEach((track) => track.stop())
       localStreamRef.current = null
     }
 
@@ -217,7 +211,7 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
     // Clear remote stream
     remoteStreamRef.current = null
 
-    setCallState(prev => ({
+    setCallState((prev) => ({
       ...prev,
       localStream: null,
       remoteStream: null
@@ -226,114 +220,112 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
 
   // ===== Call Actions =====
 
-  const initiateCall = useCallback(async (
-    conversationId: string,
-    receiverUserId: string,
-    receiverName: string,
-    callType: CallType
-  ) => {
-    console.log('[VideoCallContext] initiateCall called:', { conversationId, receiverUserId, receiverName, callType })
-    try {
-      const callId = `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      console.log('[VideoCallContext] Generated callId:', callId)
-      
-      setCallState(prev => ({
-        ...prev,
-        callId,
-        conversationId,
-        callType,
-        status: CallStatusEnum.Initiating,
-        caller: {
-          userId: profile?.id || '',
-          userName: `${profile?.first_name} ${profile?.last_name}`,
-          isCaller: true
-        },
-        receiver: {
-          userId: receiverUserId,
-          userName: receiverName,
-          isCaller: false
-        }
-      }))
+  const initiateCall = useCallback(
+    async (conversationId: string, receiverUserId: string, receiverName: string, callType: CallType) => {
+      console.log('[VideoCallContext] initiateCall called:', { conversationId, receiverUserId, receiverName, callType })
+      try {
+        const callId = `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+        console.log('[VideoCallContext] Generated callId:', callId)
 
-      // Get local stream
-      const stream = await getLocalStream(callType)
+        setCallState((prev) => ({
+          ...prev,
+          callId,
+          conversationId,
+          callType,
+          status: CallStatusEnum.Initiating,
+          caller: {
+            userId: profile?.id || '',
+            userName: `${profile?.first_name} ${profile?.last_name}`,
+            isCaller: true
+          },
+          receiver: {
+            userId: receiverUserId,
+            userName: receiverName,
+            isCaller: false
+          }
+        }))
 
-      // Create peer connection
-      const pc = createPeerConnection()
+        // Get local stream
+        const stream = await getLocalStream(callType)
 
-      // Add local tracks to peer connection
-      stream.getTracks().forEach(track => {
-        pc.addTrack(track, stream)
-      })
+        // Create peer connection
+        const pc = createPeerConnection()
 
-      // Create offer
-      const offer = await pc.createOffer()
-      await pc.setLocalDescription(offer)
-      
-      console.log('[WebRTC] Offer created, waiting for ICE gathering...')
-      
-      // Wait for ICE gathering to complete (or timeout after 3 seconds)
-      await new Promise<void>((resolve) => {
-        const timeout = setTimeout(() => {
-          console.log('[WebRTC] ICE gathering timeout - proceeding anyway')
-          resolve()
-        }, 3000)
-        
-        if (pc.iceGatheringState === 'complete') {
-          clearTimeout(timeout)
-          resolve()
-        } else {
-          pc.onicegatheringstatechange = () => {
-            console.log('[WebRTC] ICE gathering state:', pc.iceGatheringState)
-            if (pc.iceGatheringState === 'complete') {
-              clearTimeout(timeout)
-              resolve()
+        // Add local tracks to peer connection
+        stream.getTracks().forEach((track) => {
+          pc.addTrack(track, stream)
+        })
+
+        // Create offer
+        const offer = await pc.createOffer()
+        await pc.setLocalDescription(offer)
+
+        console.log('[WebRTC] Offer created, waiting for ICE gathering...')
+
+        // Wait for ICE gathering to complete (or timeout after 3 seconds)
+        await new Promise<void>((resolve) => {
+          const timeout = setTimeout(() => {
+            console.log('[WebRTC] ICE gathering timeout - proceeding anyway')
+            resolve()
+          }, 3000)
+
+          if (pc.iceGatheringState === 'complete') {
+            clearTimeout(timeout)
+            resolve()
+          } else {
+            pc.onicegatheringstatechange = () => {
+              console.log('[WebRTC] ICE gathering state:', pc.iceGatheringState)
+              if (pc.iceGatheringState === 'complete') {
+                clearTimeout(timeout)
+                resolve()
+              }
             }
           }
+        })
+
+        console.log('[WebRTC] ICE gathering completed, sending offer...')
+
+        // Send offer via SignalR with potentially updated SDP (includes ICE candidates)
+        const callOffer: CallOffer = {
+          callId,
+          conversationId,
+          callType,
+          caller: {
+            userId: profile?.id || '',
+            userName: `${profile?.first_name} ${profile?.last_name}`,
+            isCaller: true
+          },
+          receiver: {
+            userId: receiverUserId,
+            userName: receiverName,
+            isCaller: false
+          },
+          sdp: pc.localDescription! // Use the final local description with ICE candidates
         }
-      })
-      
-      console.log('[WebRTC] ICE gathering completed, sending offer...')
 
-      // Send offer via SignalR with potentially updated SDP (includes ICE candidates)
-      const callOffer: CallOffer = {
-        callId,
-        conversationId,
-        callType,
-        caller: {
-          userId: profile?.id || '',
-          userName: `${profile?.first_name} ${profile?.last_name}`,
-          isCaller: true
-        },
-        receiver: {
-          userId: receiverUserId,
-          userName: receiverName,
-          isCaller: false
-        },
-        sdp: pc.localDescription!  // Use the final local description with ICE candidates
+        await signalRChatService.sendCallOffer(callOffer)
+
+        setCallState((prev) => ({
+          ...prev,
+          status: CallStatusEnum.Ringing
+        }))
+
+        console.log('[WebRTC] Call initiated:', callId)
+      } catch (error) {
+        console.error('[WebRTC] Failed to initiate call:', error)
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        toast.error('Không thể bắt đầu cuộc gọi', {
+          description: errorMessage
+        })
+        setCallState((prev) => ({
+          ...prev,
+          status: CallStatusEnum.Failed
+        }))
+        cleanupStreams()
       }
-
-      await signalRChatService.sendCallOffer(callOffer)
-
-      setCallState(prev => ({
-        ...prev,
-        status: CallStatusEnum.Ringing
-      }))
-
-      console.log('[WebRTC] Call initiated:', callId)
-    } catch (error) {
-      console.error('[WebRTC] Failed to initiate call:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      toast.error('Không thể bắt đầu cuộc gọi', {
-        description: errorMessage
-      })
-      setCallState(prev => ({
-        ...prev,
-        status: CallStatusEnum.Failed
-      }))
-      cleanupStreams()
-    }
-  }, [profile, getLocalStream, createPeerConnection, cleanupStreams])
+    },
+    [profile, getLocalStream, createPeerConnection, cleanupStreams]
+  )
 
   const acceptCall = useCallback(async () => {
     try {
@@ -350,7 +342,7 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
       console.log('[WebRTC] Call Type:', callState.callType)
       console.log('[WebRTC] Peer connection state:', peerConnection.current.signalingState)
 
-      setCallState(prev => ({
+      setCallState((prev) => ({
         ...prev,
         status: CallStatusEnum.Connecting
       }))
@@ -362,7 +354,7 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
       const pc = peerConnection.current
 
       // Add local tracks to existing peer connection
-      stream.getTracks().forEach(track => {
+      stream.getTracks().forEach((track) => {
         console.log('[WebRTC] Adding local track:', track.kind)
         pc.addTrack(track, stream)
       })
@@ -372,7 +364,7 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
       const answer = await pc.createAnswer()
       await pc.setLocalDescription(answer)
       console.log('[WebRTC] Local description set:', answer.type)
-      
+
       // Wait for ICE gathering to complete (or timeout after 3 seconds)
       console.log('[WebRTC] Waiting for ICE gathering...')
       await new Promise<void>((resolve) => {
@@ -380,7 +372,7 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
           console.log('[WebRTC] ICE gathering timeout - proceeding anyway')
           resolve()
         }, 3000)
-        
+
         if (pc.iceGatheringState === 'complete') {
           clearTimeout(timeout)
           resolve()
@@ -394,14 +386,14 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
           }
         }
       })
-      
+
       console.log('[WebRTC] ICE gathering completed, sending answer...')
 
       // Send answer via SignalR with final SDP (includes ICE candidates)
       const callAnswer: CallAnswer = {
         callId: callState.callId,
-        callerId: callState.caller?.userId || '',  // ID of the person who initiated the call
-        sdp: pc.localDescription!  // Use final local description with ICE candidates
+        callerId: callState.caller?.userId || '', // ID of the person who initiated the call
+        sdp: pc.localDescription! // Use final local description with ICE candidates
       }
 
       console.log('[WebRTC] Sending answer to caller:', callState.caller?.userId)
@@ -415,7 +407,7 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
       toast.error('Không thể chấp nhận cuộc gọi', {
         description: errorMessage
       })
-      setCallState(prev => ({
+      setCallState((prev) => ({
         ...prev,
         status: CallStatusEnum.Failed
       }))
@@ -423,42 +415,43 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
     }
   }, [callState.callId, callState.callType, getLocalStream, cleanupStreams])
 
-  const rejectCall = useCallback((reason?: string) => {
-    if (!callState.callId || !callState.caller?.userId) return
+  const rejectCall = useCallback(
+    (reason?: string) => {
+      if (!callState.callId || !callState.caller?.userId) return
 
-    signalRChatService.sendCallRejection({
-      callId: callState.callId,
-      callerId: callState.caller.userId,
-      reason
-    })
+      signalRChatService.sendCallRejection({
+        callId: callState.callId,
+        callerId: callState.caller.userId,
+        reason
+      })
 
-    setCallState({
-      callId: null,
-      conversationId: null,
-      callType: null,
-      status: CallStatusEnum.Rejected,
-      caller: null,
-      receiver: null,
-      localStream: null,
-      remoteStream: null,
-      startTime: null,
-      endTime: Date.now(),
-      isAudioMuted: false,
-      isVideoMuted: false
-    })
+      setCallState({
+        callId: null,
+        conversationId: null,
+        callType: null,
+        status: CallStatusEnum.Rejected,
+        caller: null,
+        receiver: null,
+        localStream: null,
+        remoteStream: null,
+        startTime: null,
+        endTime: Date.now(),
+        isAudioMuted: false,
+        isVideoMuted: false
+      })
 
-    cleanupStreams()
-  }, [callState.callId, cleanupStreams])
+      cleanupStreams()
+    },
+    [callState.callId, cleanupStreams]
+  )
 
   const endCall = useCallback(() => {
     if (!callState.callId) return
 
     const duration = callState.startTime ? Date.now() - callState.startTime : 0
-    
+
     // Determine target user (the other participant)
-    const targetUserId = callState.caller?.isCaller 
-      ? callState.receiver?.userId 
-      : callState.caller?.userId
+    const targetUserId = callState.caller?.isCaller ? callState.receiver?.userId : callState.caller?.userId
 
     if (targetUserId) {
       signalRChatService.sendCallEnd({
@@ -493,7 +486,7 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
     const audioTrack = localStreamRef.current.getAudioTracks()[0]
     if (audioTrack) {
       audioTrack.enabled = !audioTrack.enabled
-      setCallState(prev => ({
+      setCallState((prev) => ({
         ...prev,
         isAudioMuted: !audioTrack.enabled
       }))
@@ -506,7 +499,7 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
     const videoTrack = localStreamRef.current.getVideoTracks()[0]
     if (videoTrack) {
       videoTrack.enabled = !videoTrack.enabled
-      setCallState(prev => ({
+      setCallState((prev) => ({
         ...prev,
         isVideoMuted: !videoTrack.enabled
       }))
@@ -515,35 +508,38 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
 
   // ===== SignalR Event Handlers =====
 
-  const handleCallOffer = useCallback(async (offer: CallOffer) => {
-    console.log('[WebRTC] ===== RECEIVED CALL OFFER =====')
-    console.log('[WebRTC] Offer details:', JSON.stringify(offer, null, 2))
-    console.log('[WebRTC] Call ID:', offer.callId)
-    console.log('[WebRTC] Call Type:', offer.callType)
-    console.log('[WebRTC] Caller:', offer.caller)
-    console.log('[WebRTC] Receiver:', offer.receiver)
+  const handleCallOffer = useCallback(
+    async (offer: CallOffer) => {
+      console.log('[WebRTC] ===== RECEIVED CALL OFFER =====')
+      console.log('[WebRTC] Offer details:', JSON.stringify(offer, null, 2))
+      console.log('[WebRTC] Call ID:', offer.callId)
+      console.log('[WebRTC] Call Type:', offer.callType)
+      console.log('[WebRTC] Caller:', offer.caller)
+      console.log('[WebRTC] Receiver:', offer.receiver)
 
-    setCallState({
-      callId: offer.callId,
-      conversationId: offer.conversationId,
-      callType: offer.callType,
-      status: CallStatusEnum.Ringing,
-      caller: offer.caller,
-      receiver: offer.receiver,
-      localStream: null,
-      remoteStream: null,
-      startTime: null,
-      endTime: null,
-      isAudioMuted: false,
-      isVideoMuted: false
-    })
+      setCallState({
+        callId: offer.callId,
+        conversationId: offer.conversationId,
+        callType: offer.callType,
+        status: CallStatusEnum.Ringing,
+        caller: offer.caller,
+        receiver: offer.receiver,
+        localStream: null,
+        remoteStream: null,
+        startTime: null,
+        endTime: null,
+        isAudioMuted: false,
+        isVideoMuted: false
+      })
 
-    // Create peer connection for incoming call
-    const pc = createPeerConnection()
-    
-    // Set remote description from offer
-    await pc.setRemoteDescription(new RTCSessionDescription(offer.sdp))
-  }, [createPeerConnection])
+      // Create peer connection for incoming call
+      const pc = createPeerConnection()
+
+      // Set remote description from offer
+      await pc.setRemoteDescription(new RTCSessionDescription(offer.sdp))
+    },
+    [createPeerConnection]
+  )
 
   const handleCallAnswer = useCallback(async (answer: CallAnswer) => {
     console.log('[WebRTC] ===== RECEIVED CALL ANSWER =====')
@@ -558,14 +554,14 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
     try {
       console.log('[WebRTC] Setting remote description (answer)...')
       console.log('[WebRTC] Peer connection state before:', peerConnection.current.signalingState)
-      
+
       await peerConnection.current.setRemoteDescription(new RTCSessionDescription(answer.sdp))
-      
+
       console.log('[WebRTC] Peer connection state after:', peerConnection.current.signalingState)
       console.log('[WebRTC] Connection state:', peerConnection.current.connectionState)
 
       // Answer received successfully - connection should now be establishing
-      setCallState(prev => ({
+      setCallState((prev) => ({
         ...prev,
         status: CallStatusEnum.Connecting
       }))
@@ -581,7 +577,7 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
     console.log('[WebRTC] ===== RECEIVED ICE CANDIDATE =====')
     console.log('[WebRTC] CallId:', data.callId)
     console.log('[WebRTC] Candidate type:', data.candidate.candidate ? 'valid' : 'null')
-    
+
     if (!peerConnection.current) {
       console.error('[WebRTC] No peer connection found for ICE candidate - discarding')
       return
@@ -604,8 +600,8 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
 
   const handleCallRejected = useCallback(() => {
     console.log('[WebRTC] Call rejected')
-    
-    setCallState(prev => ({
+
+    setCallState((prev) => ({
       ...prev,
       status: CallStatusEnum.Rejected,
       endTime: Date.now()
@@ -616,8 +612,8 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
 
   const handleCallEnded = useCallback(() => {
     console.log('[WebRTC] Call ended')
-    
-    setCallState(prev => ({
+
+    setCallState((prev) => ({
       ...prev,
       status: CallStatusEnum.Ended,
       endTime: Date.now()
@@ -649,19 +645,27 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
   // - Receiver: only during Connecting, Connected (NOT Ringing - they see IncomingCallDialog)
   const isInCall = useMemo(() => {
     if (callState.status === CallStatusEnum.Idle) return false
-    
+
     // For Ringing status, only show VideoCallDialog for the CALLER
     if (callState.status === CallStatusEnum.Ringing) {
       const isCaller = callState.caller?.userId === profile?.id
-      console.log('[VideoCallContext] Ringing - isCaller:', isCaller, 'callerId:', callState.caller?.userId, 'myId:', profile?.id)
+      console.log(
+        '[VideoCallContext] Ringing - isCaller:',
+        isCaller,
+        'callerId:',
+        callState.caller?.userId,
+        'myId:',
+        profile?.id
+      )
       return isCaller
     }
-    
+
     // For other active statuses, show for both
-    const inCall = callState.status === CallStatusEnum.Connected || 
-                   callState.status === CallStatusEnum.Connecting ||
-                   callState.status === CallStatusEnum.Initiating
-    
+    const inCall =
+      callState.status === CallStatusEnum.Connected ||
+      callState.status === CallStatusEnum.Connecting ||
+      callState.status === CallStatusEnum.Initiating
+
     console.log('[VideoCallContext] isInCall:', inCall, 'status:', callState.status)
     return inCall
   }, [callState.status, callState.caller?.userId, profile?.id])

@@ -23,14 +23,14 @@ export function UserStatsCards() {
   const fetchUserStats = async () => {
     try {
       setLoading(true)
-      
+
       // Gọi tuần tự các API count và log để debug
       const activeUsers = await adminApi.getTotalUsersCount({ status: 1 })
       console.log('Active users:', activeUsers, typeof activeUsers)
-      
+
       const suspendedUsers = await adminApi.getTotalUsersCount({ status: 2 })
       console.log('Suspended users:', suspendedUsers, typeof suspendedUsers)
-      
+
       const pendingUsers = await adminApi.getTotalUsersCount({ status: 0 })
       console.log('Pending users:', pendingUsers, typeof pendingUsers)
 
@@ -38,7 +38,7 @@ export function UserStatsCards() {
       const active = Number(activeUsers) || 0
       const suspended = Number(suspendedUsers) || 0
       const pending = Number(pendingUsers) || 0
-      
+
       // Tổng thực sự là tổng của tất cả status
       const actualTotal = active + suspended + pending
 

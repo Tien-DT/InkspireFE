@@ -1,8 +1,8 @@
 import axiosClient from '~/lib/axios'
-import type { 
-  LoginRequest, 
-  LoginResponse, 
-  RegisterRequest, 
+import type {
+  LoginRequest,
+  LoginResponse,
+  RegisterRequest,
   RegisterResponse,
   GoogleLoginRequest,
   GoogleLoginResponse
@@ -22,34 +22,34 @@ export const authApi = {
     const response = await axiosClient.post<RegisterResponse>(URL_REGISTER, body)
     return response.data
   },
-  
+
   login: async (body: LoginRequest) => {
     const response = await axiosClient.post<LoginResponse>(URL_LOGIN, body)
     return response.data
   },
-  
+
   googleLogin: async (body: GoogleLoginRequest) => {
     const response = await axiosClient.post<GoogleLoginResponse>(URL_GOOGLE_LOGIN, body)
     return response.data
   },
-  
+
   refreshToken: async (refreshToken: string) => {
     const response = await axiosClient.post<{ access_token: string; refresh_token?: string }>(URL_REFRESH_TOKEN, {
       refresh_token: refreshToken
     })
     return response.data
   },
-  
+
   getProfile: async () => {
     const response = await axiosClient.get<User>(URL_PROFILE)
     return response.data
   },
-  
+
   updateProfile: async (body: Partial<User>) => {
     const response = await axiosClient.put<User>(URL_UPDATE_PROFILE, body)
     return response.data
   },
-  
+
   logout: async () => {
     const response = await axiosClient.post(URL_LOGOUT)
     return response.data

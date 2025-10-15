@@ -1,13 +1,16 @@
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '~/components/ui/dialog'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
-import { Separator } from '~/components/ui/separator'
-import { Badge } from '~/components/ui/badge'
-import { Briefcase, Calendar, DollarSign, Users } from 'lucide-react'
+import { Briefcase, Calendar, Clock, DollarSign, Users } from 'lucide-react'
 import { format } from 'date-fns'
 import { vi } from 'date-fns/locale'
+
+import { Badge } from '~/components/ui/badge'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '~/components/ui/dialog'
+import { Separator } from '~/components/ui/separator'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
+import { cn } from '~/lib/utils'
+import type { Application as RecruitmentApplication } from '~/types/recruitment.type'
 import { ProjectStatus } from '~/types/recruitment.type'
 import { ApplicantCard } from './ApplicantCard'
-import type { Application as RecruitmentApplication } from '~/types/recruitment.type'
+import { getRecruitmentStatusStyle } from './status-theme'
 
 interface Skill {
   id: string
@@ -36,25 +39,6 @@ interface ProjectDetailsDialogProps {
   onSendMessage?: (application: RecruitmentApplication) => void
   acceptingApplicantId?: string | null
   sendingMessageToId?: string | null
-}
-
-const statusConfig = {
-  [ProjectStatus.DRAFT]: {
-    label: 'Bản nháp',
-    className: 'bg-gray-100 text-gray-800 hover:bg-gray-100'
-  },
-  [ProjectStatus.ACTIVE]: {
-    label: 'Đang tuyển',
-    className: 'bg-green-100 text-green-800 hover:bg-green-100'
-  },
-  [ProjectStatus.CLOSED]: {
-    label: 'Đã đóng',
-    className: 'bg-red-100 text-red-800 hover:bg-red-100'
-  },
-  [ProjectStatus.COMPLETED]: {
-    label: 'Hoàn thành',
-    className: 'bg-blue-100 text-blue-800 hover:bg-blue-100'
-  }
 }
 
 const skillColors = [
@@ -96,21 +80,46 @@ export function ProjectDetailsDialog({
 
   // Disable applicants tab when status is CLOSED (2) - accepted an applicant
   const isProjectClosed = project.status === ProjectStatus.CLOSED
+  const statusStyle = getRecruitmentStatusStyle(project.status)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='!max-w-[95vw] !w-[95vw] h-[92vh] flex flex-col p-0 gap-0 overflow-hidden bg-white'>
-        <DialogHeader className='px-6 pt-6 pb-4 border-b shrink-0'>
-          <DialogTitle className='text-2xl font-bold'>{project.title}</DialogTitle>
-          <DialogDescription>Chi tiết dự án và danh sách ứng viên</DialogDescription>
+      <DialogContent className='flex h-[92vh] max-h-[92vh] w-[98vw] max-w-[1280px] flex-col overflow-hidden rounded-[32px] border border-border/30 bg-card/95 p-0 shadow-[0_20px_60px_-24px_rgba(15,23,42,0.4)] backdrop-blur sm:w-auto'>
+        <DialogHeader className='shrink-0 border-b border-border/40 px-6 pt-6 pb-4'>
+          <div className='flex flex-col gap-3 md:flex-row md:items-start md:justify-between'>
+            <div>
+              <DialogTitle className='text-2xl font-semibold text-foreground'>{project.title}</DialogTitle>
+              <DialogDescription className='mt-1 text-sm text-muted-foreground'>
+                Chi tiết bài tuyển dụng và phản hồi từ ứng viên
+              </DialogDescription>
+            </div>
+            <Badge
+              className={cn(
+                'inline-flex items-center gap-2 rounded-full border bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground shadow-sm backdrop-blur',
+                statusStyle.badgeClass
+              )}
+            >
+              <span className={cn('h-2.5 w-2.5 rounded-full', statusStyle.dotClass)} />
+              {statusStyle.label}
+            </Badge>
+          </div>
         </DialogHeader>
 
-        <Tabs defaultValue='details' className='flex-1 flex flex-col min-h-0 overflow-hidden'>
-          <div className='px-6 pt-4 shrink-0'>
-            <TabsList className='grid w-full grid-cols-2'>
-              <TabsTrigger value='details'>Thông tin chi tiết</TabsTrigger>
-              <TabsTrigger value='applicants' disabled={isProjectClosed}>
-                Ứng viên ({applicationsLoading ? '...' : applications.length}){isProjectClosed && ' (Đã đóng)'}
+        <Tabs defaultValue='details' className='flex min-h-0 flex-1 flex-col overflow-hidden'>
+          <div className='shrink-0 px-6 pt-4'>
+            <TabsList className='grid w-full grid-cols-2 rounded-full border border-border/30 bg-card/70 p-1 shadow-inner shadow-black/5 backdrop-blur'>
+              <TabsTrigger
+                value='details'
+                className='rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-all data-[state=active]:bg-card/95 data-[state=active]:text-foreground data-[state=active]:shadow-md data-[state=active]:ring-1 data-[state=active]:ring-border/60'
+              >
+                Thông tin chi tiết
+              </TabsTrigger>
+              <TabsTrigger
+                value='applicants'
+                disabled={isProjectClosed}
+                className='rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition-all data-[state=active]:bg-card/95 data-[state=active]:text-foreground data-[state=active]:shadow-md data-[state=active]:ring-1 data-[state=active]:ring-border/60 disabled:opacity-70'
+              >
+                Ứng viên ({applicationsLoading ? '...' : applications.length}){isProjectClosed && ' · Đã đóng'}
               </TabsTrigger>
             </TabsList>
           </div>
@@ -118,57 +127,71 @@ export function ProjectDetailsDialog({
           {/* Tab 1: Thông tin chi tiết dự án */}
           <TabsContent
             value='details'
-            className='flex-1 overflow-y-auto px-6 pb-6 mt-4 space-y-6 scrollbar-hide min-h-0'
+            className='mt-4 flex-1 space-y-6 overflow-y-auto px-6 pb-6 scrollbar-hide'
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
-            <div className='space-y-4'>
-              <div>
-                <h3 className='text-lg font-semibold mb-2'>Mô tả dự án</h3>
-                <p className='text-gray-700 leading-relaxed'>{project.description}</p>
+            <div className='space-y-6'>
+              <div className='rounded-3xl border border-border/40 bg-muted/15 p-5 shadow-sm'>
+                <h3 className='text-lg font-semibold text-foreground'>Mô tả dự án</h3>
+                <p className='mt-3 text-sm leading-relaxed text-muted-foreground'>{project.description}</p>
               </div>
 
               <Separator />
 
-              <div className='grid grid-cols-2 gap-6'>
+              <div className='grid gap-4 md:grid-cols-2'>
                 <div className='space-y-4'>
-                  <div>
-                    <p className='text-sm text-gray-500 mb-1'>Ngân sách</p>
-                    <div className='flex items-center gap-2'>
-                      <DollarSign className='h-5 w-5 text-green-600' />
-                      <p className='text-lg font-semibold text-gray-900'>{formatCurrency(project.budget)}</p>
+                  <div className='rounded-3xl border border-border/30 bg-card/95 p-5 shadow-sm shadow-black/5 transition-shadow hover:shadow-lg'>
+                    <p className='text-xs uppercase tracking-wide text-muted-foreground/70'>Ngân sách</p>
+                    <div className='mt-3 flex items-center gap-3 text-sm text-muted-foreground'>
+                      <DollarSign className='h-4 w-4 text-primary' />
+                      <p className='text-lg font-semibold text-foreground'>{formatCurrency(project.budget)}</p>
                     </div>
                   </div>
 
-                  <div>
-                    <p className='text-sm text-gray-500 mb-1'>Quy mô nhóm</p>
-                    <div className='flex items-center gap-2'>
-                      <Users className='h-5 w-5 text-blue-600' />
-                      <p className='text-lg font-semibold text-gray-900'>{project.teamSize} người</p>
+                  <div className='rounded-3xl border border-border/30 bg-card/95 p-5 shadow-sm shadow-black/5 transition-shadow hover:shadow-lg'>
+                    <p className='text-xs uppercase tracking-wide text-muted-foreground/70'>Quy mô nhóm</p>
+                    <div className='mt-3 flex items-center gap-3 text-sm text-muted-foreground'>
+                      <Users className='h-4 w-4 text-primary' />
+                      <p className='text-lg font-semibold text-foreground'>{project.teamSize} người</p>
                     </div>
                   </div>
 
-                  <div>
-                    <p className='text-sm text-gray-500 mb-1'>Trạng thái</p>
-                    <Badge className={statusConfig[project.status as ProjectStatus]?.className || ''}>
-                      {statusConfig[project.status as ProjectStatus]?.label || 'Không xác định'}
+                  <div className='rounded-3xl border border-border/30 bg-card/95 p-5 shadow-sm shadow-black/5 transition-shadow hover:shadow-lg'>
+                    <p className='text-xs uppercase tracking-wide text-muted-foreground/70'>Trạng thái</p>
+                    <Badge
+                      className={cn(
+                        'mt-3 inline-flex items-center gap-2 rounded-full border bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground shadow-sm backdrop-blur',
+                        statusStyle.badgeClass
+                      )}
+                    >
+                      <span className={cn('h-2.5 w-2.5 rounded-full', statusStyle.dotClass)} />
+                      {statusStyle.label}
                     </Badge>
                   </div>
                 </div>
 
                 <div className='space-y-4'>
-                  <div>
-                    <p className='text-sm text-gray-500 mb-1'>Ngày đăng</p>
-                    <div className='flex items-center gap-2'>
-                      <Calendar className='h-5 w-5 text-purple-600' />
-                      <p className='text-lg font-semibold text-gray-900'>{formatDate(project.createdAt)}</p>
+                  <div className='rounded-3xl border border-border/30 bg-card/95 p-5 shadow-sm shadow-black/5 transition-shadow hover:shadow-lg'>
+                    <p className='text-xs uppercase tracking-wide text-muted-foreground/70'>Ngày đăng</p>
+                    <div className='mt-3 flex items-center gap-3 text-sm text-muted-foreground'>
+                      <Calendar className='h-4 w-4 text-primary' />
+                      <p className='text-lg font-semibold text-foreground'>{formatDate(project.createdAt)}</p>
                     </div>
                   </div>
 
-                  <div>
-                    <p className='text-sm text-gray-500 mb-1'>Tên dự án</p>
-                    <div className='flex items-center gap-2'>
-                      <Briefcase className='h-5 w-5 text-orange-600' />
-                      <p className='text-lg font-semibold text-gray-900'>{project.projectName}</p>
+                  <div className='rounded-3xl border border-border/30 bg-card/95 p-5 shadow-sm shadow-black/5 transition-shadow hover:shadow-lg'>
+                    <p className='text-xs uppercase tracking-wide text-muted-foreground/70'>Tên dự án</p>
+                    <div className='mt-3 flex items-center gap-3 text-sm text-muted-foreground'>
+                      <Briefcase className='h-4 w-4 text-primary' />
+                      <p className='text-lg font-semibold text-foreground'>{project.projectName}</p>
+                    </div>
+                  </div>
+
+                  <div className='rounded-3xl border border-border/30 bg-card/95 p-5 shadow-sm shadow-black/5 transition-shadow hover:shadow-lg'>
+                    <p className='text-xs uppercase tracking-wide text-muted-foreground/70'>Cập nhật gần nhất</p>
+                    <div className='mt-3 flex items-center gap-3 text-sm text-muted-foreground'>
+                      <Clock className='h-4 w-4 text-primary' />
+                      <p className='text-lg font-semibold text-foreground'>{formatDate(project.createdAt)}</p>
                     </div>
                   </div>
                 </div>
@@ -177,11 +200,17 @@ export function ProjectDetailsDialog({
               <Separator />
 
               {project.skills && project.skills.length > 0 && (
-                <div>
-                  <h3 className='text-lg font-semibold mb-3'>Kỹ năng yêu cầu</h3>
-                  <div className='flex flex-wrap gap-2'>
+                <div className='rounded-3xl border border-border/40 bg-muted/15 p-5 shadow-sm'>
+                  <h3 className='text-lg font-semibold text-foreground'>Kỹ năng yêu cầu</h3>
+                  <div className='mt-3 flex flex-wrap gap-2'>
                     {project.skills.map((skill, index) => (
-                      <Badge key={skill.id} className={`${skillColors[index % skillColors.length]} px-3 py-1`}>
+                      <Badge
+                        key={skill.id}
+                        className={cn(
+                          'rounded-full border border-border/40 px-3 py-1 text-xs font-medium',
+                          skillColors[index % skillColors.length]
+                        )}
+                      >
                         {skill.name}
                       </Badge>
                     ))}
@@ -194,24 +223,28 @@ export function ProjectDetailsDialog({
           {/* Tab 2: Danh sách ứng viên */}
           <TabsContent
             value='applicants'
-            className='flex-1 overflow-y-auto px-6 pb-6 mt-4 scrollbar-hide min-h-0'
+            className='mt-4 flex-1 overflow-y-auto px-6 pb-6 scrollbar-hide'
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
             {applicationsLoading ? (
-              <div className='text-center py-12'>
-                <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4'></div>
-                <p className='text-gray-600'>Đang tải danh sách ứng viên...</p>
+              <div className='flex h-full flex-col items-center justify-center gap-3 rounded-3xl border border-border/40 bg-muted/15 p-12 text-center text-muted-foreground'>
+                <div className='h-12 w-12 animate-spin rounded-full border-2 border-border/60 border-t-transparent' />
+                <p className='text-sm'>Đang tải danh sách ứng viên...</p>
               </div>
             ) : applicationsError ? (
-              <div className='text-center py-12'>
-                <h3 className='text-lg font-semibold text-red-900 mb-2'>Có lỗi xảy ra</h3>
-                <p className='text-red-600'>Không thể tải danh sách ứng viên</p>
+              <div className='flex h-full flex-col items-center justify-center gap-3 rounded-3xl border border-destructive/30 bg-destructive/10 p-12 text-center'>
+                <h3 className='text-lg font-semibold text-destructive'>Có lỗi xảy ra</h3>
+                <p className='text-sm text-destructive/80'>Không thể tải danh sách ứng viên</p>
               </div>
             ) : applications.length === 0 ? (
-              <div className='text-center py-12'>
-                <Users className='h-16 w-16 text-gray-400 mx-auto mb-4' />
-                <h3 className='text-lg font-semibold text-gray-900 mb-2'>Chưa có ứng viên nào</h3>
-                <p className='text-gray-600'>Chưa có ai nộp hồ sơ ứng tuyển cho vị trí này.</p>
+              <div className='flex h-full flex-col items-center justify-center gap-4 rounded-3xl border border-border/40 bg-muted/15 p-12 text-center'>
+                <div className='flex h-16 w-16 items-center justify-center rounded-full bg-muted text-muted-foreground'>
+                  <Users className='h-8 w-8' />
+                </div>
+                <div>
+                  <h3 className='text-lg font-semibold text-foreground'>Chưa có ứng viên nào</h3>
+                  <p className='mt-1 text-sm text-muted-foreground'>Chưa có ai nộp hồ sơ ứng tuyển cho vị trí này.</p>
+                </div>
               </div>
             ) : (
               <div className='space-y-4'>

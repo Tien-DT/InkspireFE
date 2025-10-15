@@ -2,16 +2,16 @@ import { useEffect, useCallback, useRef, useState } from 'react'
 import { useAuth } from '~/contexts/AuthContext'
 
 interface SessionManagerOptions {
-  timeout?: number            // tổng thời gian không hoạt động → auto logout (ms)
-  warningTime?: number        // thời điểm cảnh báo trước khi hết hạn (ms)
-  onTimeout?: () => void      // callback khi hết hạn (mặc định gọi logout)
+  timeout?: number // tổng thời gian không hoạt động → auto logout (ms)
+  warningTime?: number // thời điểm cảnh báo trước khi hết hạn (ms)
+  onTimeout?: () => void // callback khi hết hạn (mặc định gọi logout)
   onWarning?: (timeLeft: number) => void // callback cảnh báo, truyền ms còn lại
 }
 
 export const useSessionManager = (options: SessionManagerOptions = {}) => {
   const {
-    timeout = 30 * 60 * 1000,           // 30 phút
-    warningTime = 5 * 60 * 1000,        // cảnh báo trước 5 phút
+    timeout = 30 * 60 * 1000, // 30 phút
+    warningTime = 5 * 60 * 1000, // cảnh báo trước 5 phút
     onTimeout,
     onWarning
   } = options
@@ -86,10 +86,15 @@ export const useSessionManager = (options: SessionManagerOptions = {}) => {
 
     // Sự kiện người dùng → xem như hoạt động
     const events: Array<keyof DocumentEventMap> = [
-      'mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'
+      'mousedown',
+      'mousemove',
+      'keypress',
+      'scroll',
+      'touchstart',
+      'click'
     ]
 
-    events.forEach(evt => {
+    events.forEach((evt) => {
       const passive = evt === 'scroll' || evt === 'touchstart'
       document.addEventListener(evt, handleActivity, { capture: true, passive })
     })
@@ -103,7 +108,7 @@ export const useSessionManager = (options: SessionManagerOptions = {}) => {
     start()
 
     return () => {
-      events.forEach(evt => {
+      events.forEach((evt) => {
         document.removeEventListener(evt, handleActivity, true)
       })
       window.removeEventListener('session:refreshed', internalReset)

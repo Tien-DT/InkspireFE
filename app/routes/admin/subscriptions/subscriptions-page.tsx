@@ -4,7 +4,14 @@ import { Plus, Edit2, Trash2 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
 import { Button } from '~/components/ui/button'
 import { Badge } from '~/components/ui/badge'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '~/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from '~/components/ui/dialog'
 import { Input } from '~/components/ui/input'
 import { Textarea } from '~/components/ui/textarea'
 import { Label } from '~/components/ui/label'
@@ -71,7 +78,7 @@ export default function AdminSubscriptionsPage() {
 
   const handleDelete = async (id: string) => {
     if (!confirm('Bạn có chắc chắn muốn xóa gói đăng ký này?')) return
-    
+
     try {
       // TODO: Implement delete subscription API call
       toast.success('Xóa gói đăng ký thành công')
@@ -83,19 +90,27 @@ export default function AdminSubscriptionsPage() {
 
   const getTypeLabel = (type?: number) => {
     switch (type) {
-      case 1: return 'Basic'
-      case 2: return 'Professional'
-      case 3: return 'Enterprise'
-      default: return 'Unknown'
+      case 1:
+        return 'Basic'
+      case 2:
+        return 'Professional'
+      case 3:
+        return 'Enterprise'
+      default:
+        return 'Unknown'
     }
   }
 
   const getTypeColor = (type?: number) => {
     switch (type) {
-      case 1: return 'default'
-      case 2: return 'secondary'
-      case 3: return 'destructive'
-      default: return 'outline'
+      case 1:
+        return 'default'
+      case 2:
+        return 'secondary'
+      case 3:
+        return 'destructive'
+      default:
+        return 'outline'
     }
   }
 
@@ -127,9 +142,7 @@ export default function AdminSubscriptionsPage() {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>
-                {editingSubscription ? 'Cập Nhật Gói Đăng Ký' : 'Tạo Gói Đăng Ký Mới'}
-              </DialogTitle>
+              <DialogTitle>{editingSubscription ? 'Cập Nhật Gói Đăng Ký' : 'Tạo Gói Đăng Ký Mới'}</DialogTitle>
               <DialogDescription>
                 Điền thông tin để {editingSubscription ? 'cập nhật' : 'tạo'} gói đăng ký
               </DialogDescription>
@@ -208,9 +221,7 @@ export default function AdminSubscriptionsPage() {
           </CardHeader>
           <CardContent>
             <div className='text-2xl font-bold'>{subscriptions.length}</div>
-            <p className='text-xs text-muted-foreground'>
-              Các gói đăng ký đang hoạt động
-            </p>
+            <p className='text-xs text-muted-foreground'>Các gói đăng ký đang hoạt động</p>
           </CardContent>
         </Card>
         <Card>
@@ -219,9 +230,7 @@ export default function AdminSubscriptionsPage() {
           </CardHeader>
           <CardContent>
             <div className='text-2xl font-bold'>Professional</div>
-            <p className='text-xs text-muted-foreground'>
-              Được chọn nhiều nhất
-            </p>
+            <p className='text-xs text-muted-foreground'>Được chọn nhiều nhất</p>
           </CardContent>
         </Card>
         <Card>
@@ -232,9 +241,7 @@ export default function AdminSubscriptionsPage() {
             <div className='text-2xl font-bold'>
               {subscriptions.reduce((sum, s) => sum + s.price, 0).toLocaleString('vi-VN')} VNĐ
             </div>
-            <p className='text-xs text-muted-foreground'>
-              Mỗi tháng từ các gói
-            </p>
+            <p className='text-xs text-muted-foreground'>Mỗi tháng từ các gói</p>
           </CardContent>
         </Card>
       </div>
@@ -262,24 +269,16 @@ export default function AdminSubscriptionsPage() {
                   >
                     <Edit2 className='h-4 w-4' />
                   </Button>
-                  <Button
-                    variant='ghost'
-                    size='icon'
-                    onClick={() => handleDelete(subscription.id)}
-                  >
+                  <Button variant='ghost' size='icon' onClick={() => handleDelete(subscription.id)}>
                     <Trash2 className='h-4 w-4 text-destructive' />
                   </Button>
                 </div>
               </div>
-              <CardDescription className='mt-2'>
-                {subscription.description}
-              </CardDescription>
+              <CardDescription className='mt-2'>{subscription.description}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className='flex items-baseline gap-1'>
-                <span className='text-3xl font-bold'>
-                  {subscription.price.toLocaleString('vi-VN')}
-                </span>
+                <span className='text-3xl font-bold'>{subscription.price.toLocaleString('vi-VN')}</span>
                 <span className='text-muted-foreground'>VNĐ/tháng</span>
               </div>
               <div className='mt-4 flex items-center justify-between text-sm'>
@@ -297,9 +296,7 @@ export default function AdminSubscriptionsPage() {
         <Card className='p-12'>
           <div className='text-center'>
             <h3 className='text-lg font-semibold'>Chưa có gói đăng ký nào</h3>
-            <p className='text-muted-foreground mt-2'>
-              Bắt đầu bằng cách tạo gói đăng ký đầu tiên
-            </p>
+            <p className='text-muted-foreground mt-2'>Bắt đầu bằng cách tạo gói đăng ký đầu tiên</p>
             <Button
               className='mt-4'
               onClick={() => {

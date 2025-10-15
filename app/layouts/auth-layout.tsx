@@ -30,7 +30,6 @@ type AuthPanelProps = {
   brandHref?: string
 }
 
-
 export async function clientLoader() {
   const token = getAccessTokenFromLS()
   if (token) return redirect('/')

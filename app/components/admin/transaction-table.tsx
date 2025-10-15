@@ -1,7 +1,15 @@
 import { useEffect, useState } from 'react'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
-import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '~/components/ui/pagination'
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious
+} from '~/components/ui/pagination'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '~/components/ui/table'
 import { Badge } from '~/components/ui/badge'
@@ -21,11 +29,11 @@ type TransactionRecord = {
 }
 
 const statusMap: Record<TransactionStatus, { label: string; className: string }> = {
-  'Completed': { label: 'Hoàn thành', className: 'bg-emerald-100 text-emerald-700' },
-  'Pending': { label: 'Đang xử lý', className: 'bg-amber-100 text-amber-700' },
-  'Failed': { label: 'Thất bại', className: 'bg-rose-100 text-rose-700' },
-  'Cancelled': { label: 'Đã hủy', className: 'bg-gray-100 text-gray-700' },
-  'Unknown': { label: 'Không xác định', className: 'bg-gray-100 text-gray-700' }
+  Completed: { label: 'Hoàn thành', className: 'bg-emerald-100 text-emerald-700' },
+  Pending: { label: 'Đang xử lý', className: 'bg-amber-100 text-amber-700' },
+  Failed: { label: 'Thất bại', className: 'bg-rose-100 text-rose-700' },
+  Cancelled: { label: 'Đã hủy', className: 'bg-gray-100 text-gray-700' },
+  Unknown: { label: 'Không xác định', className: 'bg-gray-100 text-gray-700' }
 }
 
 export function TransactionTable() {
@@ -51,7 +59,7 @@ export function TransactionTable() {
         type: filters.type,
         status: filters.status
       })
-      
+
       if (response.data) {
         const formattedTransactions = response.data.items.map((t: AdminTransaction) => ({
           id: t.id,
@@ -79,12 +87,12 @@ export function TransactionTable() {
   }
 
   const handleTypeFilter = (value: string) => {
-    setFilters(prev => ({ ...prev, type: value === 'all-types' ? undefined : value }))
+    setFilters((prev) => ({ ...prev, type: value === 'all-types' ? undefined : value }))
     setCurrentPage(1)
   }
 
   const handleStatusFilter = (value: string) => {
-    setFilters(prev => ({ ...prev, status: value === 'all-status' ? undefined : value }))
+    setFilters((prev) => ({ ...prev, status: value === 'all-status' ? undefined : value }))
     setCurrentPage(1)
   }
 
@@ -175,7 +183,10 @@ export function TransactionTable() {
                     <TableCell className='text-slate-700'>{transaction.from}</TableCell>
                     <TableCell className='text-slate-700'>{transaction.to}</TableCell>
                     <TableCell>
-                      <Badge variant='outline' className={`border-transparent px-3 py-1 text-xs font-medium ${status.className}`}>
+                      <Badge
+                        variant='outline'
+                        className={`border-transparent px-3 py-1 text-xs font-medium ${status.className}`}
+                      >
                         {status.label}
                       </Badge>
                     </TableCell>

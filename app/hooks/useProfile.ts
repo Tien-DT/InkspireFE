@@ -38,13 +38,13 @@ export const useUpdateProfile = () => {
     onSuccess: (updatedProfile) => {
       // Update profile in localStorage
       setProfileToLS(updatedProfile)
-      
+
       // Update profile in context
       setProfile(updatedProfile)
-      
+
       // Update profile in query cache
       queryClient.setQueryData(['profile'], updatedProfile)
-      
+
       toast.success('Cập nhật thông tin thành công!')
     },
     onError: (error: any) => {

@@ -1,7 +1,14 @@
 import { useCallback } from 'react'
 import { useAuth } from '~/contexts/AuthContext'
 import { authApi } from '~/apis/auth.api'
-import { getRefreshTokenFromLS, setAccessTokenToLS, setRefreshTokenToLS, clearAllAuth, parseJwtPayload, getAccessTokenFromLS } from '~/utils/auth'
+import {
+  getRefreshTokenFromLS,
+  setAccessTokenToLS,
+  setRefreshTokenToLS,
+  clearAllAuth,
+  parseJwtPayload,
+  getAccessTokenFromLS
+} from '~/utils/auth'
 
 /**
  * Hook để thực hiện silent refresh token
@@ -13,7 +20,7 @@ export const useSilentRefresh = () => {
   const performSilentRefresh = useCallback(async (): Promise<boolean> => {
     try {
       const refreshToken = getRefreshTokenFromLS()
-      
+
       if (!refreshToken) {
         console.log('No refresh token available for silent refresh')
         return false
@@ -21,10 +28,10 @@ export const useSilentRefresh = () => {
 
       console.log('Performing silent refresh...')
       const response = await authApi.refreshToken(refreshToken)
-      
+
       // Lưu token mới
       setAccessTokenToLS(response.access_token)
-      
+
       // Nếu backend trả về refresh token mới (token rotation)
       if (response.refresh_token) {
         setRefreshTokenToLS(response.refresh_token)
@@ -32,22 +39,21 @@ export const useSilentRefresh = () => {
 
       // Refresh auth state
       refreshAuth()
-      
+
       // Phát tín hiệu cho session manager
       window.dispatchEvent(new CustomEvent('session:refreshed'))
-      
+
       console.log('Silent refresh successful')
       return true
-      
     } catch (error) {
       console.log('Silent refresh failed:', error)
-      
+
       // Refresh thất bại, clear auth data
       clearAllAuth()
-      
+
       // Phát tín hiệu cho session manager
       window.dispatchEvent(new CustomEvent('session:refreshed'))
-      
+
       return false
     }
   }, [refreshAuth])

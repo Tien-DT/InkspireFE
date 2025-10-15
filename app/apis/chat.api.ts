@@ -34,25 +34,20 @@ export const URL_MARK_RECEIVED = (id: string) => `${BASE_URL}/messages/${id}/mar
 
 // Conversation Members
 export const URL_CONVERSATION_MEMBERS_BASE = `${BASE_URL}/conversation-members`
-export const URL_CONVERSATION_MEMBER_BY_ID = (id: string) =>
-  `${BASE_URL}/conversation-members/${id}`
+export const URL_CONVERSATION_MEMBER_BY_ID = (id: string) => `${BASE_URL}/conversation-members/${id}`
 export const URL_MEMBERS_BY_CONVERSATION = (conversationId: string) =>
   `${BASE_URL}/conversation-members/conversation/${conversationId}`
-export const URL_RESET_UNREAD = (id: string) =>
-  `${BASE_URL}/conversation-members/${id}/reset-unread`
+export const URL_RESET_UNREAD = (id: string) => `${BASE_URL}/conversation-members/${id}/reset-unread`
 
 // ===== Chat API =====
 export const chatApi = {
   // ========== Conversations ==========
-  
+
   /**
    * Get current user's conversations with pagination
    */
   getMyConversations: async (params: PaginationParams = { page: 1, pageSize: 20 }) => {
-    const response = await axiosClient.get<PaginatedResponse<Conversation[]>>(
-      URL_MY_CONVERSATIONS,
-      { params }
-    )
+    const response = await axiosClient.get<PaginatedResponse<Conversation[]>>(URL_MY_CONVERSATIONS, { params })
     return response.data
   },
 
@@ -60,9 +55,7 @@ export const chatApi = {
    * Get conversation by ID
    */
   getConversationById: async (id: string) => {
-    const response = await axiosClient.get<ApiResponse<Conversation>>(
-      URL_CONVERSATION_BY_ID(id)
-    )
+    const response = await axiosClient.get<ApiResponse<Conversation>>(URL_CONVERSATION_BY_ID(id))
     return response.data
   },
 
@@ -70,9 +63,7 @@ export const chatApi = {
    * Get members of a conversation
    */
   getConversationMembers: async (conversationId: string) => {
-    const response = await axiosClient.get<ApiResponse<ConversationMember[]>>(
-      URL_CONVERSATION_MEMBERS(conversationId)
-    )
+    const response = await axiosClient.get<ApiResponse<ConversationMember[]>>(URL_CONVERSATION_MEMBERS(conversationId))
     return response.data
   },
 
@@ -80,10 +71,7 @@ export const chatApi = {
    * Create a new conversation
    */
   createConversation: async (body: CreateConversationRequest) => {
-    const response = await axiosClient.post<ApiResponse<Conversation>>(
-      URL_CONVERSATIONS,
-      body
-    )
+    const response = await axiosClient.post<ApiResponse<Conversation>>(URL_CONVERSATIONS, body)
     return response.data
   },
 
@@ -91,10 +79,7 @@ export const chatApi = {
    * Create a conversation with a specific user
    */
   createConversationWithUser: async (userId: string) => {
-    const response = await axiosClient.post<ApiResponse<Conversation>>(
-      URL_CREATE_CONVERSATION_WITH_USER,
-      { userId }
-    )
+    const response = await axiosClient.post<ApiResponse<Conversation>>(URL_CREATE_CONVERSATION_WITH_USER, { userId })
     return response.data
   },
 
@@ -102,10 +87,7 @@ export const chatApi = {
    * Update a conversation
    */
   updateConversation: async (id: string, body: UpdateConversationRequest) => {
-    const response = await axiosClient.put<ApiResponse<Conversation>>(
-      URL_CONVERSATION_BY_ID(id),
-      body
-    )
+    const response = await axiosClient.put<ApiResponse<Conversation>>(URL_CONVERSATION_BY_ID(id), body)
     return response.data
   },
 
@@ -113,9 +95,7 @@ export const chatApi = {
    * Delete a conversation
    */
   deleteConversation: async (id: string) => {
-    const response = await axiosClient.delete<ApiResponse<void>>(
-      URL_CONVERSATION_BY_ID(id)
-    )
+    const response = await axiosClient.delete<ApiResponse<void>>(URL_CONVERSATION_BY_ID(id))
     return response.data
   },
 
@@ -124,14 +104,10 @@ export const chatApi = {
   /**
    * Get messages by conversation ID with pagination
    */
-  getConversationMessages: async (
-    conversationId: string,
-    params: PaginationParams = { page: 1, pageSize: 50 }
-  ) => {
-    const response = await axiosClient.get<PaginatedResponse<Message[]>>(
-      URL_CONVERSATION_MESSAGES(conversationId),
-      { params }
-    )
+  getConversationMessages: async (conversationId: string, params: PaginationParams = { page: 1, pageSize: 50 }) => {
+    const response = await axiosClient.get<PaginatedResponse<Message[]>>(URL_CONVERSATION_MESSAGES(conversationId), {
+      params
+    })
     return response.data
   },
 
@@ -155,10 +131,7 @@ export const chatApi = {
    * Update a message
    */
   updateMessage: async (id: string, body: UpdateMessageRequest) => {
-    const response = await axiosClient.put<ApiResponse<Message>>(
-      URL_MESSAGE_BY_ID(id),
-      body
-    )
+    const response = await axiosClient.put<ApiResponse<Message>>(URL_MESSAGE_BY_ID(id), body)
     return response.data
   },
 
@@ -202,10 +175,7 @@ export const chatApi = {
    * Add member to conversation
    */
   addMember: async (body: CreateConversationMemberRequest) => {
-    const response = await axiosClient.post<ApiResponse<ConversationMember>>(
-      URL_CONVERSATION_MEMBERS_BASE,
-      body
-    )
+    const response = await axiosClient.post<ApiResponse<ConversationMember>>(URL_CONVERSATION_MEMBERS_BASE, body)
     return response.data
   },
 
@@ -213,10 +183,7 @@ export const chatApi = {
    * Update conversation member
    */
   updateMember: async (id: string, body: UpdateConversationMemberRequest) => {
-    const response = await axiosClient.put<ApiResponse<ConversationMember>>(
-      URL_CONVERSATION_MEMBER_BY_ID(id),
-      body
-    )
+    const response = await axiosClient.put<ApiResponse<ConversationMember>>(URL_CONVERSATION_MEMBER_BY_ID(id), body)
     return response.data
   },
 
@@ -224,9 +191,7 @@ export const chatApi = {
    * Remove member from conversation
    */
   removeMember: async (id: string) => {
-    const response = await axiosClient.delete<ApiResponse<void>>(
-      URL_CONVERSATION_MEMBER_BY_ID(id)
-    )
+    const response = await axiosClient.delete<ApiResponse<void>>(URL_CONVERSATION_MEMBER_BY_ID(id))
     return response.data
   },
 
@@ -234,9 +199,7 @@ export const chatApi = {
    * Reset unread count
    */
   resetUnreadCount: async (memberId: string) => {
-    const response = await axiosClient.post<ApiResponse<ConversationMember>>(
-      URL_RESET_UNREAD(memberId)
-    )
+    const response = await axiosClient.post<ApiResponse<ConversationMember>>(URL_RESET_UNREAD(memberId))
     return response.data
   }
 }

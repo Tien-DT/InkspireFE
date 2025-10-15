@@ -77,7 +77,7 @@ export function ProjectTable() {
         status: filters.status,
         search: filters.search
       })
-      
+
       if (response.data) {
         setFullProjects(response.data.items)
         const formattedProjects = response.data.items.map((project: AdminProject) => ({
@@ -109,7 +109,7 @@ export function ProjectTable() {
   }
 
   const handleViewDetail = (projectId: string) => {
-    const project = fullProjects.find(p => p.id === projectId)
+    const project = fullProjects.find((p) => p.id === projectId)
     if (project) {
       setSelectedProject(project)
       setDetailDialogOpen(true)
@@ -117,7 +117,7 @@ export function ProjectTable() {
   }
 
   const handleEditProject = (projectId: string) => {
-    const project = fullProjects.find(p => p.id === projectId)
+    const project = fullProjects.find((p) => p.id === projectId)
     if (project) {
       setSelectedProject(project)
       setDialogMode('edit')
@@ -126,7 +126,7 @@ export function ProjectTable() {
   }
 
   const handleDeleteClick = (projectId: string) => {
-    const project = fullProjects.find(p => p.id === projectId)
+    const project = fullProjects.find((p) => p.id === projectId)
     if (project) {
       setSelectedProject(project)
       setConfirmDialogOpen(true)
@@ -159,16 +159,16 @@ export function ProjectTable() {
 
   const handleStatusFilter = (value: string) => {
     if (value === 'all-status') {
-      setFilters(prev => ({ ...prev, status: undefined }))
+      setFilters((prev) => ({ ...prev, status: undefined }))
     } else {
       const statusMap: Record<string, number> = {
-        'pending': 0,
+        pending: 0,
         'in-progress': 1,
-        'completed': 2,
-        'cancelled': 3,
+        completed: 2,
+        cancelled: 3,
         'on-hold': 4
       }
-      setFilters(prev => ({ ...prev, status: statusMap[value] }))
+      setFilters((prev) => ({ ...prev, status: statusMap[value] }))
     }
     setCurrentPage(1)
   }
@@ -254,7 +254,10 @@ export function ProjectTable() {
                     </TableCell>
                     <TableCell className='text-slate-900 whitespace-nowrap'>{project.budget}</TableCell>
                     <TableCell>
-                      <Badge variant='outline' className={`border-transparent px-3 py-1 text-xs font-medium ${status.className} whitespace-nowrap`}>
+                      <Badge
+                        variant='outline'
+                        className={`border-transparent px-3 py-1 text-xs font-medium ${status.className} whitespace-nowrap`}
+                      >
                         {status.label}
                       </Badge>
                     </TableCell>

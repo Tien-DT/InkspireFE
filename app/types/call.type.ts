@@ -52,7 +52,7 @@ export interface CallOffer {
 
 export interface CallAnswer {
   callId: string
-  callerId: string  // ID of the caller (person who initiated the call)
+  callerId: string // ID of the caller (person who initiated the call)
   sdp: RTCSessionDescriptionInit
 }
 

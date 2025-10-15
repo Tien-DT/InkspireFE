@@ -203,7 +203,9 @@ export const projectApi = {
     return response.data
   },
 
-  checkPostLimit: async (userId: string): Promise<{
+  checkPostLimit: async (
+    userId: string
+  ): Promise<{
     success: boolean
     message: string
     data: {
@@ -218,7 +220,9 @@ export const projectApi = {
     return response.data
   },
 
-  getProjectCountThisMonth: async (userId: string): Promise<{
+  getProjectCountThisMonth: async (
+    userId: string
+  ): Promise<{
     success: boolean
     message: string
     data: number

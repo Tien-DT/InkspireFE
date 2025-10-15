@@ -28,7 +28,7 @@ export const useTokenExpiration = (options: TokenExpirationOptions = {}) => {
     // Check if token expires in the next 5 minutes
     if (expirationTime - currentTime < 300) {
       console.warn('Token will expire soon')
-      
+
       if (onTokenExpired) {
         onTokenExpired()
       } else {
@@ -78,4 +78,3 @@ export const useTokenInfo = () => {
     timeUntilExpiry
   }
 }
-

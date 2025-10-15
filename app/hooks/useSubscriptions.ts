@@ -1,9 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import subscriptionApi, { 
-  type Subscription, 
+import subscriptionApi, {
+  type Subscription,
   type UserSubscription,
-  type PurchaseSubscriptionRequest 
+  type PurchaseSubscriptionRequest
 } from '~/apis/subscription.api'
 import { useProfile } from './useProfile'
 
@@ -18,7 +18,7 @@ export function useSubscriptions() {
 
 export function useUserSubscriptions() {
   const { data: profile } = useProfile()
-  
+
   return useQuery({
     queryKey: ['userSubscriptions', profile?.id],
     queryFn: () => subscriptionApi.getUserSubscriptions(profile!.id),
@@ -29,7 +29,7 @@ export function useUserSubscriptions() {
 
 export function useActiveSubscriptions() {
   const { data: profile } = useProfile()
-  
+
   return useQuery({
     queryKey: ['activeSubscriptions', profile?.id],
     queryFn: () => subscriptionApi.getActiveSubscriptions(profile!.id),
@@ -40,7 +40,7 @@ export function useActiveSubscriptions() {
 
 export function usePurchaseSubscription() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: subscriptionApi.purchaseSubscription,
     onSuccess: (response) => {
@@ -49,7 +49,7 @@ export function usePurchaseSubscription() {
         // Invalidate related queries
         queryClient.invalidateQueries({ queryKey: ['userSubscriptions'] })
         queryClient.invalidateQueries({ queryKey: ['activeSubscriptions'] })
-        
+
         // Redirect to payment URL
         if (response.data.paymentUrl) {
           // Handle relative URLs

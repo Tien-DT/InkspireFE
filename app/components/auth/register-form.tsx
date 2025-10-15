@@ -91,7 +91,11 @@ export function RegisterForm() {
         </p>
       </div>
       <div className='space-y-6'>
-        <Button asChild variant='outline' className='w-full justify-center gap-3 rounded-xl border-muted/40 bg-background text-sm font-semibold shadow-sm hover:bg-muted/60'>
+        <Button
+          asChild
+          variant='outline'
+          className='w-full justify-center gap-3 rounded-xl border-muted/40 bg-background text-sm font-semibold shadow-sm hover:bg-muted/60'
+        >
           <Link to='/auth/google' onClick={() => localStorage.setItem('last_provider', 'google')}>
             <GoogleIcon className='size-5' />
             Đăng ký với Google

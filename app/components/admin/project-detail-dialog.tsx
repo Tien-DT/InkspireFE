@@ -30,9 +30,8 @@ export function ProjectDetailDialog({ open, onClose, project }: ProjectDetailDia
   if (!project) return null
 
   const status = getStatusAppearance(project.statusName)
-  const progress = project.totalMilestones > 0 
-    ? Math.round((project.completedMilestones / project.totalMilestones) * 100) 
-    : 0
+  const progress =
+    project.totalMilestones > 0 ? Math.round((project.completedMilestones / project.totalMilestones) * 100) : 0
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -40,7 +39,7 @@ export function ProjectDetailDialog({ open, onClose, project }: ProjectDetailDia
         <DialogHeader>
           <DialogTitle className='text-xl font-semibold'>Chi tiết dự án</DialogTitle>
         </DialogHeader>
-        
+
         <div className='space-y-6'>
           {/* Project Name & Status */}
           <div className='space-y-2'>
@@ -82,9 +81,7 @@ export function ProjectDetailDialog({ open, onClose, project }: ProjectDetailDia
                 <DollarSign className='h-4 w-4' />
                 <span>Ngân sách</span>
               </div>
-              <p className='text-sm text-slate-900 pl-6 font-semibold'>
-                {project.budget.toLocaleString('vi-VN')}đ
-              </p>
+              <p className='text-sm text-slate-900 pl-6 font-semibold'>{project.budget.toLocaleString('vi-VN')}đ</p>
             </div>
           </div>
 
@@ -125,10 +122,7 @@ export function ProjectDetailDialog({ open, onClose, project }: ProjectDetailDia
                 </span>
               </div>
               <div className='w-full bg-slate-200 rounded-full h-2'>
-                <div 
-                  className='bg-blue-600 h-2 rounded-full transition-all'
-                  style={{ width: `${progress}%` }}
-                />
+                <div className='bg-blue-600 h-2 rounded-full transition-all' style={{ width: `${progress}%` }} />
               </div>
               <p className='text-xs text-slate-500'>{progress}% hoàn thành</p>
             </div>

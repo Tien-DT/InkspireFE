@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react'
 import {
@@ -131,7 +131,10 @@ export function DraggableCardBody({ className, children }: DraggableCardBodyProp
       )}
     >
       {children}
-      <motion.div style={{ opacity: glareOpacity }} className='pointer-events-none absolute inset-0 select-none bg-white' />
+      <motion.div
+        style={{ opacity: glareOpacity }}
+        className='pointer-events-none absolute inset-0 select-none bg-white'
+      />
     </motion.div>
   )
 }
@@ -144,4 +147,3 @@ type DraggableCardContainerProps = {
 export function DraggableCardContainer({ className, children }: DraggableCardContainerProps) {
   return <div className={cn('[perspective:3000px]', className)}>{children}</div>
 }
-
