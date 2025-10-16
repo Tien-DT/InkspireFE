@@ -73,10 +73,11 @@ export const useLogin = () => {
     onError: (error: unknown) => {
       // Handle different error cases
       const err = error as {
-        response?: { data?: { message?: string; error?: string }; status?: number }
+        response?: { data?: { message?: string; error?: string; errors?: string[] }; status?: number }
         message?: string
       }
-      const errorMessage = err?.response?.data?.message || err?.message
+      const errors = err?.response?.data?.errors
+      const errorMessage = errors && errors.length > 0 ? errors.join(', ') : err?.response?.data?.message || err?.message
       const errorType = err?.response?.data?.error
 
       if (errorType === 'email_not_verified') {
