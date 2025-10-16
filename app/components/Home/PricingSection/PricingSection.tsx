@@ -236,7 +236,7 @@ export function PricingSection() {
                   </div>
                 )}
                 <Card
-                  className={`h-full transition-all duration-300 border-0 bg-transparent backdrop-blur-md rounded-4xl ${
+                  className={`h-full transition-all duration-300 border-0 bg-transparent backdrop-blur-md shadown-none rounded-4xl ${
                     plan.isPremium
                       ? 'md:scale-105 hover:scale-110 hover:bg-white/30'
                       : 'hover:-translate-y-1 hover:bg-white/20'

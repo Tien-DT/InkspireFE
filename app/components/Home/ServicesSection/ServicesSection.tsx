@@ -64,7 +64,7 @@ export function ServicesSection() {
         >
           {services.map((service, index) => (
             <motion.div key={index} variants={fadeInUp}>
-              <Card className='p-6 py-10 border-0 bg-transparent backdrop-blur-md hover:bg-white/20 transition-colors duration-300 rounded-4xl'>
+              <Card className='p-6 py-10 bg-transparent backdrop-blur-md hover:bg-white/20 transition-colors duration-300 rounded-4xl'>
                 <CardContent className='flex flex-col items-center gap-8'>
                   <div className='flex flex-col items-center'>
                     <div

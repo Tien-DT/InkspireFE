@@ -41,11 +41,11 @@ export function ProjectCard({
   statusLabel
 }: ProjectCardProps) {
   return (
-    <Card className='p-6 bg-card'>
-      <div className='flex items-start justify-between mb-4'>
+    <Card className='p-5 bg-white rounded-3xl shadow-none'>
+      <div className='flex items-start justify-between mb-3'>
         <div className='flex-1'>
-          <h3 className='text-lg font-semibold mb-2'>{title}</h3>
-          <div className='flex items-center gap-4 text-sm text-muted-foreground'>
+          <h3 className='text-base font-semibold mb-1'>{title}</h3>
+          <div className='flex items-center gap-3 text-xs text-muted-foreground'>
             <span>{company}</span>
             <span className='flex items-center gap-1'>
               <span className='text-muted-foreground'>•</span>
@@ -58,28 +58,28 @@ export function ProjectCard({
           </div>
         </div>
         <div className='flex items-center gap-2'>
-          <Clock className={`h-5 w-5 ${statusColors[status]}`} />
-          <span className={`text-sm font-medium ${statusColors[status]}`}>{statusLabel}</span>
+          <Clock className={`h-4 w-4 ${statusColors[status]}`} />
+          <span className={`text-xs font-medium ${statusColors[status]}`}>{statusLabel}</span>
         </div>
       </div>
 
-      <div className='mb-4'>
-        <div className='flex items-center justify-between mb-2'>
-          <span className='text-sm text-muted-foreground'>Tiến độ dự án</span>
-          <span className='text-sm font-semibold'>{progress}%</span>
+      <div className='mb-3'>
+        <div className='flex items-center justify-between mb-1'>
+          <span className='text-xs text-muted-foreground'>Tiến độ dự án</span>
+          <span className='text-xs font-semibold'>{progress}%</span>
         </div>
         <Progress
           value={progress}
-          className='h-2 bg-secondary [&>div]:bg-gradient-to-r [&>div]:from-teal-400 [&>div]:to-teal-500'
+          className='h-1.5 bg-secondary [&>div]:bg-gradient-to-r [&>div]:from-teal-400 [&>div]:to-teal-500 rounded'
         />
       </div>
 
-      <div className='flex items-center gap-2 mb-4 flex-wrap'>
+      <div className='flex items-center gap-1.5 mb-3 flex-wrap'>
         {phases.map((phase, index) => (
           <Badge
             key={index}
             variant={phase.completed ? 'default' : 'outline'}
-            className={phase.completed ? 'bg-teal-500 hover:bg-teal-600 text-white' : 'border-muted-foreground/30'}
+            className={`text-xs py-0.5 px-2 rounded ${phase.completed ? 'bg-teal-500 hover:bg-teal-600 text-white' : 'border border-border text-muted-foreground'}`}
           >
             {phase.completed && <span className='mr-1'>✓</span>}
             {phase.name}
@@ -87,27 +87,27 @@ export function ProjectCard({
         ))}
       </div>
 
-      <div className='flex items-center justify-between pt-4 border-t border-border'>
-        <div className='flex items-center gap-4'>
-          <span className='text-sm text-muted-foreground flex items-center gap-1'>
-            <Calendar className='h-4 w-4' />
+      <div className='flex items-center justify-between pt-3 border-t border-border'>
+        <div className='flex items-center gap-3'>
+          <span className='text-xs text-muted-foreground flex items-center gap-1'>
+            <Calendar className='h-3.5 w-3.5' />
             {daysRemaining}
           </span>
-          <span className='text-sm font-semibold text-green-600 flex items-center gap-1'>
-            <DollarSign className='h-4 w-4' />
+          <span className='text-xs font-semibold text-green-600 flex items-center gap-1'>
+            <DollarSign className='h-3.5 w-3.5' />
             {budget}
           </span>
         </div>
-        <div className='flex items-center gap-2'>
-          <Button variant='default' className='bg-black text-white hover:bg-black/90'>
-            <Eye className='h-4 w-4 mr-2' />
+        <div className='flex items-center gap-1.5'>
+          <Button variant='default' className='bg-black text-white hover:bg-black/90 rounded h-8 text-xs px-3'>
+            <Eye className='h-3.5 w-3.5 mr-1.5' />
             Xem chi tiết
           </Button>
-          <Button variant='outline' size='icon'>
-            <Bell className='h-4 w-4' />
+          <Button variant='outline' size='sm' className='rounded h-8 w-8 p-0'>
+            <Bell className='h-3.5 w-3.5' />
           </Button>
-          <Button variant='outline' size='icon'>
-            <Send className='h-4 w-4' />
+          <Button variant='outline' size='sm' className='rounded h-8 w-8 p-0'>
+            <Send className='h-3.5 w-3.5' />
           </Button>
         </div>
       </div>
