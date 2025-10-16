@@ -74,7 +74,7 @@ export function TestimonialsSection() {
         >
           {testimonials.map((testimonial, index) => (
             <motion.div key={index} variants={fadeInUp}>
-              <Card className='h-full hover:-translate-y-2 hover:shadow-lg transition-all duration-300'>
+              <Card className='h-full hover:-translate-y-1 transition-all duration-300 border-0 bg-transparent backdrop-blur-md hover:bg-white/20 rounded-4xl'>
                 <CardContent className='flex flex-col p-6 h-full gap-6 relative'>
                   {/* Decorative Quote Mark */}
                   <div className='absolute top-4 right-4 text-6xl text-primary/10 font-serif leading-none'>"</div>
@@ -91,7 +91,7 @@ export function TestimonialsSection() {
 
                   <div className='flex flex-row items-center gap-3'>
                     <div
-                      className={`font-semibold rounded-full w-12 h-12 flex items-center justify-center bg-gradient-to-br ${getAvatarColor(testimonial.name)} text-white shadow-md transition-transform hover:scale-110`}
+                      className={`font-semibold rounded-full w-12 h-12 flex items-center justify-center bg-gradient-to-br ${getAvatarColor(testimonial.name)} text-white transition-transform hover:scale-110`}
                     >
                       {initials(testimonial.name)}
                     </div>

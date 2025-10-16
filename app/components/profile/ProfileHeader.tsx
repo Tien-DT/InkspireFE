@@ -19,32 +19,27 @@ export function ProfileHeader({ name, status, title, avatar, rating, reviewCount
     .join('')
 
   return (
-    <div className='relative overflow-hidden bg-gradient-to-br from-primary via-primary/95 to-primary/80 px-8 py-10 text-center text-primary-foreground'>
-      <div className='pointer-events-none absolute inset-0 opacity-30 mix-blend-soft-light bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.7),transparent_60%)]' />
-      <div className='relative flex justify-center mb-5'>
-        <Avatar className='h-28 w-28 border-4 border-white/60 shadow-xl ring-4 ring-white/10'>
+    <div className='relative overflow-hidden bg-gradient-to-br from-primary via-primary/95 to-primary/80 px-8 py-8 text-center text-primary-foreground'>
+      <div className='relative flex justify-center mb-4'>
+        <Avatar className='h-24 w-24 border-3 border-white/40'>
           <AvatarImage src={avatar} alt={name} />
-          <AvatarFallback className='bg-white/15 text-white text-4xl font-bold uppercase'>{initials}</AvatarFallback>
+          <AvatarFallback className='bg-white/15 text-white text-3xl font-bold uppercase'>{initials}</AvatarFallback>
         </Avatar>
       </div>
-      <div className='relative flex flex-col items-center gap-3'>
+      <div className='relative flex flex-col items-center gap-2'>
         {status && (
-          <div className='inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-4 py-1 text-xs font-semibold uppercase tracking-wider'>
-            <span className='text-white/80'>Trạng thái</span>
-            <Badge
-              variant='outline'
-              className='border-white/40 bg-white/10 text-primary-foreground/90 px-3 py-0.5 text-xs uppercase tracking-wider'
-            >
-              {status}
-            </Badge>
-          </div>
+          <Badge
+            className='border-0 bg-white/20 px-3 py-0.5 text-xs font-semibold uppercase tracking-wide text-white/90'
+          >
+            {status}
+          </Badge>
         )}
-        <h1 className='text-3xl font-bold leading-tight'>{name}</h1>
-        {title && <p className='text-white/80 text-sm font-medium'>{title}</p>}
-        <div className='flex items-center justify-center gap-2 rounded-full bg-white/10 px-5 py-2 text-sm font-semibold text-white/90 shadow-[0_10px_30px_rgba(0,0,0,0.15)] backdrop-blur'>
-          <Star className='h-5 w-5 fill-yellow-300 text-yellow-300 drop-shadow' />
-          <span className='text-lg font-bold text-white'>{rating.toFixed(1)}</span>
-          <span className='text-white/80'>({reviewCount} đánh giá)</span>
+        <h1 className='text-2xl font-semibold leading-tight'>{name}</h1>
+        {title && <p className='text-white/75 text-sm font-medium'>{title}</p>}
+        <div className='flex items-center justify-center gap-2 rounded-full bg-white/15 px-4 py-1.5 text-sm font-semibold text-white/90'>
+          <Star className='h-4 w-4 fill-yellow-300 text-yellow-300' />
+          <span className='text-base font-bold text-white'>{rating.toFixed(1)}</span>
+          <span className='text-white/70 text-xs'>({reviewCount} đánh giá)</span>
         </div>
       </div>
     </div>

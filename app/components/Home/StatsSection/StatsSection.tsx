@@ -72,7 +72,7 @@ export function StatsSection() {
               <div
                 className={`relative p-4 rounded-full bg-gradient-to-br ${stat.color} backdrop-blur-sm transition-transform duration-300 group-hover:scale-110`}
               >
-                <div className='absolute inset-0 rounded-full bg-primary/10 blur-xl group-hover:bg-primary/20 transition-all duration-300' />
+                <div className='absolute inset-0 rounded-full bg-primary/5 group-hover:bg-primary/10 transition-all duration-300' />
                 <div className='relative text-primary'>{stat.icon}</div>
               </div>
               <div className='text-2xl md:text-3xl font-bold text-primary'>
