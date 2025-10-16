@@ -1,4 +1,4 @@
-import { ArrowLeft, CheckCircle2, Loader2, Crown } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, Crown } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -6,6 +6,7 @@ import { isAxiosError } from 'axios'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { Badge } from '~/components/ui/badge'
+import { ButtonSpinner } from '~/components/ui/button-spinner'
 import { AuthErrorBoundary } from '~/components/errors'
 import { ProjectFormSteps } from '~/components/post-project'
 import { useRecruitmentForm } from '~/contexts/RecruitmentFormContext'
@@ -319,7 +320,7 @@ function PostProjectConfirmPage() {
                     Dự án của bạn đã được đăng thành công. Freelancer sẽ sớm ứng tuyển.
                   </p>
                   <div className='flex items-center justify-center space-x-2 text-sm text-muted-foreground'>
-                    <Loader2 className='w-4 h-4 animate-spin' />
+                    <ButtonSpinner />
                     <span>Đang chuyển hướng...</span>
                   </div>
                 </CardContent>
@@ -378,7 +379,7 @@ function PostProjectConfirmPage() {
                 <Button size='lg' onClick={handleSubmit} disabled={isSubmitting} className='px-8'>
                   {isSubmitting ? (
                     <>
-                      <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                      <ButtonSpinner className='mr-2' />
                       Đang đăng...
                     </>
                   ) : (
@@ -445,7 +446,7 @@ function PostProjectConfirmPage() {
             >
               {isPurchasing ? (
                 <>
-                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                  <ButtonSpinner className='mr-2 text-white' />
                   Đang xử lý...
                 </>
               ) : (

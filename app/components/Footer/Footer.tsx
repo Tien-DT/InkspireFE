@@ -1,6 +1,6 @@
 import { Facebook, Instagram, Linkedin } from 'lucide-react'
 import { Link } from 'react-router'
-import logo from '~/assets/logo.svg'
+import logo from '~/assets/logo.png'
 import { cn } from '~/utils/cn'
 
 type FooterSection = {
@@ -55,8 +55,8 @@ export function Footer() {
         <div className='grid grid-cols-1 md:grid-cols-4 gap-8'>
           {/* Brand / Intro */}
           <div className='flex flex-col gap-3'>
-            <Link to='/'>
-              <img src={logo} alt='Logo' className='h-12 w-auto md:h-14 object-fill' />
+            <Link to='/' className='inline-block h-14 w-38 overflow-hidden'>
+              <img src={logo} alt='Logo' className='h-full w-full object-cover object-center align-middle' />
             </Link>
             <div>
               <p className='text-gray-400 text-sm'>Email: inkspire@gmail.com</p>

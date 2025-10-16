@@ -6,6 +6,7 @@ import { auth, googleProvider } from '~/lib/firebase'
 import { authApi } from '~/apis/auth.api'
 import { GoogleIcon } from '~/components/icons/google-icon'
 import { Button } from '~/components/ui/button'
+import { ButtonSpinner } from '~/components/ui/button-spinner'
 import {
   setAccessTokenToLS,
   setRefreshTokenToLS,

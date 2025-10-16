@@ -1,4 +1,4 @@
-import { ArrowRight, Loader2 } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router'
 import { useForm } from 'react-hook-form'
@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardHeader } from '~/components/ui/card'
 import { Skeleton } from '~/components/ui/skeleton'
+import { ButtonSpinner } from '~/components/ui/button-spinner'
 import { AuthErrorBoundary } from '~/components/errors'
 import { ProjectFormFields, ProjectFormTips, ProjectFormPreview, ProjectFormSteps } from '~/components/post-project'
 import { useRecruitmentForm } from '~/contexts/RecruitmentFormContext'
@@ -171,7 +172,7 @@ function PostProjectPage() {
                         <Button type='submit' size='lg' disabled={form.formState.isSubmitting} className='px-8 group'>
                           {form.formState.isSubmitting ? (
                             <>
-                              <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                              <ButtonSpinner className='mr-2' />
                               Đang xử lý...
                             </>
                           ) : (

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import { Plus, Edit2, Trash2 } from 'lucide-react'
+import { LoadingState } from '~/components/ui/spinner'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
 import { Button } from '~/components/ui/button'
 import { Badge } from '~/components/ui/badge'
@@ -115,14 +116,7 @@ export default function AdminSubscriptionsPage() {
   }
 
   if (isLoading) {
-    return (
-      <div className='flex items-center justify-center min-h-screen'>
-        <div className='text-center'>
-          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto'></div>
-          <p className='mt-4 text-muted-foreground'>Đang tải...</p>
-        </div>
-      </div>
-    )
+    return <LoadingState message='Đang tải danh sách gói đăng ký...' size='lg' variant='blast' />
   }
 
   return (

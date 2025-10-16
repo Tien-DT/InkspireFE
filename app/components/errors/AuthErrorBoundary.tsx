@@ -1,6 +1,6 @@
 import { Component } from 'react'
 import type { ReactNode } from 'react'
-import axios, { isAxiosError } from 'axios'
+import { isAxiosError } from 'axios'
 import { Button } from '~/components/ui/button'
 import { AlertTriangle, RefreshCw } from 'lucide-react'
 import { clearAllAuth } from '~/utils/auth'

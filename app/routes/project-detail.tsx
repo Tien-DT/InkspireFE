@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router'
 import { format } from 'date-fns'
 import { vi } from 'date-fns/locale'
 import { toast } from 'sonner'
+import { LoadingState } from '~/components/ui/spinner'
 import { HydrateFallback } from '~/components/ui'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
@@ -39,7 +40,13 @@ export interface TimelineItem {
   id: string
   title: string
   description: string
-  status: 'pending-payment' | 'paid' | 'completed' | 'pending-confirmation' | 'pending-revision' | 'under-complaint-review'
+  status:
+    | 'pending-payment'
+    | 'paid'
+    | 'completed'
+    | 'pending-confirmation'
+    | 'pending-revision'
+    | 'under-complaint-review'
   createdDate: string
   budget: number
   isPaid: boolean
@@ -86,8 +93,7 @@ const mapMilestoneToTimeline = (milestone: Milestone): TimelineItem => {
     status = 'pending-confirmation' // Chờ xác nhận
   else if (milestone.status === 5)
     status = 'pending-revision' // Chờ sửa lại
-  else if (milestone.status === 6)
-    status = 'under-complaint-review' // Đang kiểm tra khiếu nại
+  else if (milestone.status === 6) status = 'under-complaint-review' // Đang kiểm tra khiếu nại
 
   return {
     id: milestone.id,
@@ -96,7 +102,12 @@ const mapMilestoneToTimeline = (milestone: Milestone): TimelineItem => {
     status,
     createdDate: milestone.createdAt,
     budget: milestone.budget,
-    isPaid: milestone.status === 2 || milestone.status === 3 || milestone.status === 4 || milestone.status === 5 || milestone.status === 6,
+    isPaid:
+      milestone.status === 2 ||
+      milestone.status === 3 ||
+      milestone.status === 4 ||
+      milestone.status === 5 ||
+      milestone.status === 6,
     fileUrl: milestone.fileUrl,
     milestoneNumber: milestone.milestoneNumber
   }
@@ -132,7 +143,7 @@ function ProjectDetailContent() {
   const [currentTimelineForComplain, setCurrentTimelineForComplain] = useState<TimelineItem | null>(null)
 
   const submitComplaint = useSubmitComplaint({
-    onSuccess: (data) => {
+    onSuccess: () => {
       toast.success('Khiếu nại đã được gửi. Hệ thống đang xử lý bằng AI, trạng thái sẽ tự động cập nhật.')
       setIsComplainDialogOpen(false)
     },
@@ -180,14 +191,7 @@ function ProjectDetailContent() {
   }
 
   if (isLoading || milestonesLoading) {
-    return (
-      <div className='flex items-center justify-center min-h-screen'>
-        <div className='text-center'>
-          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4'></div>
-          <p className='text-gray-600'>Đang tải dữ liệu dự án...</p>
-        </div>
-      </div>
-    )
+    return <LoadingState message='Đang tải dữ liệu dự án...' size='lg' variant='blast' />
   }
 
   if (error) {
@@ -407,7 +411,12 @@ function ProjectDetailContent() {
       case 'pending-revision':
         return { icon: X, color: 'bg-red-500', badge: 'bg-red-100 text-red-800', label: 'Chờ sửa lại' }
       case 'under-complaint-review':
-        return { icon: Clock, color: 'bg-purple-500', badge: 'bg-purple-100 text-purple-800', label: 'Đang kiểm tra khiếu nại' }
+        return {
+          icon: Clock,
+          color: 'bg-purple-500',
+          badge: 'bg-purple-100 text-purple-800',
+          label: 'Đang kiểm tra khiếu nại'
+        }
       default:
         return { icon: Clock, color: 'bg-gray-300', badge: 'bg-gray-100 text-gray-600', label: 'Chờ thanh toán' }
     }
@@ -598,10 +607,7 @@ function ProjectDetailContent() {
               )}
             </div>
           </div>
-
-         
-          </div>
-       
+        </div>
 
         {/* Main Content Area */}
         <div className='flex-1 p-6'>

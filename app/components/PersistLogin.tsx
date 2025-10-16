@@ -27,9 +27,16 @@ export default function PersistLogin({ children }: PersistLoginProps) {
   useEffect(() => {
     const attemptSilentRefresh = async () => {
       try {
+        // Minimum loading time - 1.5 seconds for better UX
+        const startTime = Date.now()
+        const minLoadTime = 1500
+
         // Safety check to ensure functions are available
         if (typeof getRefreshTokenFromLS !== 'function' || typeof getAccessTokenFromLS !== 'function') {
           console.error('Auth utility functions not available')
+          const elapsed = Date.now() - startTime
+          const remaining = Math.max(0, minLoadTime - elapsed)
+          await new Promise((resolve) => setTimeout(resolve, remaining))
           setAuthReady(true)
           setIsLoading(false)
           return
@@ -40,6 +47,9 @@ export default function PersistLogin({ children }: PersistLoginProps) {
 
         // Nếu không có refresh token, không cần refresh
         if (!refreshToken) {
+          const elapsed = Date.now() - startTime
+          const remaining = Math.max(0, minLoadTime - elapsed)
+          await new Promise((resolve) => setTimeout(resolve, remaining))
           setAuthReady(true)
           setIsLoading(false)
           return
@@ -56,6 +66,9 @@ export default function PersistLogin({ children }: PersistLoginProps) {
             // Nếu token còn hiệu lực > 5 phút, không cần refresh
             if (timeUntilExpiry > 300) {
               refreshAuth()
+              const elapsed = Date.now() - startTime
+              const remaining = Math.max(0, minLoadTime - elapsed)
+              await new Promise((resolve) => setTimeout(resolve, remaining))
               setAuthReady(true)
               setIsLoading(false)
               return
@@ -80,12 +93,22 @@ export default function PersistLogin({ children }: PersistLoginProps) {
         // Refresh auth state
         refreshAuth()
 
+        // Ensure minimum loading time
+        const elapsed = Date.now() - startTime
+        const remaining = Math.max(0, minLoadTime - elapsed)
+        await new Promise((resolve) => setTimeout(resolve, remaining))
+
         window.dispatchEvent(new CustomEvent('session:refreshed'))
       } catch (error) {
         console.log('Silent refresh failed:', error)
 
         // Refresh thất bại, clear auth data
         clearAllAuth()
+
+        // Ensure minimum loading time even on error
+        const elapsed = Date.now() - Date.now()
+        const remaining = Math.max(0, 1500 - elapsed)
+        await new Promise((resolve) => setTimeout(resolve, remaining))
 
         // Phát tín hiệu cho session manager
         window.dispatchEvent(new CustomEvent('session:refreshed'))
@@ -104,10 +127,13 @@ export default function PersistLogin({ children }: PersistLoginProps) {
   // Hiển thị loading spinner trong khi đang refresh
   if (isLoading || !authReady) {
     return (
-      <div className='min-h-screen flex items-center justify-center bg-background'>
-        <div className='flex flex-col items-center space-y-4'>
-          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary'></div>
-          <p className='text-sm text-muted-foreground'>Đang khôi phục phiên đăng nhập...</p>
+      <div className='min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-background to-blue-50 dark:from-emerald-950/20 dark:via-background dark:to-blue-950/20'>
+        <div className='flex flex-col items-center space-y-6'>
+          {/* Full gradient spinner - solid center */}
+          <div className='relative w-16 h-16'>
+            <div className='w-full h-full rounded-full bg-gradient-to-r from-emerald-500 to-blue-500 animate-spin' />
+          </div>
+          <p className='text-sm text-muted-foreground animate-pulse'>Đang tải ứng dụng...</p>
         </div>
       </div>
     )

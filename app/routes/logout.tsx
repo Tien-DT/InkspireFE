@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { clearAllAuth } from '~/utils/auth'
 import { toast } from 'sonner'
+import { Spinner } from '~/components/ui/spinner'
 
 export default function LogoutRoute() {
   const navigate = useNavigate()
@@ -41,11 +42,8 @@ export default function LogoutRoute() {
     <div className='fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-emerald-50 to-blue-50 animate-in fade-in duration-300'>
       <div className='flex flex-col items-center space-y-6 animate-in zoom-in-95 duration-500'>
         {/* Animated Logo/Icon */}
-        <div className='relative'>
-          <div className='h-20 w-20 rounded-full bg-white shadow-lg flex items-center justify-center'>
-            <div className='h-16 w-16 rounded-full border-4 border-emerald-100'></div>
-            <div className='absolute top-2 left-2 h-16 w-16 animate-spin rounded-full border-4 border-transparent border-t-emerald-500 border-r-emerald-400'></div>
-          </div>
+        <div className='relative flex items-center justify-center'>
+          <Spinner size='xl' variant='blast' />
         </div>
 
         {/* Text with fade animation */}

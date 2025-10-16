@@ -24,6 +24,7 @@ import {
 } from '~/components/ui/dialog'
 import { HydrateFallback } from '~/components/ui'
 import { Button } from '~/components/ui/button'
+import { ButtonSpinner } from '~/components/ui/button-spinner'
 import { RecruitmentPostListSkeleton } from '~/components/skeletons'
 import { ProjectStatus, type Application } from '~/types/recruitment.type'
 import { getProfileFromLS } from '~/utils/auth'
@@ -437,7 +438,7 @@ function ManagePostProjectPage() {
               >
                 {acceptApplicantMutation.isPending ? (
                   <span className='flex items-center justify-center gap-2'>
-                    <span className='h-4 w-4 animate-spin rounded-full border-2 border-foreground/30 border-t-transparent' />
+                    <ButtonSpinner className='text-white' />
                     Đang xử lý...
                   </span>
                 ) : (
