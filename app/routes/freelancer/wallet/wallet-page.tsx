@@ -4,7 +4,7 @@ import { PaymentMethods } from '~/components/freelancer/payment-methods'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '~/components/ui/table'
 import { Badge } from '~/components/ui/badge'
-import { Wallet, Clock, CheckCircle, XCircle } from 'lucide-react'
+import { Wallet, Clock } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 
 interface WalletData {

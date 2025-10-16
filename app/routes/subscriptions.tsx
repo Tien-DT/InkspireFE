@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
-import { Check, Zap, Crown, Star } from 'lucide-react'
+import { Crown, Check, Star, Zap } from 'lucide-react'
+import { LoadingState } from '~/components/ui/spinner'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '~/components/ui/card'
 import { Badge } from '~/components/ui/badge'
@@ -110,9 +111,10 @@ export default function SubscriptionPage() {
       } else {
         toast.error(response.message || 'Không thể khởi tạo thanh toán')
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Purchase error:', error)
-      toast.error(error.response?.data?.message || 'Đã xảy ra lỗi khi mua gói đăng ký')
+      const err = error as { response?: { data?: { message?: string } } }
+      toast.error(err.response?.data?.message || 'Đã xảy ra lỗi khi mua gói đăng ký')
     } finally {
       setIsPurchasing(false)
       setSelectedSubscription(null)
@@ -146,14 +148,7 @@ export default function SubscriptionPage() {
   }
 
   if (isLoading || isLoadingProfile) {
-    return (
-      <div className='flex items-center justify-center min-h-screen'>
-        <div className='text-center'>
-          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto'></div>
-          <p className='mt-4 text-muted-foreground'>Đang tải...</p>
-        </div>
-      </div>
-    )
+    return <LoadingState message='Đang tải thông tin gói đăng ký...' size='lg' variant='blast' />
   }
 
   return (

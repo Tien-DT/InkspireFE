@@ -147,6 +147,59 @@ const { register, handleSubmit, formState: { errors } } = useForm<ProfileFormVal
 - `PageHeader`: Badge + title + description + action button for management pages
 - `UnifiedStatsCards`: Stats grid with gradient accents and icons (see `StatsCardConfig` interface)
 - `FilterTabs`: Pill-style tabs with count badges
+- `LoadingCard` & `LoadingList`: Unified loading components with shimmer effect (see LOADING_SYSTEM.md)
+
+**Loading System** (⭐ NEW - see `LOADING_SYSTEM.md` for full docs):
+
+```tsx
+// Use LoadingList for list pages
+import { LoadingList } from '~/components/shared'
+{
+  isLoading && <LoadingList count={5} variant='default' />
+}
+
+// Use LoadingCard for single items
+import { LoadingCard } from '~/components/shared'
+{
+  isLoading && <LoadingCard variant='default' />
+}
+
+// Variants: 'compact' | 'default' | 'detailed'
+// - compact: Simple list items, notifications
+// - default: Job/project cards (most common)
+// - detailed: Profile/showcase cards
+```
+
+**Spinner System** (⭐ NEW - see `SPINNER_SYSTEM.md` for infinite loading):
+
+```tsx
+// Page loading với gradient spinner (recommended)
+import { LoadingState } from '~/components/ui/spinner'
+{isLoading && <LoadingState message='Đang tải...' size='lg' variant='gradient' />}
+
+// Full page overlay
+import { LoadingOverlay } from '~/components/ui/spinner'
+{isProcessing && <LoadingOverlay message='Đang xử lý...' />}
+
+// Inline spinner
+import { Spinner } from '~/components/ui/spinner'
+<Spinner size='md' variant='gradient' />
+
+// Button loading (tích hợp sẵn)
+<Button isLoading={isSubmitting}>Gửi</Button>
+```
+
+**Base Skeleton** (`app/components/ui/skeleton.tsx`):
+
+- Shimmer animation (2s infinite)
+- Dark mode responsive (`bg-muted/50`)
+- Gradient shimmer: `white/60` (light), `white/10` (dark)
+
+**Specific Skeletons** (`app/components/skeletons/`):
+
+- All refactored to use shared `LoadingCard`
+- Available: JobCardSkeleton, ProjectCardSkeleton, ApplicationCardSkeleton, RecruitmentPostSkeleton
+- Use `*ListSkeleton` exports for multiple items
 
 **Management Page Layout Pattern**:
 

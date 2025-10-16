@@ -5,6 +5,7 @@ import { vi } from 'date-fns/locale'
 import { Badge } from '~/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '~/components/ui/dialog'
 import { Separator } from '~/components/ui/separator'
+import { Spinner } from '~/components/ui/spinner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import { cn } from '~/lib/utils'
 import type { Application as RecruitmentApplication } from '~/types/recruitment.type'
@@ -228,7 +229,7 @@ export function ProjectDetailsDialog({
           >
             {applicationsLoading ? (
               <div className='flex h-full flex-col items-center justify-center gap-3 rounded-3xl border border-border/40 bg-muted/15 p-12 text-center text-muted-foreground'>
-                <div className='h-12 w-12 animate-spin rounded-full border-2 border-border/60 border-t-transparent' />
+                <Spinner size='lg' variant='blast' />
                 <p className='text-sm'>Đang tải danh sách ứng viên...</p>
               </div>
             ) : applicationsError ? (

@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle
 } from '~/components/ui/dialog'
+import { Spinner } from '~/components/ui/spinner'
 import { useAuth } from '~/contexts/AuthContext'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
@@ -88,7 +89,7 @@ export default function Payment() {
                 <CardContent className='p-8'>
                   {walletLoading ? (
                     <div className='flex items-center justify-center py-8'>
-                      <div className='animate-spin rounded-full h-12 w-12 border-4 border-white/30 border-t-white'></div>
+                      <Spinner size='lg' variant='blast' />
                     </div>
                   ) : (
                     <>

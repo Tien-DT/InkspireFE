@@ -1,5 +1,6 @@
 import { Card, CardContent } from '~/components/ui/card'
 import { Button } from '~/components/ui/button'
+import { Spinner } from '~/components/ui/spinner'
 
 interface ProfileLoadingStateProps {
   message?: string
@@ -9,8 +10,8 @@ export function ProfileLoadingState({ message = 'Đang tải thông tin profile.
   return (
     <div className='flex min-h-screen items-center justify-center bg-gradient-to-br from-muted/30 via-background to-background'>
       <div className='text-center'>
-        <div className='mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full border-2 border-primary/30 bg-primary/10'>
-          <span className='h-8 w-8 animate-spin rounded-full border-4 border-transparent border-t-primary' />
+        <div className='mx-auto mb-5 flex h-14 w-14 items-center justify-center'>
+          <Spinner size='lg' variant='blast' />
         </div>
         <p className='text-sm text-muted-foreground'>{message}</p>
       </div>

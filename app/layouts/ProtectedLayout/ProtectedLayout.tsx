@@ -2,20 +2,14 @@ import { Navigate, Outlet, useLocation } from 'react-router'
 import { PATH } from '~/constants/path'
 import { RecruitmentFormProvider } from '~/contexts/RecruitmentFormContext'
 import { useAuth } from '~/contexts/AuthContext'
+import { LoadingState } from '~/components/ui/spinner'
 
 export default function ProtectedLayout() {
   const { isAuthenticated, authReady } = useAuth()
   const location = useLocation()
 
   if (!authReady) {
-    return (
-      <div className='min-h-screen flex items-center justify-center bg-background'>
-        <div className='flex flex-col items-center space-y-4'>
-          <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary'></div>
-          <p className='text-sm text-muted-foreground'>Đang kiểm tra phiên đăng nhập...</p>
-        </div>
-      </div>
-    )
+    return <LoadingState message='Đang kiểm tra phiên đăng nhập...' size='md' variant='blast' className='min-h-screen' />
   }
 
   if (!isAuthenticated) {

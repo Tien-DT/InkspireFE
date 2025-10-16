@@ -6,6 +6,7 @@ import { auth, googleProvider } from '~/lib/firebase'
 import { authApi } from '~/apis/auth.api'
 import { GoogleIcon } from '~/components/icons/google-icon'
 import { Button } from '~/components/ui/button'
+import { ButtonSpinner } from '~/components/ui/button-spinner'
 import {
   setAccessTokenToLS,
   setRefreshTokenToLS,
@@ -171,7 +172,7 @@ export function GoogleLoginButton({ rememberMe = false, onSuccess, onError }: Go
     >
       {isButtonLoading ? (
         <>
-          <div className='h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600' />
+          <ButtonSpinner className='text-gray-600' />
           Đang đăng nhập...
         </>
       ) : (

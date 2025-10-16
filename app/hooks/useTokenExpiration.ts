@@ -1,5 +1,5 @@
 import { useEffect, useCallback } from 'react'
-import { parseJwtPayload, getAccessTokenFromLS, clearAllAuth } from '~/utils/auth'
+import { parseJwtPayload, getAccessTokenFromLS } from '~/utils/auth'
 import { useAuth } from '~/contexts/AuthContext'
 
 interface TokenExpirationOptions {

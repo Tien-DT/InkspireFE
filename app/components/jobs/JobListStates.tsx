@@ -1,73 +1,10 @@
 import { Briefcase, RefreshCcw, Search } from 'lucide-react'
 import { Card, CardContent } from '~/components/ui/card'
 import { Button } from '~/components/ui/button'
-import { Skeleton } from '~/components/ui/skeleton'
+import { LoadingList } from '~/components/shared/LoadingCard'
 
 export function JobListLoading() {
-  return (
-    <div className='space-y-8'>
-      {[...Array(3)].map((_, index) => (
-        <Card key={index} className='border'>
-          <CardContent className='p-4 sm:p-5 md:p-6'>
-            <div className='flex flex-col md:flex-row md:items-stretch md:justify-between gap-5 md:gap-8'>
-              {/* Left Content Skeleton */}
-              <div className='md:w-3/4 space-y-4 sm:space-y-5'>
-                {/* Title + Badge */}
-                <div className='flex items-start justify-between gap-3'>
-                  <Skeleton className='h-7 w-3/4' />
-                  <Skeleton className='h-6 w-20 rounded-md' />
-                </div>
-
-                {/* User Info */}
-                <div className='flex items-center gap-2'>
-                  <Skeleton className='h-8 w-8 rounded-full' />
-                  <Skeleton className='h-4 w-32' />
-                </div>
-
-                {/* Description */}
-                <div className='space-y-2'>
-                  <Skeleton className='h-4 w-full' />
-                  <Skeleton className='h-4 w-5/6' />
-                </div>
-
-                {/* Categories */}
-                <div className='flex gap-2'>
-                  <Skeleton className='h-6 w-24' />
-                  <Skeleton className='h-6 w-32' />
-                </div>
-
-                {/* Skills */}
-                <div className='flex gap-2 flex-wrap'>
-                  <Skeleton className='h-6 w-20' />
-                  <Skeleton className='h-6 w-24' />
-                  <Skeleton className='h-6 w-16' />
-                  <Skeleton className='h-6 w-28' />
-                </div>
-
-                {/* Footer */}
-                <div className='flex gap-4'>
-                  <Skeleton className='h-4 w-32' />
-                  <Skeleton className='h-4 w-32' />
-                </div>
-              </div>
-
-              {/* Right Content Skeleton */}
-              <div className='md:w-1/4 min-w-[200px] flex flex-col justify-between gap-4'>
-                <div className='space-y-2'>
-                  <Skeleton className='h-8 w-full' />
-                  <Skeleton className='h-4 w-24' />
-                </div>
-                <div className='space-y-2'>
-                  <Skeleton className='h-11 w-full' />
-                  <Skeleton className='h-11 w-full' />
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  )
+  return <LoadingList count={3} variant='default' />
 }
 
 export function JobListEmpty() {

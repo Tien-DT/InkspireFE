@@ -1,10 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import subscriptionApi, {
-  type Subscription,
-  type UserSubscription,
-  type PurchaseSubscriptionRequest
-} from '~/apis/subscription.api'
+import subscriptionApi from '~/apis/subscription.api'
 import { useProfile } from './useProfile'
 
 export function useSubscriptions() {
@@ -61,8 +57,9 @@ export function usePurchaseSubscription() {
         }
       }
     },
-    onError: (error: any) => {
-      const message = error.response?.data?.message || 'Không thể mua gói đăng ký'
+    onError: (error) => {
+      const err = error as { response?: { data?: { message?: string } } }
+      const message = err.response?.data?.message || 'Không thể mua gói đăng ký'
       toast.error(message)
     }
   })
