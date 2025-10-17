@@ -58,10 +58,10 @@ export function UserStatsCards() {
 
   if (loading) {
     return (
-      <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 sm:gap-4'>
+      <div className='grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4'>
         {[...Array(4)].map((_, i) => (
           <Card key={i} className='border-0 bg-white dark:bg-slate-950 shadow-none'>
-            <CardContent className='p-4 sm:p-6'>
+            <CardContent className='p-3 sm:p-4'>
               <div className='h-16 sm:h-20 animate-pulse bg-gray-200 rounded'></div>
             </CardContent>
           </Card>
@@ -71,13 +71,13 @@ export function UserStatsCards() {
   }
 
   return (
-    <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 sm:gap-4'>
+    <div className='grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4'>
       {stats.map((stat) => (
         <Card key={stat.label} className='border-0 bg-white dark:bg-slate-950 shadow-none'>
-          <CardContent className='p-6'>
-            <div className='space-y-2'>
-              <p className='text-sm text-muted-foreground'>{stat.label}</p>
-              <p className='text-3xl font-bold text-foreground'>{stat.value}</p>
+          <CardContent className='p-3 sm:p-4'>
+            <div className='space-y-1'>
+              <p className='text-xs sm:text-sm text-muted-foreground'>{stat.label}</p>
+              <p className='text-2xl sm:text-3xl font-bold text-foreground'>{stat.value}</p>
             </div>
           </CardContent>
         </Card>

@@ -165,7 +165,7 @@ export default function SubscriptionPage() {
         {/* Subscription Cards */}
         <div className='grid md:grid-cols-3 gap-8 mb-12'>
           {subscriptions.map((subscription) => (
-            <Card key={subscription.id} className='relative hover:shadow-lg transition-shadow'>
+            <Card key={subscription.id} className='relative bg-white backdrop-blur-md shadow-none border-none transition-all hover:backdrop-blur-lg'>
               {subscription.type === 2 && (
                 <Badge className='absolute -top-3 left-1/2 transform -translate-x-1/2' variant='default'>
                   Phổ biến nhất
@@ -322,7 +322,7 @@ export default function SubscriptionPage() {
         </div>
 
         {/* Benefits Section */}
-        <Card className='mb-8'>
+        <Card className='mb-8 bg-transparent backdrop-blur-md shadow-none border-none'>
           <CardHeader>
             <CardTitle className='text-2xl'>Lợi Ích Khi Nâng Cấp Gói Premium</CardTitle>
           </CardHeader>

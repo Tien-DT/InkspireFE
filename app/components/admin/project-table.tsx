@@ -184,8 +184,8 @@ export function ProjectTable() {
 
   if (loading) {
     return (
-      <Card className='bg-white/90 shadow-sm backdrop-blur-sm'>
-        <CardHeader>
+      <Card className='border-0 bg-white dark:bg-slate-950 shadow-none'>
+        <CardHeader className='pb-3'>
           <CardTitle>Loading...</CardTitle>
         </CardHeader>
         <CardContent>
@@ -196,8 +196,8 @@ export function ProjectTable() {
   }
 
   return (
-    <Card className='bg-white/90 shadow-sm backdrop-blur-sm'>
-      <CardHeader className='flex flex-col gap-3 pb-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0'>
+    <Card className='border-0 bg-white dark:bg-slate-950 shadow-none'>
+      <CardHeader className='flex flex-col gap-2 pb-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0'>
         <CardTitle className='text-base sm:text-lg font-semibold text-slate-900'>Danh mục dự án</CardTitle>
         <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
           <Button onClick={handleCreateProject} className='gap-2 w-full sm:w-auto'>
@@ -219,9 +219,9 @@ export function ProjectTable() {
           </Select>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className='p-3 sm:p-4'>
         <div className='overflow-x-auto'>
-          <Table className='min-w-[900px]'>
+          <Table className='min-w-[900px] text-xs sm:text-sm'>
             <TableHeader>
               <TableRow className='border-border/40 text-sm text-muted-foreground'>
                 <TableHead className='w-[250px]'>Dự án</TableHead>
@@ -300,7 +300,7 @@ export function ProjectTable() {
           </Table>
         </div>
 
-        <div className='mt-6 flex justify-center'>
+        <div className='mt-3 flex justify-center'>
           <Pagination>
             <PaginationContent>
               <PaginationItem>

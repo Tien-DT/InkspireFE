@@ -361,8 +361,8 @@ export function WithdrawRequestTable() {
 
   if (loading) {
     return (
-      <Card>
-        <CardHeader>
+      <Card className='border-0 bg-white dark:bg-slate-950 shadow-none'>
+        <CardHeader className='pb-3'>
           <CardTitle>Danh sách yêu cầu rút tiền</CardTitle>
           <CardDescription>Đang tải...</CardDescription>
         </CardHeader>
@@ -372,12 +372,12 @@ export function WithdrawRequestTable() {
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
+      <Card className='border-0 bg-white dark:bg-slate-950 shadow-none'>
+        <CardHeader className='pb-3'>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div>
-              <CardTitle>Danh sách yêu cầu rút tiền</CardTitle>
-              <CardDescription>
+              <CardTitle className='text-base sm:text-lg'>Danh sách yêu cầu rút tiền</CardTitle>
+              <CardDescription className='text-xs sm:text-sm'>
                 Quản lý và xử lý các yêu cầu rút tiền từ người dùng
               </CardDescription>
             </div>
@@ -400,11 +400,11 @@ export function WithdrawRequestTable() {
             </Button>
           </div>
         </CardHeader>
-        <CardContent>
-          <Table>
+        <CardContent className='p-3 sm:p-4'>
+          <Table className='text-xs sm:text-sm'>
             <TableCaption>Danh sách yêu cầu rút tiền gần đây</TableCaption>
             <TableHeader>
-              <TableRow>
+              <TableRow className='text-xs sm:text-sm'>
                 <TableHead>Người dùng</TableHead>
                 <TableHead>Tổng tiền</TableHead>
                 <TableHead>Freelancer nhận</TableHead>

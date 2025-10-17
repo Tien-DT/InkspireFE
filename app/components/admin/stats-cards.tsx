@@ -157,7 +157,7 @@ export function StatsCards() {
 
   if (loading) {
     return (
-      <div className='grid gap-3 sm:grid-cols-2 lg:grid-cols-4'>
+      <div className='grid gap-2 sm:grid-cols-2 lg:grid-cols-4'>
         {[...Array(4)].map((_, i) => (
           <Card key={i} className='h-40 animate-pulse bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800' />
         ))}
@@ -166,7 +166,7 @@ export function StatsCards() {
   }
 
   return (
-    <div className='grid gap-3 sm:grid-cols-2 lg:grid-cols-4'>
+    <div className='grid gap-2 sm:grid-cols-2 lg:grid-cols-4'>
       {stats.map((stat) => {
         const Icon = stat.icon
         const isTrendingUp = stat.trend === 'up'
@@ -186,7 +186,7 @@ export function StatsCards() {
             <div className='pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-gradient-to-br from-slate-200/10 to-transparent blur-2xl dark:from-slate-700/10' />
             <div className='pointer-events-none absolute -bottom-6 -left-6 h-20 w-20 rounded-full bg-gradient-to-tr from-slate-200/10 to-transparent blur-2xl dark:from-slate-700/10' />
 
-            <div className='relative space-y-3 p-4'>
+            <div className='relative space-y-2 p-3'>
               <div className='flex items-center justify-between'>
                 <div className={cn('rounded-lg p-2', stat.iconBgColor)}>
                   <Icon className={cn('h-5 w-5', stat.accentColor)} />
@@ -197,17 +197,17 @@ export function StatsCards() {
                 </div>
               </div>
 
-              <div className='space-y-0.5'>
-                <p className='text-xs font-medium text-muted-foreground'>{stat.title}</p>
-                <p className={cn('text-2xl font-bold tracking-tight', stat.accentColor)}>{stat.value}</p>
+              <div className='space-y-0'>
+                <p className='text-xs font-medium text-muted-foreground leading-tight'>{stat.title}</p>
+                <p className={cn('text-xl font-bold tracking-tight', stat.accentColor)}>{stat.value}</p>
               </div>
 
-              <div className='border-t border-border/50 pt-2'>
-                <div className='space-y-1'>
+              <div className='border-t border-border/50 pt-1.5'>
+                <div className='space-y-0.5'>
                   {stat.details.map((detail) => (
-                    <div key={detail.label} className='flex items-center justify-between'>
-                      <span className='text-xs text-muted-foreground'>{detail.label}</span>
-                      <span className='text-xs font-semibold text-foreground'>{detail.value}</span>
+                    <div key={detail.label} className='flex items-center justify-between text-xs'>
+                      <span className='text-muted-foreground'>{detail.label}</span>
+                      <span className='font-semibold text-foreground'>{detail.value}</span>
                     </div>
                   ))}
                 </div>
