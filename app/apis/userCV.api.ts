@@ -61,5 +61,14 @@ export const userCVApi = {
       }
     )
     return response.data
+  },
+
+  // Update application status (accept/reject)
+  updateApplicationStatus: async (userCVId: string, status: number) => {
+    const response = await axiosClient.patch<{ success: boolean; message: string; data: any }>(
+      `${URL_USER_CVS}/${userCVId}`,
+      { status }
+    )
+    return response.data
   }
 }

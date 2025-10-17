@@ -16,6 +16,7 @@ interface ApplicantCardProps {
   onReject?: () => void
   onSendMessage?: () => void
   isProcessing?: boolean
+  isRejecting?: boolean
   isSendingMessage?: boolean
 }
 
@@ -29,6 +30,7 @@ export function ApplicantCard({
   onReject,
   onSendMessage,
   isProcessing,
+  isRejecting,
   isSendingMessage
 }: ApplicantCardProps) {
   const getStatusBadge = (status: number) => {
@@ -61,6 +63,8 @@ export function ApplicantCard({
   }
 
   const freelancerId = application.user?.id || application.userId
+
+
 
   return (
     <Card className='group relative overflow-hidden rounded-3xl border border-border/40 bg-card/95 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg'>
@@ -133,7 +137,7 @@ export function ApplicantCard({
                 )}
               </div>
 
-              {application.status === 1 && (
+              {application.status === 0 && (
                 <div className='flex flex-wrap gap-2'>
                   {onReject && (
                     <Button
@@ -141,9 +145,14 @@ export function ApplicantCard({
                       variant='ghost'
                       className='h-9 rounded-full border border-border/40 px-4 text-sm font-medium text-destructive transition-colors hover:border-destructive/40 hover:bg-destructive/10'
                       onClick={onReject}
+                      disabled={isRejecting}
                     >
-                      <XCircle className='mr-2 h-4 w-4' />
-                      Từ chối
+                      {isRejecting ? (
+                        <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                      ) : (
+                        <XCircle className='mr-2 h-4 w-4' />
+                      )}
+                      {isRejecting ? 'Đang xử lý...' : 'Từ chối'}
                     </Button>
                   )}
                   {onAccept && (

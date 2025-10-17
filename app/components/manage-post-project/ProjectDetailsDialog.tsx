@@ -39,6 +39,7 @@ interface ProjectDetailsDialogProps {
   onRejectApplicant?: (application: RecruitmentApplication) => void
   onSendMessage?: (application: RecruitmentApplication) => void
   acceptingApplicantId?: string | null
+  rejectingApplicantId?: string | null
   sendingMessageToId?: string | null
 }
 
@@ -75,6 +76,7 @@ export function ProjectDetailsDialog({
   onRejectApplicant,
   onSendMessage,
   acceptingApplicantId,
+  rejectingApplicantId,
   sendingMessageToId
 }: ProjectDetailsDialogProps) {
   if (!project) return null
@@ -85,7 +87,7 @@ export function ProjectDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='flex h-[92vh] max-h-[92vh] w-[98vw] max-w-[1280px] flex-col overflow-hidden rounded-[32px] border border-border/30 bg-card/95 p-0 shadow-[0_20px_60px_-24px_rgba(15,23,42,0.4)] backdrop-blur sm:w-auto'>
+      <DialogContent className='flex h-[92vh] max-h-[92vh] w-[70vw] max-w-[70vw] sm:max-w-[70vw] md:max-w-[70vw] lg:max-w-[1400px] flex-col overflow-hidden rounded-[32px] border border-border/30 bg-card/95 p-0 shadow-[0_20px_60px_-24px_rgba(15,23,42,0.4)] backdrop-blur'>
         <DialogHeader className='shrink-0 border-b border-border/40 px-6 pt-6 pb-4'>
           <div className='flex flex-col gap-3 md:flex-row md:items-start md:justify-between'>
             <div>
@@ -257,6 +259,7 @@ export function ProjectDetailsDialog({
                     onReject={() => onRejectApplicant?.(application)}
                     onSendMessage={() => onSendMessage?.(application)}
                     isProcessing={acceptingApplicantId === application.id}
+                    isRejecting={rejectingApplicantId === application.id}
                     isSendingMessage={sendingMessageToId === application.id}
                   />
                 ))}

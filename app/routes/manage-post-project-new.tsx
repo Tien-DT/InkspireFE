@@ -11,6 +11,7 @@ import PaginationDemo from '~/components/Pagination'
 import { PageHeader, UnifiedStatsCards, FilterTabs } from '~/components/shared'
 import type { StatsCardConfig as SharedStatsCardConfig, FilterOption } from '~/components/shared'
 import { projectApi } from '~/apis/project.api'
+import { userCVApi } from '~/apis/userCV.api'
 import { useChat } from '~/contexts/ChatContext'
 import { useRecruitmentApplications, useUserRecruitmentsByUserId } from '~/hooks/useRecruitments'
 import { PATH } from '~/constants/path'
@@ -83,6 +84,7 @@ function ManagePostProjectPage() {
   const [selectedPost, setSelectedPost] = useState<UserRecruitmentPost | null>(null)
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
   const [pendingApplicationId, setPendingApplicationId] = useState<string | null>(null)
+  const [rejectingApplicationId, setRejectingApplicationId] = useState<string | null>(null)
   const [sendingMessageToId, setSendingMessageToId] = useState<string | null>(null)
   const [confirmState, setConfirmState] = useState<{
     isOpen: boolean
@@ -139,6 +141,29 @@ function ManagePostProjectPage() {
     },
     onSettled: () => {
       setPendingApplicationId(null)
+    }
+  })
+
+  const rejectApplicantMutation = useMutation({
+    mutationFn: (applicationId: string) => userCVApi.updateApplicationStatus(applicationId, 3), // 3 = REJECTED
+    onSuccess: () => {
+      void refetchApplications()
+      toast.success('Đã từ chối ứng viên', {
+        description: 'Ứng viên đã được thông báo về quyết định của bạn.'
+      })
+    },
+    onError: (error: unknown) => {
+      const axiosMessage = isAxiosError(error) ? error.response?.data?.message : undefined
+      const message =
+        axiosMessage ??
+        (error instanceof Error ? error.message : 'Có lỗi xảy ra khi từ chối ứng viên. Vui lòng thử lại.')
+
+      toast.error('Không thể từ chối ứng viên', {
+        description: message
+      })
+    },
+    onSettled: () => {
+      setRejectingApplicationId(null)
     }
   })
 
@@ -263,8 +288,9 @@ function ManagePostProjectPage() {
   }
 
   const handleRejectApplicant = (application: Application) => {
-    // TODO: Call API to update application status
-    console.log('Reject applicant:', application.id)
+    if (rejectApplicantMutation.isPending) return
+    setRejectingApplicationId(application.id)
+    rejectApplicantMutation.mutate(application.id)
   }
 
   const handleSendMessage = async (application: Application) => {
@@ -398,6 +424,7 @@ function ManagePostProjectPage() {
           onRejectApplicant={handleRejectApplicant}
           onSendMessage={handleSendMessage}
           acceptingApplicantId={pendingApplicationId}
+          rejectingApplicantId={rejectingApplicationId}
           sendingMessageToId={sendingMessageToId}
         />
 
