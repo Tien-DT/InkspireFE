@@ -61,9 +61,9 @@ export function ProjectStatsCards() {
 
   if (loading) {
     return (
-      <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 sm:gap-4'>
+      <div className='grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4'>
         {[...Array(4)].map((_, i) => (
-          <Card key={i} className='bg-white/90 p-4 sm:p-6 shadow-sm backdrop-blur-sm'>
+          <Card key={i} className='bg-white dark:bg-slate-950 p-3 sm:p-4 shadow-none border-0 backdrop-blur-sm'>
             <div className='h-12 sm:h-16 animate-pulse bg-gray-200 rounded'></div>
           </Card>
         ))}
@@ -71,12 +71,12 @@ export function ProjectStatsCards() {
     )
   }
   return (
-    <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 sm:gap-4'>
+    <div className='grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4'>
       {stats.map((stat) => (
-        <Card key={stat.label} className='bg-white/90 p-6 shadow-sm backdrop-blur-sm'>
-          <div className='space-y-1'>
-            <p className={`text-3xl font-bold ${stat.accentClass}`}>{stat.value}</p>
-            <p className='text-sm text-slate-600'>{stat.label}</p>
+        <Card key={stat.label} className='bg-white dark:bg-slate-950 p-3 sm:p-4 shadow-none border-0 backdrop-blur-sm'>
+          <div className='space-y-0'>
+            <p className={`text-2xl sm:text-3xl font-bold ${stat.accentClass}`}>{stat.value}</p>
+            <p className='text-xs sm:text-sm text-slate-600 leading-tight'>{stat.label}</p>
           </div>
         </Card>
       ))}

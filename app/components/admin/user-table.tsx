@@ -186,8 +186,8 @@ export function UserTable() {
 
   if (loading) {
     return (
-      <Card className='border-border/40 bg-card shadow-sm'>
-        <CardHeader>
+      <Card className='border-0 bg-white dark:bg-slate-950 shadow-none'>
+        <CardHeader className='pb-3'>
           <CardTitle>Loading...</CardTitle>
         </CardHeader>
         <CardContent>
@@ -198,8 +198,8 @@ export function UserTable() {
   }
 
   return (
-    <Card className='border-border/40 bg-card shadow-sm'>
-      <CardHeader className='flex flex-col gap-3 pb-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0'>
+    <Card className='border-0 bg-white dark:bg-slate-950 shadow-none'>
+      <CardHeader className='flex flex-col gap-3 pb-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0'>
         <CardTitle className='text-lg sm:text-xl font-semibold text-foreground'>Danh sách người dùng</CardTitle>
         <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
           <Button onClick={handleCreateUser} className='gap-2 w-full sm:w-auto'>
@@ -229,9 +229,9 @@ export function UserTable() {
           </Select>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className='p-3 sm:p-4'>
         <div className='overflow-x-auto'>
-          <Table className='min-w-[900px]'>
+          <Table className='min-w-[900px] text-xs sm:text-sm'>
             <TableHeader>
               <TableRow className='border-border/40'>
                 <TableHead className='text-muted-foreground w-[250px]'>Người dùng</TableHead>
@@ -311,7 +311,7 @@ export function UserTable() {
           </Table>
         </div>
 
-        <div className='mt-6 flex justify-center'>
+        <div className='mt-3 flex justify-center'>
           <Pagination>
             <PaginationContent>
               <PaginationItem>

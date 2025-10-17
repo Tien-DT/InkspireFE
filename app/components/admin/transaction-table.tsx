@@ -112,8 +112,8 @@ export function TransactionTable() {
 
   if (loading) {
     return (
-      <Card className='bg-white/90 shadow-sm backdrop-blur-sm'>
-        <CardHeader>
+      <Card className='border-0 bg-white dark:bg-slate-950 shadow-none'>
+        <CardHeader className='pb-3'>
           <CardTitle>Loading...</CardTitle>
         </CardHeader>
         <CardContent>
@@ -124,8 +124,8 @@ export function TransactionTable() {
   }
 
   return (
-    <Card className='bg-white/90 shadow-sm backdrop-blur-sm'>
-      <CardHeader className='flex flex-col gap-4 pb-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0'>
+    <Card className='border-0 bg-white dark:bg-slate-950 shadow-none'>
+      <CardHeader className='flex flex-col gap-2 pb-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0'>
         <CardTitle className='text-lg font-semibold text-slate-900'>Lịch sử giao dịch</CardTitle>
         <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
           <Button variant='outline' size='sm' className='gap-2' onClick={handleExportReport}>
@@ -157,11 +157,11 @@ export function TransactionTable() {
           </Select>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className='p-3 sm:p-4'>
         <div className='overflow-x-auto'>
-          <Table>
+          <Table className='text-xs sm:text-sm'>
             <TableHeader>
-              <TableRow className='border-border/40 text-sm text-muted-foreground'>
+              <TableRow className='border-border/40 text-xs sm:text-sm text-muted-foreground'>
                 <TableHead>Mã giao dịch</TableHead>
                 <TableHead>Loại</TableHead>
                 <TableHead>Số tiền</TableHead>
@@ -203,7 +203,7 @@ export function TransactionTable() {
           </Table>
         </div>
 
-        <div className='mt-6 flex justify-center'>
+        <div className='mt-3 flex justify-center'>
           <Pagination>
             <PaginationContent>
               <PaginationItem>

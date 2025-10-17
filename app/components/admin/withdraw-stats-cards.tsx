@@ -73,56 +73,56 @@ export function WithdrawRequestStatsCards() {
   }
 
   return (
-    <div className='space-y-4'>
+    <div className='space-y-2'>
       {/* Main stats cards */}
-      <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
-        <Card>
-          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <CardTitle className='text-sm font-medium'>Tổng yêu cầu</CardTitle>
-            <Banknote className='h-4 w-4 text-muted-foreground' />
+      <div className='grid gap-2 md:grid-cols-2 lg:grid-cols-4'>
+        <Card className='bg-white dark:bg-slate-950 shadow-none border-0'>
+          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-1.5'>
+            <CardTitle className='text-xs sm:text-sm font-medium'>Tổng yêu cầu</CardTitle>
+            <Banknote className='h-4 w-4 text-muted-foreground flex-shrink-0' />
           </CardHeader>
-          <CardContent>
-            <div className='text-2xl font-bold'>{stats.totalRequests}</div>
-            <p className='text-xs text-muted-foreground'>
+          <CardContent className='p-3 sm:p-4'>
+            <div className='text-xl sm:text-2xl font-bold'>{stats.totalRequests}</div>
+            <p className='text-xs text-muted-foreground mt-0.5'>
               Tổng số tiền: {formatCurrency(stats.totalAmount)}
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <CardTitle className='text-sm font-medium'>Chờ xử lý</CardTitle>
-            <Clock className='h-4 w-4 text-yellow-600' />
+        <Card className='bg-white dark:bg-slate-950 shadow-none border-0'>
+          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-1.5'>
+            <CardTitle className='text-xs sm:text-sm font-medium'>Chờ xử lý</CardTitle>
+            <Clock className='h-4 w-4 text-yellow-600 flex-shrink-0' />
           </CardHeader>
-          <CardContent>
-            <div className='text-2xl font-bold'>{stats.pendingRequests}</div>
-            <p className='text-xs text-muted-foreground'>
+          <CardContent className='p-3 sm:p-4'>
+            <div className='text-xl sm:text-2xl font-bold'>{stats.pendingRequests}</div>
+            <p className='text-xs text-muted-foreground mt-0.5'>
               Số tiền: {formatCurrency(stats.pendingAmount)}
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <CardTitle className='text-sm font-medium'>Đã duyệt</CardTitle>
-            <CheckCircle2 className='h-4 w-4 text-green-600' />
+        <Card className='bg-white dark:bg-slate-950 shadow-none border-0'>
+          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-1.5'>
+            <CardTitle className='text-xs sm:text-sm font-medium'>Đã duyệt</CardTitle>
+            <CheckCircle2 className='h-4 w-4 text-green-600 flex-shrink-0' />
           </CardHeader>
-          <CardContent>
-            <div className='text-2xl font-bold'>{stats.approvedRequests}</div>
-            <p className='text-xs text-muted-foreground'>
+          <CardContent className='p-3 sm:p-4'>
+            <div className='text-xl sm:text-2xl font-bold'>{stats.approvedRequests}</div>
+            <p className='text-xs text-muted-foreground mt-0.5'>
               {((stats.approvedRequests / (stats.totalRequests || 1)) * 100).toFixed(0)}% tổng yêu cầu
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <CardTitle className='text-sm font-medium'>Từ chối</CardTitle>
-            <XCircle className='h-4 w-4 text-red-600' />
+        <Card className='bg-white dark:bg-slate-950 shadow-none border-0'>
+          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-1.5'>
+            <CardTitle className='text-xs sm:text-sm font-medium'>Từ chối</CardTitle>
+            <XCircle className='h-4 w-4 text-red-600 flex-shrink-0' />
           </CardHeader>
-          <CardContent>
-            <div className='text-2xl font-bold'>{stats.rejectedRequests}</div>
-            <p className='text-xs text-muted-foreground'>
+          <CardContent className='p-3 sm:p-4'>
+            <div className='text-xl sm:text-2xl font-bold'>{stats.rejectedRequests}</div>
+            <p className='text-xs text-muted-foreground mt-0.5'>
               {((stats.rejectedRequests / (stats.totalRequests || 1)) * 100).toFixed(0)}% tổng yêu cầu
             </p>
           </CardContent>
@@ -130,22 +130,22 @@ export function WithdrawRequestStatsCards() {
       </div>
 
       {/* Platform revenue card */}
-      <Card className='bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200'>
-        <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-          <CardTitle className='text-base font-bold text-purple-700'>
+      <Card className='bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20 border-0'>
+        <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-1.5'>
+          <CardTitle className='text-sm sm:text-base font-bold text-purple-700'>
             Tổng hoa hồng nền tảng
           </CardTitle>
-          <TrendingUp className='h-5 w-5 text-purple-600' />
+          <TrendingUp className='h-5 w-5 text-purple-600 flex-shrink-0' />
         </CardHeader>
-        <CardContent>
-          <div className='text-3xl font-bold text-purple-700'>
+        <CardContent className='p-3 sm:p-4'>
+          <div className='text-2xl sm:text-3xl font-bold text-purple-700'>
             {formatCurrency(stats.totalPlatformFee)}
           </div>
-          <p className='text-sm text-purple-600 mt-2'>
+          <p className='text-xs sm:text-sm text-purple-600 mt-1'>
             Từ tổng {formatCurrency(stats.totalAmount)} yêu cầu rút tiền (20% hoa hồng)
           </p>
-          <div className='mt-3 pt-3 border-t border-purple-200'>
-            <p className='text-sm text-gray-600'>
+          <div className='mt-2 pt-2 border-t border-purple-200'>
+            <p className='text-xs sm:text-sm text-gray-600'>
               Freelancer nhận: <span className='font-semibold text-green-600'>{formatCurrency(stats.totalNetAmount)}</span>
             </p>
           </div>

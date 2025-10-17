@@ -32,28 +32,28 @@ const actions: QuickActionItem[] = [
 
 export function QuickActions() {
   return (
-    <Card className='p-6 shadow-sm'>
-      <div className='space-y-6'>
+    <Card className='p-4 shadow-none border-0 rounded-lg bg-white dark:bg-slate-950'>
+      <div className='space-y-2'>
         <div>
-          <h2 className='text-xl font-semibold text-slate-900'>Hành động nhanh</h2>
-          <p className='text-sm text-muted-foreground'>Các mục việc cần xử lý trong hôm nay</p>
+          <h2 className='text-base sm:text-lg font-semibold text-slate-900'>Hành động nhanh</h2>
+          <p className='text-xs sm:text-sm text-muted-foreground'>Các mục việc cần xử lý trong hôm nay</p>
         </div>
 
-        <div className='space-y-3'>
+        <div className='space-y-1'>
           {actions.map((action) => (
             <button
               key={action.number}
-              className='flex w-full items-center gap-4 rounded-lg border border-border bg-card p-4 text-left transition-colors hover:bg-accent'
+              className='flex w-full items-center gap-2 sm:gap-3 rounded-lg border-0 bg-gray-50 dark:bg-slate-900/50 p-2 sm:p-3 text-left transition-colors hover:bg-gray-100 dark:hover:bg-slate-900 shadow-none text-xs sm:text-sm'
               type='button'
             >
-              <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-destructive text-sm font-bold text-destructive-foreground'>
+              <div className='flex h-6 w-6 sm:h-8 sm:w-8 flex-shrink-0 items-center justify-center rounded-full bg-destructive text-xs sm:text-sm font-bold text-destructive-foreground'>
                 {action.number}
               </div>
               <div className='flex-1'>
-                <p className='text-sm font-medium text-slate-900'>{action.title}</p>
+                <p className='font-medium text-slate-900'>{action.title}</p>
               </div>
-              <div className='flex items-center gap-1 text-sm text-muted-foreground'>
-                <span>{action.linkLabel}</span>
+              <div className='flex items-center gap-1 text-muted-foreground flex-shrink-0'>
+                <span className='hidden sm:inline'>{action.linkLabel}</span>
                 <ChevronRight className='h-4 w-4' />
               </div>
             </button>

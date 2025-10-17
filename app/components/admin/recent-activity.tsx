@@ -102,35 +102,35 @@ export function RecentActivity() {
 
   if (loading) {
     return (
-      <Card className='p-6 shadow-sm'>
-        <div className='h-64 animate-pulse bg-gray-200 rounded'></div>
+      <Card className='p-3 sm:p-4 shadow-none border-0 rounded-lg bg-white dark:bg-slate-950'>
+        <div className='h-64 animate-pulse bg-gray-200 rounded-lg'></div>
       </Card>
     )
   }
   return (
-    <Card className='p-6 shadow-sm'>
-      <div className='space-y-6'>
+    <Card className='p-3 sm:p-4 shadow-none border-0 rounded-lg bg-white dark:bg-slate-950'>
+      <div className='space-y-2'>
         <div>
-          <h2 className='text-xl font-semibold text-slate-900'>Hoạt động gần đây</h2>
-          <p className='text-sm text-muted-foreground'>Các hoạt động mới nhất trên hệ thống</p>
+          <h2 className='text-base sm:text-lg font-semibold text-slate-900'>Hoạt động gần đây</h2>
+          <p className='text-xs sm:text-sm text-muted-foreground'>Các hoạt động mới nhất trên hệ thống</p>
         </div>
 
-        <div className='space-y-4'>
+        <div className='space-y-1'>
           {activities.map((activity) => {
             const Icon = activity.icon
             return (
-              <div key={activity.id} className='flex gap-3'>
+              <div key={activity.id} className='flex gap-2'>
                 <div className='mt-0.5 flex-shrink-0'>
                   {activity.completed ? (
-                    <Icon className='h-5 w-5 text-emerald-500' />
+                    <Icon className='h-4 w-4 sm:h-5 sm:w-5 text-emerald-500' />
                   ) : (
-                    <Icon className='h-5 w-5 text-muted-foreground' />
+                    <Icon className='h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground' />
                   )}
                 </div>
-                <div className='flex-1 space-y-1'>
-                  <p className='text-sm font-medium leading-tight text-slate-900'>{activity.title}</p>
-                  <p className='text-xs text-muted-foreground'>{activity.description}</p>
-                  <p className='text-xs text-muted-foreground'>{activity.time}</p>
+                <div className='flex-1 space-y-0'>
+                  <p className='text-xs sm:text-sm font-medium leading-tight text-slate-900'>{activity.title}</p>
+                  <p className='text-xs text-muted-foreground leading-tight'>{activity.description}</p>
+                  <p className='text-xs text-muted-foreground leading-tight'>{activity.time}</p>
                 </div>
               </div>
             )

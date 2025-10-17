@@ -120,12 +120,12 @@ export default function AdminSubscriptionsPage() {
   }
 
   return (
-    <div className='space-y-6'>
+    <div className='space-y-3'>
       {/* Header */}
-      <div className='flex items-center justify-between'>
+      <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2'>
         <div>
-          <h2 className='text-2xl font-bold tracking-tight'>Quản Lý Gói Đăng Ký</h2>
-          <p className='text-muted-foreground'>Quản lý các gói đăng ký cho khách hàng</p>
+          <h2 className='text-xl sm:text-2xl font-bold tracking-tight'>Quản Lý Gói Đăng Ký</h2>
+          <p className='text-xs sm:text-sm text-muted-foreground'>Quản lý các gói đăng ký cho khách hàng</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
@@ -208,54 +208,55 @@ export default function AdminSubscriptionsPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className='grid gap-4 md:grid-cols-3'>
-        <Card>
-          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <CardTitle className='text-sm font-medium'>Tổng Gói Đăng Ký</CardTitle>
+      <div className='grid gap-2 md:grid-cols-3'>
+        <Card className='border-0 bg-white dark:bg-slate-950 shadow-none'>
+          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-1.5'>
+            <CardTitle className='text-xs sm:text-sm font-medium'>Tổng Gói Đăng Ký</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className='text-2xl font-bold'>{subscriptions.length}</div>
-            <p className='text-xs text-muted-foreground'>Các gói đăng ký đang hoạt động</p>
+          <CardContent className='p-3 sm:p-4'>
+            <div className='text-xl sm:text-2xl font-bold'>{subscriptions.length}</div>
+            <p className='text-xs text-muted-foreground mt-0.5'>Các gói đăng ký đang hoạt động</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <CardTitle className='text-sm font-medium'>Gói Phổ Biến</CardTitle>
+        <Card className='border-0 bg-white dark:bg-slate-950 shadow-none'>
+          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-1.5'>
+            <CardTitle className='text-xs sm:text-sm font-medium'>Gói Phổ Biến</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className='text-2xl font-bold'>Professional</div>
-            <p className='text-xs text-muted-foreground'>Được chọn nhiều nhất</p>
+          <CardContent className='p-3 sm:p-4'>
+            <div className='text-xl sm:text-2xl font-bold'>Professional</div>
+            <p className='text-xs text-muted-foreground mt-0.5'>Được chọn nhiều nhất</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <CardTitle className='text-sm font-medium'>Doanh Thu Dự Kiến</CardTitle>
+        <Card className='border-0 bg-white dark:bg-slate-950 shadow-none'>
+          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-1.5'>
+            <CardTitle className='text-xs sm:text-sm font-medium'>Doanh Thu Dự Kiến</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className='text-2xl font-bold'>
+          <CardContent className='p-3 sm:p-4'>
+            <div className='text-xl sm:text-2xl font-bold'>
               {subscriptions.reduce((sum, s) => sum + s.price, 0).toLocaleString('vi-VN')} VNĐ
             </div>
-            <p className='text-xs text-muted-foreground'>Mỗi tháng từ các gói</p>
+            <p className='text-xs text-muted-foreground mt-0.5'>Mỗi tháng từ các gói</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Subscriptions Grid */}
-      <div className='grid gap-6 md:grid-cols-2 lg:grid-cols-3'>
+      <div className='grid gap-2 md:grid-cols-2 lg:grid-cols-3'>
         {subscriptions.map((subscription) => (
-          <Card key={subscription.id} className='relative'>
-            <CardHeader>
-              <div className='flex items-start justify-between'>
+          <Card key={subscription.id} className='relative border-0 bg-white dark:bg-slate-950 shadow-none'>
+            <CardHeader className='pb-2'>
+              <div className='flex items-start justify-between gap-2'>
                 <div>
-                  <CardTitle className='text-xl'>{subscription.title}</CardTitle>
-                  <Badge variant={getTypeColor(subscription.type) as any} className='mt-2'>
+                  <CardTitle className='text-base sm:text-lg'>{subscription.title}</CardTitle>
+                  <Badge variant={getTypeColor(subscription.type) as any} className='mt-1 text-xs'>
                     {getTypeLabel(subscription.type)}
                   </Badge>
                 </div>
-                <div className='flex gap-1'>
+                <div className='flex gap-1 flex-shrink-0'>
                   <Button
                     variant='ghost'
                     size='icon'
+                    className='h-8 w-8'
                     onClick={() => {
                       setEditingSubscription(subscription)
                       setIsDialogOpen(true)
@@ -263,19 +264,19 @@ export default function AdminSubscriptionsPage() {
                   >
                     <Edit2 className='h-4 w-4' />
                   </Button>
-                  <Button variant='ghost' size='icon' onClick={() => handleDelete(subscription.id)}>
+                  <Button variant='ghost' size='icon' className='h-8 w-8' onClick={() => handleDelete(subscription.id)}>
                     <Trash2 className='h-4 w-4 text-destructive' />
                   </Button>
                 </div>
               </div>
-              <CardDescription className='mt-2'>{subscription.description}</CardDescription>
+              <CardDescription className='mt-1 text-xs leading-snug'>{subscription.description}</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className='p-3 sm:p-4'>
               <div className='flex items-baseline gap-1'>
-                <span className='text-3xl font-bold'>{subscription.price.toLocaleString('vi-VN')}</span>
-                <span className='text-muted-foreground'>VNĐ/tháng</span>
+                <span className='text-2xl sm:text-3xl font-bold'>{subscription.price.toLocaleString('vi-VN')}</span>
+                <span className='text-xs sm:text-sm text-muted-foreground'>VNĐ/tháng</span>
               </div>
-              <div className='mt-4 flex items-center justify-between text-sm'>
+              <div className='mt-2 flex items-center justify-between text-xs'>
                 <span className='text-muted-foreground'>
                   Status: {subscription.status === 1 ? 'Active' : 'Inactive'}
                 </span>
@@ -287,12 +288,12 @@ export default function AdminSubscriptionsPage() {
 
       {/* Empty State */}
       {subscriptions.length === 0 && (
-        <Card className='p-12'>
+        <Card className='p-6 sm:p-8 border-0 bg-white dark:bg-slate-950 shadow-none'>
           <div className='text-center'>
-            <h3 className='text-lg font-semibold'>Chưa có gói đăng ký nào</h3>
-            <p className='text-muted-foreground mt-2'>Bắt đầu bằng cách tạo gói đăng ký đầu tiên</p>
+            <h3 className='text-base sm:text-lg font-semibold'>Chưa có gói đăng ký nào</h3>
+            <p className='text-xs sm:text-sm text-muted-foreground mt-1'>Bắt đầu bằng cách tạo gói đăng ký đầu tiên</p>
             <Button
-              className='mt-4'
+              className='mt-3'
               onClick={() => {
                 setEditingSubscription(null)
                 setIsDialogOpen(true)
