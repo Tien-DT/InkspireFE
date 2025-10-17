@@ -53,6 +53,49 @@ export const recruitmentApi = {
     return response.data
   },
 
+  getRecruitmentById: async (id: string) => {
+    const response = await axiosClient.get<{
+      success: boolean
+      message: string
+      data: {
+        id: string
+        title: string
+        description: string
+        projectName: string
+        duration: string
+        budget: number
+        teamSize: string
+        postExpired: string
+        startTime: string
+        endTime: string
+        createdAt: string
+        updatedAt: string
+        status: number
+        user: {
+          id: string
+          firstName: string
+          lastName: string
+          email: string
+        }
+        project: {
+          id: string
+          title: string
+          description: string
+        }
+        skills: Array<{
+          id: string
+          name: string
+        }>
+        categories: Array<{
+          id: string
+          title: string
+          description: string
+        }>
+      }
+    }>(`${URL_RECRUITMENT_POSTS}/${id}`)
+    return response.data
+  },
+
   getUserRecruitments: async ({ page = 1, pageSize = 10 }: { page: number; pageSize: number }) => {
     const response = await axiosClient.get<RecruitmentResponse>(`${URL_RECRUITMENT_POSTS}/user`, {
       params: { page, pageSize }

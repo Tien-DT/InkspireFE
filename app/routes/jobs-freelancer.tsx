@@ -5,6 +5,7 @@ import { AuthErrorBoundary } from '~/components/errors'
 import { JobCard } from '~/components/jobs/JobCard'
 import { JobFilters } from '~/components/jobs/JobFilters'
 import { ApplicationDialog } from '~/components/jobs/ApplicationDialog'
+import { JobDetailDialog } from '~/components/jobs/JobDetailDialog'
 import { JobListLoading, JobListEmpty, JobListError } from '~/components/jobs/JobListStates'
 import PaginationDemo from '~/components/Pagination'
 import { useRecruitments } from '~/hooks/useRecruitments'
@@ -53,6 +54,10 @@ function JobsFreelancerPage() {
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  // Job Detail Dialog State
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
+  const [selectedJobDetail, setSelectedJobDetail] = useState<Job | null>(null)
+
   const jobs = useMemo(() => recruitmentData?.data || [], [recruitmentData?.data])
   const totalCount = useMemo(() => recruitmentData?.pagination?.totalCount || 0, [recruitmentData?.pagination])
 
@@ -96,9 +101,31 @@ function JobsFreelancerPage() {
     setIsApplyDialogOpen(true)
   }
 
-  const handleViewDetail = (jobId: string) => {
-    console.log('View detail:', jobId)
-    // TODO: Navigate to job detail page
+  const handleViewDetail = async (jobId: string) => {
+    setIsDetailDialogOpen(true)
+    try {
+      const response = await recruitmentApi.getRecruitmentById(jobId)
+      if (response.success && response.data) {
+        const jobDetail: Job = {
+          id: response.data.id,
+          title: response.data.title,
+          description: response.data.description,
+          budget: response.data.budget,
+          status: response.data.status,
+          endTime: response.data.endTime,
+          createdAt: response.data.createdAt,
+          teamSize: response.data.teamSize,
+          user: response.data.user,
+          categories: response.data.categories || [],
+          skills: response.data.skills || []
+        }
+        setSelectedJobDetail(jobDetail)
+      }
+    } catch (error) {
+      console.error('Error fetching job detail:', error)
+      toast.error('Không thể tải chi tiết công việc')
+      setIsDetailDialogOpen(false)
+    }
   }
 
   const handleSubmitApplication = async (cvFile: File, coverLetter: string) => {
@@ -238,6 +265,20 @@ function JobsFreelancerPage() {
         onOpenChange={handleDialogClose}
         onSubmit={handleSubmitApplication}
         isSubmitting={isSubmitting}
+      />
+
+      {/* Job Detail Dialog */}
+      <JobDetailDialog
+        job={selectedJobDetail}
+        open={isDetailDialogOpen}
+        onOpenChange={(open) => {
+          setIsDetailDialogOpen(open)
+          if (!open) {
+            setSelectedJobDetail(null)
+          }
+        }}
+        onApplyClick={handleApplyClick}
+        skillColors={skillColors}
       />
     </div>
   )
