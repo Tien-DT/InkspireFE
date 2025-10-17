@@ -76,7 +76,7 @@ export function WithdrawRequestStatsCards() {
     <div className='space-y-4'>
       {/* Main stats cards */}
       <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
-        <Card>
+        <Card className='bg-white dark:bg-slate-950 shadow-none border-0'>
           <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
             <CardTitle className='text-sm font-medium'>Tổng yêu cầu</CardTitle>
             <Banknote className='h-4 w-4 text-muted-foreground' />
@@ -89,7 +89,7 @@ export function WithdrawRequestStatsCards() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className='bg-white dark:bg-slate-950 shadow-none border-0'>
           <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
             <CardTitle className='text-sm font-medium'>Chờ xử lý</CardTitle>
             <Clock className='h-4 w-4 text-yellow-600' />
@@ -102,7 +102,7 @@ export function WithdrawRequestStatsCards() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className='bg-white dark:bg-slate-950 shadow-none border-0'>
           <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
             <CardTitle className='text-sm font-medium'>Đã duyệt</CardTitle>
             <CheckCircle2 className='h-4 w-4 text-green-600' />
@@ -115,7 +115,7 @@ export function WithdrawRequestStatsCards() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className='bg-white dark:bg-slate-950 shadow-none border-0'>
           <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
             <CardTitle className='text-sm font-medium'>Từ chối</CardTitle>
             <XCircle className='h-4 w-4 text-red-600' />
@@ -130,7 +130,7 @@ export function WithdrawRequestStatsCards() {
       </div>
 
       {/* Platform revenue card */}
-      <Card className='bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200'>
+      <Card className='bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20 border-0'>
         <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
           <CardTitle className='text-base font-bold text-purple-700'>
             Tổng hoa hồng nền tảng

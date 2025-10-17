@@ -67,7 +67,7 @@ export function TransactionStatsCards() {
     return (
       <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
         {[...Array(4)].map((_, i) => (
-          <Card key={i} className='bg-white/90 p-5 shadow-sm backdrop-blur-sm'>
+          <Card key={i} className='bg-white dark:bg-slate-950 p-5 shadow-none border-0 backdrop-blur-sm'>
             <div className='h-20 animate-pulse bg-gray-200 rounded'></div>
           </Card>
         ))}
@@ -77,7 +77,7 @@ export function TransactionStatsCards() {
   return (
     <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
       {stats.map((stat) => (
-        <Card key={stat.label} className='bg-white/90 p-5 shadow-sm backdrop-blur-sm'>
+        <Card key={stat.label} className='bg-white dark:bg-slate-950 p-5 shadow-none border-0 backdrop-blur-sm'>
           <div className={`text-2xl font-bold ${stat.accentClass}`}>{stat.value}</div>
           <div className='mt-1 text-sm font-medium text-slate-700'>{stat.label}</div>
           <div className='mt-1 text-xs text-muted-foreground'>{stat.subtext}</div>

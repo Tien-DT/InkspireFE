@@ -60,7 +60,7 @@ export function UserStatsCards() {
     return (
       <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 sm:gap-4'>
         {[...Array(4)].map((_, i) => (
-          <Card key={i} className='border-border/40 bg-card shadow-sm'>
+          <Card key={i} className='border-0 bg-white dark:bg-slate-950 shadow-none'>
             <CardContent className='p-4 sm:p-6'>
               <div className='h-16 sm:h-20 animate-pulse bg-gray-200 rounded'></div>
             </CardContent>
@@ -73,7 +73,7 @@ export function UserStatsCards() {
   return (
     <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 sm:gap-4'>
       {stats.map((stat) => (
-        <Card key={stat.label} className='border-border/40 bg-card shadow-sm'>
+        <Card key={stat.label} className='border-0 bg-white dark:bg-slate-950 shadow-none'>
           <CardContent className='p-6'>
             <div className='space-y-2'>
               <p className='text-sm text-muted-foreground'>{stat.label}</p>
