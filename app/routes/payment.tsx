@@ -53,8 +53,8 @@ export default function Payment() {
         <DialogContent className='sm:max-w-md'>
           <DialogHeader>
             <div className='flex flex-col items-center text-center'>
-              <div className='w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mb-4'>
-                <AlertCircle className='h-10 w-10 text-orange-600' />
+              <div className='w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4'>
+                <AlertCircle className='h-10 w-10 text-gray-700' />
               </div>
               <DialogTitle className='text-2xl font-bold text-gray-900 mb-2'>Số tiền không hợp lệ</DialogTitle>
               <DialogDescription className='text-gray-600'>
@@ -65,7 +65,7 @@ export default function Payment() {
           <DialogFooter className='sm:justify-center'>
             <Button
               onClick={() => setShowErrorDialog(false)}
-              className='w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white'
+              className='w-full bg-gray-900 hover:bg-gray-800 text-white'
             >
               Đóng
             </Button>
@@ -73,19 +73,19 @@ export default function Payment() {
         </DialogContent>
       </Dialog>
 
-      <div className='container mx-auto px-4 py-6 space-y-6 min-h-screen bg-background mt-20'>
+      <div className='container mx-auto px-4 py-6 space-y-6 min-h-screen bg-background mt-4'>
         <div className='mx-auto'>
           {/* Header */}
           <div className='mb-8'>
-            <h1 className='text-3xl font-bold text-gray-900 mb-2'>Nạp tiền vào ví</h1>
-            <p className='text-gray-600'>Nạp tiền vào ví InkPay để thực hiện giao dịch dễ dàng hơn</p>
+            <h1 className='text-4xl font-bold text-gray-900 mb-2'>Nạp tiền vào ví</h1>
+            <p className='text-gray-500'>Nạp tiền vào ví InkPay để thực hiện giao dịch dễ dàng hơn</p>
           </div>
 
           <div className='grid grid-cols-1 lg:grid-cols-5 gap-15'>
             {/* Left Section - Top Up Form */}
             <div className='lg:col-span-3 space-y-6'>
               {/* Current Balance Card */}
-              <Card className='bg-gradient-to-br from-blue-600 to-blue-700 border-none shadow-xl'>
+              <Card className='border border-gray-200 bg-transparent backdrop-blur-md rounded-3xl'>
                 <CardContent className='p-8'>
                   {walletLoading ? (
                     <div className='flex items-center justify-center py-8'>
@@ -95,36 +95,36 @@ export default function Payment() {
                     <>
                       <div className='flex items-center justify-between'>
                         <div>
-                          <p className='text-blue-100 text-sm mb-2'>Số dư khả dụng</p>
-                          <h2 className='text-4xl font-bold text-white'>
+                          <p className='text-gray-500 text-sm mb-2'>Số dư khả dụng</p>
+                          <h2 className='text-4xl font-bold text-gray-900'>
                             {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(
                               availableBalance
                             )}
                           </h2>
                         </div>
-                        <div className='w-16 h-16 bg-white/20 rounded-full flex items-center justify-center'>
-                          <Wallet className='h-8 w-8 text-white' />
+                        <div className='w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center'>
+                          <Wallet className='h-8 w-8 text-gray-700' />
                         </div>
                       </div>
-                      <div className='mt-6 grid grid-cols-2 gap-4 pt-4 border-t border-white/20'>
+                      <div className='mt-6 grid grid-cols-2 gap-4 pt-4 border-t border-gray-200'>
                         <div>
-                          <p className='text-blue-200 text-xs mb-1'>Tổng số dư</p>
-                          <p className='text-white font-semibold'>
+                          <p className='text-gray-500 text-xs mb-1'>Tổng số dư</p>
+                          <p className='text-gray-900 font-semibold'>
                             {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(
                               totalBalance
                             )}
                           </p>
                         </div>
                         <div>
-                          <p className='text-blue-200 text-xs mb-1'>Đang giữ</p>
-                          <p className='text-white font-semibold'>
+                          <p className='text-gray-500 text-xs mb-1'>Đang giữ</p>
+                          <p className='text-gray-900 font-semibold'>
                             {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(
                               balanceFreeze
                             )}
                           </p>
                         </div>
                       </div>
-                      <div className='mt-4 flex items-center text-blue-100 text-sm'>
+                      <div className='mt-4 flex items-center text-gray-600 text-sm'>
                         <TrendingUp className='h-4 w-4 mr-2' />
                         <span>Tài khoản: {profile?.email || 'N/A'}</span>
                       </div>
@@ -134,7 +134,7 @@ export default function Payment() {
               </Card>
 
               {/* Top Up Amount */}
-              <Card>
+              <Card className='border border-gray-200 bg-transparent backdrop-blur-md rounded-3xl'>
                 <CardContent className='p-8'>
                   <h3 className='text-xl font-bold text-gray-900 mb-6'>Nhập số tiền nạp</h3>
 
@@ -149,7 +149,7 @@ export default function Payment() {
                         value={amount || ''}
                         onChange={(e) => setAmount(Number(e.target.value))}
                         placeholder='Nhập số tiền cần nạp'
-                        className='h-14 text-lg pr-16 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200'
+                        className='h-14 text-lg pr-16 border border-gray-300 focus:border-gray-500 focus:ring-1 focus:ring-gray-300'
                       />
                       <span className='absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium'>VNĐ</span>
                     </div>
@@ -164,10 +164,10 @@ export default function Payment() {
                           key={value}
                           variant='outline'
                           onClick={() => handleQuickAmount(value)}
-                          className={`h-12 font-semibold transition-all ${
+                          className={`h-12 font-semibold transition-all border border-gray-300 ${
                             amount === value
-                              ? 'bg-blue-50 border-blue-500 text-blue-700'
-                              : 'hover:border-blue-300 hover:bg-blue-50'
+                              ? 'bg-gray-100 border-gray-400 text-gray-900'
+                              : 'hover:border-gray-400 hover:bg-gray-50'
                           }`}
                         >
                           {(value / 1000).toLocaleString('vi-VN')}K
@@ -178,7 +178,7 @@ export default function Payment() {
 
                   <Button
                     onClick={handleTopUp}
-                    className='w-full h-14 mt-8 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white text-lg font-semibold shadow-lg'
+                    className='w-full h-14 mt-8 bg-gray-900 hover:bg-gray-800 text-white text-lg font-semibold'
                   >
                     <CreditCard className='h-5 w-5 mr-2' />
                     Nạp tiền ngay
@@ -191,13 +191,13 @@ export default function Payment() {
             {/* Right Section - Info & History */}
             <div className='lg:col-span-2 space-y-6'>
               {/* Payment Methods Info */}
-              <Card>
+              <Card className='border border-gray-200 bg-transparent backdrop-blur-md rounded-3xl'>
                 <CardContent className='p-6'>
                   <h3 className='text-lg font-bold text-gray-900 mb-4'>Phương thức nạp tiền</h3>
                   <div className='space-y-4'>
                     <div className='flex items-start gap-3'>
-                      <div className='w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0'>
-                        <CreditCard className='h-5 w-5 text-green-600' />
+                      <div className='w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0'>
+                        <CreditCard className='h-5 w-5 text-gray-700' />
                       </div>
                       <div>
                         <p className='font-semibold text-gray-900'>Chuyển khoản ngân hàng</p>
@@ -209,7 +209,7 @@ export default function Payment() {
               </Card>
 
               {/* Transaction History */}
-              <Card>
+              <Card className='border border-gray-200 bg-transparent backdrop-blur-md rounded-3xl'>
                 <CardContent className='p-6'>
                   <div className='flex items-center justify-between mb-4'>
                     <h3 className='text-lg font-bold text-gray-900'>Lịch sử giao dịch</h3>
@@ -225,10 +225,10 @@ export default function Payment() {
               </Card>
 
               {/* Note Card */}
-              <Card className='border-orange-200 bg-orange-50'>
+              <Card className='border border-gray-200 bg-transparent backdrop-blur-md rounded-3xl'>
                 <CardContent className='p-6'>
-                  <h4 className='font-semibold text-orange-900 mb-3'>Lưu ý quan trọng</h4>
-                  <ul className='space-y-2 text-sm text-orange-800'>
+                  <h4 className='font-semibold text-gray-900 mb-3'>Lưu ý quan trọng</h4>
+                  <ul className='space-y-2 text-sm text-gray-600'>
                     <li>• Số tiền tối thiểu: 10.000đ</li>
                     <li>• Thời gian xử lý: 1-5 phút</li>
                     <li>• Kiểm tra kỹ nội dung chuyển khoản</li>

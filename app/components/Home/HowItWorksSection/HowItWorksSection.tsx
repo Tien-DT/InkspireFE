@@ -94,11 +94,11 @@ export function HowItWorksSection() {
                 <div className='relative w-full max-w-md lg:max-w-lg group'>
                   {/* Glow effect */}
                   <div
-                    className={`absolute -inset-1 bg-gradient-to-r ${step.gradient} rounded-3xl blur-xl opacity-30 group-hover:opacity-50 transition-opacity duration-500`}
+                    className={`absolute -inset-1 bg-gradient-to-r ${step.gradient} rounded-4xl blur-xl opacity-30 group-hover:opacity-50 transition-opacity duration-500`}
                   />
 
                   {/* Image container */}
-                  <div className='relative aspect-square bg-gradient-to-br from-card via-card to-muted/50 rounded-3xl flex items-center justify-center border border-border/50 backdrop-blur-sm overflow-hidden shadow-xl'>
+                  <div className='relative aspect-square bg-transparent backdrop-blur-md rounded-4xl flex items-center justify-center border border-cyan-200/40 overflow-hidden'>
                     {/* Gradient overlay */}
                     <div className={`absolute inset-0 bg-gradient-to-br ${step.gradient} opacity-40`} />
 
@@ -126,21 +126,21 @@ export function HowItWorksSection() {
                       {/* Card with fixed height for alignment */}
                       <div className='group relative h-full min-h-[200px] flex flex-col'>
                         <div
-                          className={`relative flex-1 bg-card/80 backdrop-blur-sm border border-border/60 rounded-2xl p-6 md:p-7 hover:border-primary/40 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${step.glowColor}`}
+                          className={`relative flex-1 bg-transparent backdrop-blur-md border border-cyan-200/40 rounded-4xl p-6 md:p-7 hover:border-cyan-300/60 transition-all duration-300 hover:-translate-y-1`}
                         >
                           {/* Gradient accent */}
                           <div
-                            className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${step.gradient} rounded-b-2xl`}
+                            className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${step.gradient} rounded-b-3xl`}
                           />
 
                           {/* Step Number Badge - Positioned consistently */}
                           <div className='absolute -top-4 -left-4'>
                             <div
-                              className={`relative ${step.badgeColor} text-white w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center text-xl md:text-2xl font-bold shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:rotate-3`}
+                              className={`relative ${step.badgeColor} text-white w-12 h-12 md:w-14 md:h-14 rounded-3xl flex items-center justify-center text-xl md:text-2xl font-bold transition-all duration-300 group-hover:scale-110 group-hover:rotate-3`}
                             >
                               <span className='relative z-10'>{num}</span>
                               {/* Shine effect */}
-                              <div className='absolute inset-0 bg-gradient-to-tr from-white/0 via-white/20 to-white/0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity' />
+                              <div className='absolute inset-0 bg-gradient-to-tr from-white/0 via-white/20 to-white/0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity' />
                             </div>
                           </div>
 

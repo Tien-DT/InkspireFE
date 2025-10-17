@@ -17,14 +17,14 @@ const colorClasses = {
 
 export function StatusCard({ title, count, icon: Icon, color }: StatusCardProps) {
   return (
-    <Card className='p-6 bg-card'>
+    <Card className='p-4 bg-white shadow-none'>
       <div className='flex items-center justify-between'>
         <div>
-          <p className='text-sm text-muted-foreground mb-2'>{title}</p>
-          <p className='text-3xl font-bold'>{count}</p>
+          <p className='text-xs text-muted-foreground mb-1 uppercase tracking-wide'>{title}</p>
+          <p className='text-2xl font-bold'>{count}</p>
         </div>
-        <div className={`rounded-lg p-3 ${colorClasses[color]}`}>
-          <Icon className='h-6 w-6' />
+        <div className={`rounded-full p-2 ${colorClasses[color]}`}>
+          <Icon className='h-5 w-5' />
         </div>
       </div>
     </Card>

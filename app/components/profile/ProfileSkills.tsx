@@ -17,21 +17,21 @@ const SKILL_COLORS = [
 
 export function ProfileSkills({ skills }: ProfileSkillsProps) {
   return (
-    <div className='rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm backdrop-blur-sm'>
-      <div className='mb-4 flex items-center justify-between'>
-        <h3 className='text-lg font-semibold text-foreground'>Kỹ năng</h3>
-        <span className='text-sm text-muted-foreground'>{skills.length} kỹ năng</span>
+    <div className='p-4'>
+      <div className='mb-3 flex items-center justify-between'>
+        <h3 className='text-sm font-semibold text-foreground uppercase tracking-wide'>Kỹ năng</h3>
+        <span className='text-xs text-muted-foreground/60'>{skills.length}</span>
       </div>
       {skills.length === 0 ? (
-        <div className='rounded-xl border border-dashed border-muted-foreground/40 bg-muted/30 py-6 text-center text-sm text-muted-foreground'>
-          Chưa có kỹ năng nào được thêm
+        <div className='rounded-lg bg-muted/30 py-4 text-center text-xs text-muted-foreground/60'>
+          Chưa có kỹ năng nào
         </div>
       ) : (
         <div className='flex flex-wrap gap-2'>
           {skills.map((skill, index) => (
             <Badge
               key={skill}
-              className={`${SKILL_COLORS[index % SKILL_COLORS.length]} border-0 px-3 py-1 text-xs font-semibold uppercase tracking-wide`}
+              className={`${SKILL_COLORS[index % SKILL_COLORS.length]} border-0 px-2 py-1 text-xs font-semibold`}
             >
               {skill}
             </Badge>

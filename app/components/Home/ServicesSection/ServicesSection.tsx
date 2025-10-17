@@ -64,11 +64,11 @@ export function ServicesSection() {
         >
           {services.map((service, index) => (
             <motion.div key={index} variants={fadeInUp}>
-              <Card className='p-6 py-10 border-none'>
+              <Card className='p-6 py-10 bg-transparent backdrop-blur-md hover:bg-white/20 transition-colors duration-300 rounded-4xl'>
                 <CardContent className='flex flex-col items-center gap-8'>
                   <div className='flex flex-col items-center'>
                     <div
-                      className={`text-4xl text-white rounded-xl w-fit mb-4 p-3 ${bgMap[service.title] ?? 'bg-chart-5/10'}`}
+                      className={`text-4xl text-white rounded-3xl w-fit mb-4 p-3 ${bgMap[service.title] ?? 'bg-chart-5/10'}`}
                     >
                       {service.icon}
                     </div>

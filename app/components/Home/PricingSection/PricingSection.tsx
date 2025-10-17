@@ -230,16 +230,16 @@ export function PricingSection() {
               <motion.div key={index} variants={fadeInUp} className='relative'>
                 {plan.isPremium && (
                   <div className='absolute -top-4 left-1/2 -translate-x-1/2 z-10'>
-                    <span className='bg-gradient-to-r from-primary to-secondary text-white px-4 py-1 rounded-full text-sm font-semibold shadow-lg'>
+                    <span className='bg-gradient-to-r from-primary to-secondary text-white px-4 py-1 rounded-full text-sm font-semibold'>
                       Phổ biến nhất
                     </span>
                   </div>
                 )}
                 <Card
-                  className={`h-full transition-all duration-300 ${
+                  className={`h-full transition-all duration-300 border-0 bg-transparent backdrop-blur-md shadown-none rounded-4xl ${
                     plan.isPremium
-                      ? 'border-primary/50 shadow-lg shadow-primary/20 md:scale-105 hover:scale-110 hover:shadow-xl hover:shadow-primary/30'
-                      : 'hover:-translate-y-1 hover:shadow-md'
+                      ? 'md:scale-105 hover:scale-110 hover:bg-white/30'
+                      : 'hover:-translate-y-1 hover:bg-white/20'
                   }`}
                 >
                   <CardHeader className='text-center'>
@@ -266,7 +266,7 @@ export function PricingSection() {
                       ))}
                     </ul>
                     <Button
-                      className={`w-full ${buttonClasses}`}
+                      className={`w-full rounded-full ${buttonClasses}`}
                       variant='outline'
                       onClick={plan.isPremium && !isPremium ? handleUpgrade : undefined}
                       disabled={(plan.isPremium && isLoading) || (plan.isPremium && isPremium)}

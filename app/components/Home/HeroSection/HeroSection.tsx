@@ -98,13 +98,13 @@ export function HeroSection({
           {subtitle}
         </p>
         <div className='flex flex-col sm:flex-row gap-4 justify-center'>
-          <Button size='lg' variant='default' asChild>
+          <Button size='lg' variant='default' asChild className='rounded-full'>
             <Link to={PATH.jobsFreelancer} className='flex items-center gap-2'>
               <Users />
               {primaryLabel}
             </Link>
           </Button>
-          <Button size='lg' variant='ghost-white' asChild>
+          <Button size='lg' variant='ghost-white' asChild className='rounded-full'>
             <Link to={PATH.postProject} className='flex items-center gap-2'>
               <CircleFadingArrowUp />
               {secondaryLabel}

@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react'
 import { Edit } from 'lucide-react'
-import { Card } from '~/components/ui/card'
 import { Button } from '~/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '~/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
@@ -148,26 +147,21 @@ function ProfilePage() {
   }
 
   return (
-    <div className='container mx-auto min-h-screen bg-gradient-to-br from-muted/30 via-background to-background'>
-      <div className='pointer-events-none absolute inset-x-0 top-0 h-64 bg-section opacity-30 blur-3xl' />
+    <div className='container mx-auto min-h-screen bg-gradient-to-br from-background via-background to-muted/20'>
       <div className='px-4 py-12 sm:px-6 lg:px-8'>
-        <div className='mb-8 flex flex-col items-center justify-end gap-4 text-center md:flex-row md:justify-between md:text-left'>
-          <div className='w-full flex-1 text-sm text-muted-foreground'>
-            <span className='rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary'>
+        <div className='mb-12 flex flex-col items-center justify-end gap-6 text-center md:flex-row md:justify-between md:text-left'>
+          <div className='w-full flex-1'>
+            <h1 className='text-3xl font-semibold text-foreground sm:text-4xl'>
               Hồ sơ cá nhân
-            </span>
-            <h1 className='mt-3 text-3xl font-semibold text-foreground sm:text-4xl'>
-              Không gian thể hiện bản thân và kinh nghiệm của bạn
             </h1>
-            <p className='mt-2 text-base text-muted-foreground'>
-              Cập nhật thông tin để thu hút thêm khách hàng và hợp tác chất lượng.
+            <p className='mt-3 text-base text-muted-foreground'>
+              Không gian thể hiện bản thân và kinh nghiệm của bạn
             </p>
           </div>
           <Button
             onClick={() => setIsEditDialogOpen(true)}
             variant='shine'
             size='lg'
-            className='shadow-lg hover:shadow-xl'
           >
             <Edit className='mr-2 h-5 w-5' />
             Chỉnh sửa profile
@@ -177,7 +171,7 @@ function ProfilePage() {
         <div className='grid gap-8 lg:grid-cols-[360px_1fr]'>
           {/* Left Sidebar */}
           <div className='space-y-6'>
-            <div className='overflow-hidden rounded-3xl border border-border/40 bg-card/90 shadow-xl backdrop-blur'>
+            <div className='overflow-hidden rounded-2xl border border-border/30 bg-card/30 backdrop-blur-md'>
               <ProfileHeader
                 name={profileData.name}
                 status={profileData.status}
@@ -185,7 +179,7 @@ function ProfilePage() {
                 rating={profileData.rating}
                 reviewCount={profileData.reviewCount}
               />
-              <div className='space-y-5 p-6'>
+              <div className='space-y-4 p-6'>
                 <ProfileContact
                   location={profileData.location}
                   email={profileData.email}
@@ -201,9 +195,9 @@ function ProfilePage() {
 
           {/* Right Content */}
           <div className='space-y-6'>
-            <Card className='overflow-hidden rounded-3xl border border-border/40 bg-card/90 shadow-xl backdrop-blur'>
+            <div className='overflow-hidden rounded-2xl border border-border/30 bg-card/30 backdrop-blur-md'>
               <Tabs defaultValue='intro' className='w-full'>
-                <div className='sticky top-0 z-10 border-b border-border/40 bg-card/95 px-6 pb-4 pt-6 backdrop-blur-sm'>
+                <div className='sticky top-0 z-10 border-b border-border/20 bg-card/20 px-6 pb-4 pt-6 backdrop-blur-sm'>
                   <ProfileTabs />
                 </div>
 
@@ -219,14 +213,14 @@ function ProfilePage() {
                   <ProfileReviewsTab />
                 </TabsContent>
               </Tabs>
-            </Card>
+            </div>
           </div>
         </div>
 
         {/* Edit Dialog */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className='flex h-[90vh] !w-5xl min-w-5xl flex-col gap-0 overflow-hidden rounded-3xl border border-border/40 bg-card/95 p-0 shadow-2xl backdrop-blur'>
-            <DialogHeader className='shrink-0 border-b border-border/40 bg-card/95 px-6 pb-4 pt-6'>
+          <DialogContent className='flex h-[90vh] !w-5xl min-w-5xl flex-col gap-0 overflow-hidden rounded-2xl border border-border/30 bg-card/30 p-0 backdrop-blur-md'>
+            <DialogHeader className='shrink-0 border-b border-border/20 bg-card/20 px-6 pb-4 pt-6 backdrop-blur-sm'>
               <DialogTitle className='text-2xl font-semibold text-foreground'>
                 {hasProfile ? 'Chỉnh sửa profile' : 'Tạo profile mới'}
               </DialogTitle>
@@ -242,17 +236,17 @@ function ProfilePage() {
               onValueChange={(v) => setEditingTab(v as EditTabType)}
               className='flex min-h-0 flex-1 flex-col overflow-hidden'
             >
-              <div className='shrink-0 border-b border-border/40 bg-card/95 px-6 pb-2 pt-4'>
-                <TabsList className='grid w-full grid-cols-2 rounded-2xl border border-border/40 bg-card/80 p-1 text-muted-foreground'>
+              <div className='shrink-0 border-b border-border/20 bg-card/20 px-6 pb-2 pt-4 backdrop-blur-sm'>
+                <TabsList className='grid w-full grid-cols-2 rounded-xl bg-card/40 p-1 text-muted-foreground'>
                   <TabsTrigger
                     value='profile'
-                    className='rounded-xl px-6 py-2 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground'
+                    className='rounded-lg px-6 py-2 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground'
                   >
                     Thông tin Profile
                   </TabsTrigger>
                   <TabsTrigger
                     value='portfolio'
-                    className='rounded-xl px-6 py-2 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground'
+                    className='rounded-lg px-6 py-2 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground'
                   >
                     Portfolio
                   </TabsTrigger>

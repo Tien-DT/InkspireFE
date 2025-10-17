@@ -8,33 +8,25 @@ interface ProfilePricingProps {
 
 export function ProfilePricing({ priceRange, status }: ProfilePricingProps) {
   return (
-    <div className='rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm backdrop-blur-sm'>
-      <div className='mb-4 flex items-center justify-between'>
-        <h3 className='text-lg font-semibold text-foreground'>Mức giá & Sẵn sàng</h3>
-        <Badge
-          variant='outline'
-          className='border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary'
-        >
-          Cập nhật
-        </Badge>
-      </div>
-      <div className='space-y-4'>
+    <div className='p-4'>
+      <h3 className='mb-3 text-sm font-semibold text-foreground uppercase tracking-wide'>Mức giá & Sẵn sàng</h3>
+      <div className='space-y-3'>
         <div className='flex items-start gap-3'>
-          <span className='flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500'>
+          <span className='flex h-8 w-8 items-center justify-center text-muted-foreground/60'>
             <DollarSign className='h-4 w-4' />
           </span>
           <div>
-            <p className='text-xs uppercase tracking-wide text-muted-foreground/80'>Mức giá dự kiến</p>
-            <p className='text-lg font-semibold text-foreground'>{priceRange || 'Đang cập nhật'}</p>
+            <p className='text-xs uppercase tracking-wide text-muted-foreground/60'>Mức giá dự kiến</p>
+            <p className='text-base font-semibold text-foreground'>{priceRange || 'Đang cập nhật'}</p>
           </div>
         </div>
         <div className='flex items-start gap-3'>
-          <span className='flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500/10 text-sky-500'>
+          <span className='flex h-8 w-8 items-center justify-center text-muted-foreground/60'>
             <Clock className='h-4 w-4' />
           </span>
           <div>
-            <p className='text-xs uppercase tracking-wide text-muted-foreground/80'>Tình trạng làm việc</p>
-            <Badge className='mt-1 border-0 bg-emerald-500/15 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-600 shadow-none'>
+            <p className='text-xs uppercase tracking-wide text-muted-foreground/60'>Tình trạng làm việc</p>
+            <Badge className='mt-1 border-0 bg-emerald-500/15 px-2 py-0.5 text-xs font-semibold uppercase tracking-wider text-emerald-600 shadow-none'>
               {status || 'Đang mở'}
             </Badge>
           </div>

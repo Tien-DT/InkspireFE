@@ -7,14 +7,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 
 export default function ManageJobs() {
   return (
-    <div className='container mx-auto px-4 py-6 space-y-6 min-h-screen bg-background'>
-      <div className='flex items-center justify-between mb-8'>
+    <div className='container mx-auto px-4 py-6 space-y-4 min-h-screen bg-background'>
+      <div className='flex items-center justify-between mb-6'>
         <div>
-          <h1 className='text-3xl font-bold text-gradient mb-2'>Quản lý Công việc</h1>
-          <p className='text-muted-foreground'>Theo dõi và quản lý tất cả dự án của bạn</p>
+          <h1 className='text-3xl font-bold text-gradient mb-1'>Quản lý Công việc</h1>
+          <p className='text-sm text-muted-foreground'>Theo dõi và quản lý tất cả dự án của bạn</p>
         </div>
         <Select defaultValue='all'>
-          <SelectTrigger className='w-48'>
+          <SelectTrigger className='w-48 rounded'>
             <SelectValue placeholder='Tất cả' />
           </SelectTrigger>
           <SelectContent>
@@ -26,42 +26,42 @@ export default function ManageJobs() {
         </Select>
       </div>
 
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8'>
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-6'>
         <StatusCard title='Dự án đang hoạt động' count={3} icon={Clock} color='blue' />
         <StatusCard title='Chờ duyệt' count={1} icon={AlertCircle} color='yellow' />
         <StatusCard title='Cần sửa đổi' count={1} icon={AlertCircle} color='red' />
         <StatusCard title='Hoàn thành tháng này' count={2} icon={CheckCircle2} color='green' />
       </div>
 
-      <Tabs defaultValue='active' className='mb-6'>
-        <TabsList className='grid w-full grid-cols-4 bg-card border border-border rounded-lg h-auto p-0'>
+      <Tabs defaultValue='active' className='mb-4'>
+        <TabsList className='grid w-full grid-cols-4 bg-transparent border-2 border-dashed border-border rounded h-auto p-0'>
           <TabsTrigger
             value='active'
-            className='rounded-none border-b-2 data-[state=active]:border-[#4A9FD8] data-[state=active]:bg-[#E8F4FA] data-[state=active]:text-foreground py-3'
+            className='rounded-none border-b-2 data-[state=active]:border-[#4A9FD8] data-[state=active]:bg-transparent data-[state=active]:text-foreground py-3'
           >
             Đang hoạt động (3)
           </TabsTrigger>
           <TabsTrigger
             value='pending'
-            className='rounded-none border-b-2 data-[state=active]:border-[#F5C842] data-[state=active]:bg-[#FEF9E7] data-[state=active]:text-foreground py-3'
+            className='rounded-none border-b-2 data-[state=active]:border-[#F5C842] data-[state=active]:bg-transparent data-[state=active]:text-foreground py-3'
           >
             Chờ duyệt (1)
           </TabsTrigger>
           <TabsTrigger
             value='editing'
-            className='rounded-none border-b-2 data-[state=active]:border-[#E74C3C] data-[state=active]:bg-[#FADBD8] data-[state=active]:text-foreground py-3'
+            className='rounded-none border-b-2 data-[state=active]:border-[#E74C3C] data-[state=active]:bg-transparent data-[state=active]:text-foreground py-3'
           >
             Cần sửa đổi (1)
           </TabsTrigger>
           <TabsTrigger
             value='completed'
-            className='rounded-none border-b-2 data-[state=active]:border-[#52C41A] data-[state=active]:bg-[#E8F5E9] data-[state=active]:text-foreground py-3'
+            className='rounded-none border-b-2 data-[state=active]:border-[#52C41A] data-[state=active]:bg-transparent data-[state=active]:text-foreground py-3'
           >
             Hoàn thành (2)
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value='active' className='mt-6 space-y-6'>
+        <TabsContent value='active' className='mt-4 space-y-3'>
           <ProjectCard
             title='Thiết kế logo cho startup công nghệ AI'
             company='TechViet Solutions'
@@ -81,7 +81,7 @@ export default function ManageJobs() {
           />
         </TabsContent>
 
-        <TabsContent value='pending' className='mt-6 space-y-6'>
+        <TabsContent value='pending' className='mt-4 space-y-3'>
           <ProjectCard
             title='Viết kịch bản quảng cáo bánh ngọt'
             company='Digital Agency'
@@ -101,7 +101,7 @@ export default function ManageJobs() {
           />
         </TabsContent>
 
-        <TabsContent value='editing' className='mt-6 space-y-6'>
+        <TabsContent value='editing' className='mt-4 space-y-3'>
           <ProjectCard
             title='Thiết kế brochure sản phẩm'
             company='Green Life Co.'

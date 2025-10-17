@@ -25,28 +25,23 @@ export function ProfileContact({
   isSendingMessage
 }: ProfileContactProps) {
   return (
-    <div className='rounded-2xl border border-border/60 bg-card/80 p-6 shadow-sm transition hover:shadow-md backdrop-blur-sm'>
-      <div className='mb-4 flex items-center justify-between'>
-        <h2 className='text-lg font-semibold text-foreground'>Thông tin liên hệ</h2>
-        <span className='rounded-full bg-primary/10 px-3 py-1 text-xs font-medium uppercase tracking-wide text-primary'>
-          Đã xác thực
-        </span>
-      </div>
-      <div className='space-y-4 text-sm text-muted-foreground'>
+    <div className='p-4'>
+      <h2 className='mb-3 text-sm font-semibold text-foreground uppercase tracking-wide'>Thông tin liên hệ</h2>
+      <div className='space-y-3 text-sm text-muted-foreground'>
         {contactItems(location, email, phone).map(({ icon: Icon, label, value }) => (
           <div key={label} className='flex items-start gap-3'>
-            <span className='flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary'>
+            <span className='flex h-8 w-8 items-center justify-center text-muted-foreground/60'>
               <Icon className='h-4 w-4' />
             </span>
             <div className='min-w-0 flex-1'>
-              <p className='text-xs uppercase tracking-wide text-muted-foreground/80'>{label}</p>
-              <p className='truncate text-sm font-semibold text-foreground'>{value || 'Đang cập nhật'}</p>
+              <p className='text-xs uppercase tracking-wide text-muted-foreground/60'>{label}</p>
+              <p className='truncate text-sm text-foreground'>{value || 'Đang cập nhật'}</p>
             </div>
           </div>
         ))}
       </div>
-      <div className='mt-6 space-y-3'>
-        <Button className='w-full' variant='shine' size='lg' onClick={onSendMessage} disabled={isSendingMessage}>
+      <div className='mt-4 space-y-2'>
+        <Button className='w-full' variant='shine' size='sm' onClick={onSendMessage} disabled={isSendingMessage}>
           {isSendingMessage ? (
             <>
               <Loader2 className='mr-2 h-4 w-4 animate-spin' />
@@ -59,7 +54,7 @@ export function ProfileContact({
             </>
           )}
         </Button>
-        <Button className='w-full' variant='outline' size='lg' onClick={onViewFullProfile}>
+        <Button className='w-full' variant='outline' size='sm' onClick={onViewFullProfile}>
           Xem hồ sơ đầy đủ
         </Button>
       </div>
