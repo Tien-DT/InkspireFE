@@ -25,7 +25,9 @@ export const useRecruitments = (filters: RecruitmentFilters) => {
         ...(minBudget && { minBudget }),
         ...(maxBudget && { maxBudget })
       }),
-    placeholderData: keepPreviousData
+    placeholderData: keepPreviousData,
+    staleTime: 1000 * 3, // NEW: 3 seconds
+    refetchInterval: 1000 * 6 // NEW: Refetch every 6 seconds
   })
 }
 
@@ -33,7 +35,9 @@ export const useUserRecruitments = (page: number, pageSize: number) => {
   return useQuery<RecruitmentResponse>({
     queryKey: ['user-recruitments', page, pageSize],
     queryFn: () => recruitmentApi.getUserRecruitments({ page, pageSize }),
-    placeholderData: keepPreviousData
+    placeholderData: keepPreviousData,
+    staleTime: 1000 * 3, // NEW: 3 seconds
+    refetchInterval: 1000 * 6 // NEW: Refetch every 6 seconds
   })
 }
 
@@ -41,7 +45,9 @@ export const useUserRecruitmentsByUserId = (userId: string | undefined) => {
   return useQuery({
     queryKey: ['user-recruitments-by-id', userId],
     queryFn: () => recruitmentApi.getUserRecruitmentsByUserId(userId!),
-    enabled: !!userId
+    enabled: !!userId,
+    staleTime: 1000 * 3, // NEW: 3 seconds
+    refetchInterval: 1000 * 6 // NEW: Refetch every 6 seconds
   })
 }
 

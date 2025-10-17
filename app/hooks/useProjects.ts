@@ -29,7 +29,9 @@ export const useProjects = () => {
       }
     },
     enabled: !!profile?.id && (profile.role === 1 || profile.role === 2),
-    staleTime: 1000 * 60 * 5 // 5 minutes
+    // staleTime: 1000 * 60 * 5 // OLD: 5 minutes
+    staleTime: 1000 * 3, // NEW: 3 seconds
+    refetchInterval: 1000 * 6 // NEW: Refetch every 6 seconds
   })
 }
 
@@ -43,7 +45,9 @@ export const useProjectById = (projectId: string) => {
       return projectApi.getProjectById(projectId)
     },
     enabled: !!projectId,
-    staleTime: 1000 * 60 * 5 // 5 minutes
+    // staleTime: 1000 * 60 * 5 // OLD: 5 minutes
+    staleTime: 1000 * 3, // NEW: 3 seconds
+    refetchInterval: 1000 * 6 // NEW: Refetch every 6 seconds
   })
 }
 
@@ -52,7 +56,9 @@ export const useMilestones = (projectId: string) => {
     queryKey: ['milestones', projectId],
     queryFn: () => projectApi.getMilestonesByProject(projectId),
     enabled: !!projectId,
-    staleTime: 30000 // 30 seconds
+    // staleTime: 30000 // OLD: 30 seconds
+    staleTime: 1000 * 3, // NEW: 3 seconds
+    refetchInterval: 1000 * 6 // NEW: Refetch every 6 seconds
   })
 }
 

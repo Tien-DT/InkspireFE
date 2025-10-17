@@ -17,7 +17,12 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60, // 1 minute
-      refetchOnWindowFocus: false
+      // refetchOnWindowFocus: false, // OLD: Disabled auto refetch
+      refetchOnWindowFocus: true, // NEW: Auto refetch khi focus vào window
+      refetchOnReconnect: true, // NEW: Auto refetch khi reconnect internet
+      refetchInterval: false, // Không poll mặc định (từng query sẽ tự config)
+      retry: 1, // Retry 1 lần nếu fail
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000) // Exponential backoff
     }
   }
 })

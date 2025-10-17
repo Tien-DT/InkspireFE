@@ -7,8 +7,10 @@ export function useSubscriptions() {
   return useQuery({
     queryKey: ['subscriptions'],
     queryFn: subscriptionApi.getSubscriptions,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    gcTime: 1000 * 60 * 10 // 10 minutes
+    // staleTime: 1000 * 60 * 5, // OLD: 5 minutes
+    staleTime: 1000 * 3, // NEW: 3 seconds
+    gcTime: 1000 * 60 * 10, // 10 minutes
+    refetchInterval: 1000 * 6 // NEW: Refetch every 6 seconds
   })
 }
 
@@ -19,7 +21,9 @@ export function useUserSubscriptions() {
     queryKey: ['userSubscriptions', profile?.id],
     queryFn: () => subscriptionApi.getUserSubscriptions(profile!.id),
     enabled: !!profile?.id,
-    staleTime: 1000 * 60 * 5 // 5 minutes
+    // staleTime: 1000 * 60 * 5 // OLD: 5 minutes
+    staleTime: 1000 * 3, // NEW: 3 seconds
+    refetchInterval: 1000 * 6 // NEW: Refetch every 6 seconds
   })
 }
 
@@ -30,7 +34,9 @@ export function useActiveSubscriptions() {
     queryKey: ['activeSubscriptions', profile?.id],
     queryFn: () => subscriptionApi.getActiveSubscriptions(profile!.id),
     enabled: !!profile?.id,
-    staleTime: 1000 * 60 * 5 // 5 minutes
+    // staleTime: 1000 * 60 * 5 // OLD: 5 minutes
+    staleTime: 1000 * 3, // NEW: 3 seconds
+    refetchInterval: 1000 * 6 // NEW: Refetch every 6 seconds
   })
 }
 
