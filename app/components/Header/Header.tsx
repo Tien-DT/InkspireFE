@@ -4,7 +4,6 @@ import { Button } from '~/components/ui/button'
 import logo from '~/assets/logo.png'
 import { Input } from '~/components/ui/input'
 import {
-  BellDot,
   MessageSquareDot,
   Search,
   User,
@@ -15,6 +14,7 @@ import {
   Briefcase,
   FileText
 } from 'lucide-react'
+import { NotificationBell } from '~/components/notifications/NotificationBell'
 import { PATH } from '~/constants/path'
 import { useAuth } from '~/contexts/AuthContext'
 import { useWallet } from '~/hooks/useWallet'
@@ -108,12 +108,7 @@ export function Header() {
           {authReady && isAuthenticated ? (
             <div className='flex items-center gap-3'>
               {/* Notifications */}
-              <Button variant='ghost' size='icon' className='relative h-9 w-9 hover:bg-muted'>
-                <BellDot className='h-5 w-5' />
-                <span className='absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-white'>
-                  3
-                </span>
-              </Button>
+              <NotificationBell />
 
               {/* Messages */}
               <Button variant='ghost' size='icon' className='relative h-9 w-9 hover:bg-muted' asChild>

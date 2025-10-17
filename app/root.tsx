@@ -1,4 +1,4 @@
-import { Suspense } from 'react'
+import { Suspense, useEffect } from 'react'
 import { isRouteErrorResponse, Links, Meta, Outlet, Scripts, ScrollRestoration } from 'react-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { Route } from './+types/root'
@@ -9,6 +9,7 @@ import { ChatProvider } from '~/contexts/ChatContext'
 import { VideoCallProvider } from '~/contexts/VideoCallContext'
 import AuthErrorBoundary from '~/components/errors/AuthErrorBoundary'
 import PersistLogin from '~/components/PersistLogin'
+import { registerServiceWorker } from '~/utils/registerServiceWorker'
 import './app.css'
 
 const queryClient = new QueryClient({
@@ -52,6 +53,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  // Register service worker for push notifications
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      registerServiceWorker()
+    }
+  }, [])
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>

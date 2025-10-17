@@ -136,6 +136,12 @@
         "file": "./routes/subscriptions.tsx",
         "path": "subscriptions"
       },
+      "routes/freelancer/wallet/wallet-page": {
+        "id": "routes/freelancer/wallet/wallet-page",
+        "parentId": "layouts/ProtectedLayout/ProtectedLayout",
+        "file": "./routes/freelancer/wallet/wallet-page.tsx",
+        "path": "freelancer/wallet"
+      },
       "layouts/AdminLayout/AdminLayout": {
         "id": "layouts/AdminLayout/AdminLayout",
         "parentId": "root",
@@ -361,6 +367,12 @@
         "file": "./routes/subscriptions.tsx",
         "path": "subscriptions"
       },
+      "routes/freelancer/wallet/wallet-page": {
+        "id": "routes/freelancer/wallet/wallet-page",
+        "parentId": "layouts/ProtectedLayout/ProtectedLayout",
+        "file": "./routes/freelancer/wallet/wallet-page.tsx",
+        "path": "freelancer/wallet"
+      },
       "layouts/AdminLayout/AdminLayout": {
         "id": "layouts/AdminLayout/AdminLayout",
         "parentId": "root",
@@ -535,6 +547,10 @@
                   {
                     "file": "./routes/subscriptions.tsx",
                     "path": "subscriptions"
+                  },
+                  {
+                    "file": "./routes/freelancer/wallet/wallet-page.tsx",
+                    "path": "freelancer/wallet"
                   }
                 ]
               }

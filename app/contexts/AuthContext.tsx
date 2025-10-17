@@ -9,6 +9,7 @@ import {
   clearAllAuth,
   parseJwtPayload
 } from '~/utils/auth'
+import { removeFcmTokenFromLS } from '~/utils/fcmToken'
 
 interface AuthContextInterface {
   isAuthenticated: boolean
@@ -89,8 +90,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   }, [extractUserName])
 
   const logout = useCallback(() => {
+    console.log('🚪 Logout called')
+    
     // Clear LS + phát tín hiệu cho tab khác
     clearAllAuth()
+    console.log('✅ Cleared auth')
+    
+    // Clear FCM token
+    console.log('🗑️ Removing FCM token from localStorage...')
+    removeFcmTokenFromLS()
+    console.log('✅ FCM token removed:', localStorage.getItem('fcm_token') === null ? 'SUCCESS' : 'FAILED')
+    
     if (typeof window !== 'undefined') {
       try {
         localStorage.setItem('auth:logout', '1')
