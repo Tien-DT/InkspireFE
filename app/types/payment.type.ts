@@ -12,7 +12,7 @@ export enum SepayTransactionStatus {
   CANCELLED = 'CANCELLED',
   EXPIRED = 'EXPIRED'
 }
-
+//
 /**
  * Request model for creating a Sepay payment
  * Note: Using PascalCase to match BE model (BE doesn't use camelCase)
