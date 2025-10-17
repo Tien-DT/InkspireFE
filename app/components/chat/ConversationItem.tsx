@@ -13,9 +13,12 @@ interface ConversationItemProps {
 }
 
 export function ConversationItem({ conversation, isActive, onClick, currentUserId }: ConversationItemProps) {
-  // Find other member (not current user)
+  // Find other member (not current user) for display
   const otherMember = conversation.members?.find((m) => m.userId !== currentUserId)
   const otherUser = otherMember?.user
+
+  // Find current user's member to get unread count
+  const currentUserMember = conversation.members?.find((m) => m.userId === currentUserId)
 
   const { isOnline } = useOnlineStatus(otherUser?.id)
 
@@ -54,8 +57,8 @@ export function ConversationItem({ conversation, isActive, onClick, currentUserI
     }
   }
 
-  // Get unread count
-  const unreadCount = otherMember?.unreadCount || 0
+  // Get unread count for CURRENT USER (not other member)
+  const unreadCount = currentUserMember?.unreadCount || 0
 
   const relativeTime = formatTime()
   const statusLabel = isOnline ? 'Đang hoạt động' : 'Offline'

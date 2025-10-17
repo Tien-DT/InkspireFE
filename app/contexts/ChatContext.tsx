@@ -126,6 +126,33 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
         if (!messages[conversationId] || messages[conversationId].length === 0) {
           await loadMessages(conversationId)
         }
+
+        // Reset unread count for current user when opening conversation
+        if (currentUserId) {
+          const currentUserMember = currentConversation.members?.find((m) => m.userId === currentUserId)
+          if (currentUserMember && currentUserMember.unreadCount && currentUserMember.unreadCount > 0) {
+            try {
+              await chatApi.resetUnreadCount(currentUserMember.id)
+              console.log('[ChatContext] Reset unread count for conversation:', conversationId)
+              
+              // Update local state
+              setConversations((prev) =>
+                prev.map((conv) =>
+                  conv.id === conversationId
+                    ? {
+                        ...conv,
+                        members: conv.members?.map((m) =>
+                          m.userId === currentUserId ? { ...m, unreadCount: 0 } : m
+                        )
+                      }
+                    : conv
+                )
+              )
+            } catch (error) {
+              console.error('[ChatContext] Failed to reset unread count:', error)
+            }
+          }
+        }
       } catch (error) {
         console.error('[ChatContext] Failed to join conversation:', error)
       }
@@ -193,15 +220,33 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
     // Save to localStorage
     chatStorage.upsertMessage(message.conversationId, msg)
 
-    // Update conversation's latest message
+    // Update conversation's latest message and increment unread count
     setConversations((prev) =>
-      prev.map((conv) =>
-        conv.id === message.conversationId
-          ? { ...conv, latestMessage: message.messageContent || '', updatedAt: message.sendAt }
-          : conv
-      )
+      prev.map((conv) => {
+        if (conv.id === message.conversationId) {
+          // Check if message is from another user and not in current conversation
+          const isFromOtherUser = message.senderId !== currentUserId
+          const isCurrentConversation = currentConversation?.id === message.conversationId
+          
+          // Increment unread count if message is from other user and not viewing this conversation
+          const updatedMembers = conv.members?.map((member) => {
+            if (member.userId === currentUserId && isFromOtherUser && !isCurrentConversation) {
+              return { ...member, unreadCount: (member.unreadCount || 0) + 1 }
+            }
+            return member
+          })
+
+          return {
+            ...conv,
+            latestMessage: message.messageContent || '',
+            updatedAt: message.sendAt,
+            members: updatedMembers
+          }
+        }
+        return conv
+      })
     )
-  }, [])
+  }, [currentUserId, currentConversation])
 
   const handleMessageUpdated = useCallback((message: ChatMessageResponse) => {
     const msg: Message = {

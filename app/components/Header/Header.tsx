@@ -19,6 +19,7 @@ import { PATH } from '~/constants/path'
 import { useAuth } from '~/contexts/AuthContext'
 import { useWallet } from '~/hooks/useWallet'
 import { usePremiumStatus } from '~/hooks/usePremiumStatus'
+import { useUnreadMessageCount } from '~/hooks/useUnreadMessageCount'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,6 +46,7 @@ export function Header() {
   const { userName, isAuthenticated, authReady, profile } = useAuth()
   const { data: wallet } = useWallet(profile?.id, isAuthenticated)
   const { data: isPremium } = usePremiumStatus(profile?.id, isAuthenticated)
+  const unreadCount = useUnreadMessageCount()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   // Determine if user is a client (CLIENT role) or freelancer (other roles)
@@ -114,9 +116,11 @@ export function Header() {
               <Button variant='ghost' size='icon' className='relative h-9 w-9 hover:bg-muted' asChild>
                 <Link to='/chat'>
                   <MessageSquareDot className='h-5 w-5' />
-                  <span className='absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-white'>
-                    5
-                  </span>
+                  {unreadCount > 0 && (
+                    <span className='absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-white'>
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  )}
                 </Link>
               </Button>
 
