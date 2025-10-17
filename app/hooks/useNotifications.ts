@@ -46,7 +46,7 @@ export function useNotifications(isAuthenticated: boolean = false) {
           try {
             const response = await notificationApi.registerFcmToken(token)
             console.log('✅ Token registered with backend:', response)
-            toast.success('Push notifications enabled!')
+            toast.success('Thông báo đẩy đã được kích hoạt!')
           } catch (apiError) {
             console.error('❌ Failed to register token with backend:', apiError)
             toast.error('Failed to enable push notifications')
@@ -58,11 +58,11 @@ export function useNotifications(isAuthenticated: boolean = false) {
         setInitialized(true)
       } else {
         console.warn('⚠️ Failed to get FCM token')
-        toast.warning('Please enable notifications to receive updates')
+        toast.warning('Vui lòng cho phép thông báo trên trình duyệt để nhận thông báo')
       }
     } catch (error) {
       console.error('❌ Error initializing FCM:', error)
-      toast.error('Failed to initialize notifications')
+      toast.error('Lỗi kết nối thông báo đẩy')
     }
   }, [isAuthenticated, initialized])
 
@@ -130,10 +130,9 @@ export function useNotifications(isAuthenticated: boolean = false) {
       await notificationApi.markAllAsRead()
       setNotifications(prev => prev.map(n => ({ ...n, isReaded: true })))
       setUnreadCount(0)
-      toast.success('All notifications marked as read')
     } catch (error) {
       console.error('Error marking all as read:', error)
-      toast.error('Failed to mark all as read')
+      toast.error('Lỗi đánh dấu tất cả thông báo là đã đọc')
     }
   }, [])
 
