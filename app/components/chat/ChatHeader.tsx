@@ -2,10 +2,10 @@ import { Avatar, AvatarFallback } from '~/components/ui/avatar'
 import { Button } from '~/components/ui/button'
 import { MoreHorizontal, Phone, Video } from 'lucide-react'
 import type { Conversation } from '~/types/chat.type'
-import { useOnlineStatus } from '~/hooks/useChatHelpers'
 import { useAuth } from '~/contexts/AuthContext'
 import { useVideoCall } from '~/contexts/VideoCallContext'
 import { CallType } from '~/types/call.type'
+import { useUserDetails } from '~/hooks/useUserDetails'
 
 interface ChatHeaderProps {
   conversation: Conversation | null
@@ -19,7 +19,8 @@ export function ChatHeader({ conversation }: ChatHeaderProps) {
   const otherMember = conversation?.members?.find((m) => m.userId !== profile?.id)
   const otherUser = otherMember?.user
 
-  const { isOnline } = useOnlineStatus(otherUser?.id)
+  // Fetch full user details
+  const { userDetails } = useUserDetails(otherUser?.id)
 
   if (!conversation) {
     return (
@@ -30,8 +31,16 @@ export function ChatHeader({ conversation }: ChatHeaderProps) {
   }
 
   const getInitials = () => {
+    // Try userDetails from API first
+    if (userDetails?.firstName && userDetails?.lastName) {
+      return `${userDetails.firstName[0]}${userDetails.lastName[0]}`.toUpperCase()
+    }
+    // Fallback to otherUser
     if (otherUser?.first_name && otherUser?.last_name) {
       return `${otherUser.first_name[0]}${otherUser.last_name[0]}`.toUpperCase()
+    }
+    if (userDetails?.email) {
+      return userDetails.email[0].toUpperCase()
     }
     if (otherUser?.email) {
       return otherUser.email[0].toUpperCase()
@@ -40,13 +49,26 @@ export function ChatHeader({ conversation }: ChatHeaderProps) {
   }
 
   const displayName = () => {
+    // Try userDetails from API first
+    if (userDetails?.firstName && userDetails?.lastName) {
+      return `${userDetails.firstName} ${userDetails.lastName}`
+    }
+    // Fallback to otherUser
     if (otherUser?.first_name && otherUser?.last_name) {
       return `${otherUser.first_name} ${otherUser.last_name}`
+    }
+    // Fallback to email
+    if (userDetails?.email) {
+      return userDetails.email
     }
     if (otherUser?.email) {
       return otherUser.email
     }
     return 'Unknown User'
+  }
+
+  const displayEmail = () => {
+    return userDetails?.email || otherUser?.email || 'No email'
   }
 
   const handleVoiceCall = () => {
@@ -87,9 +109,7 @@ export function ChatHeader({ conversation }: ChatHeaderProps) {
         </Avatar>
         <div className='flex flex-col gap-0.5'>
           <h3 className='text-sm font-semibold text-foreground'>{displayName()}</h3>
-          <p className={`text-xs ${isOnline ? 'text-emerald-600' : 'text-muted-foreground'}`}>
-            {isOnline ? 'Đang hoạt động' : 'Offline'}
-          </p>
+          <p className='text-xs text-muted-foreground'>{displayEmail()}</p>
         </div>
       </div>
       <div className='flex items-center gap-1'>

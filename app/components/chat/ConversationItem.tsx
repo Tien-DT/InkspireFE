@@ -3,7 +3,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { vi } from 'date-fns/locale'
 import { cn } from '~/utils/cn'
 import type { Conversation } from '~/types/chat.type'
-import { useOnlineStatus } from '~/hooks/useChatHelpers'
+import { useUserDetails } from '~/hooks/useUserDetails'
 
 interface ConversationItemProps {
   conversation: Conversation
@@ -20,12 +20,21 @@ export function ConversationItem({ conversation, isActive, onClick, currentUserI
   // Find current user's member to get unread count
   const currentUserMember = conversation.members?.find((m) => m.userId === currentUserId)
 
-  const { isOnline } = useOnlineStatus(otherUser?.id)
+  // Fetch full user details
+  const { userDetails } = useUserDetails(otherUser?.id)
 
   // Get initials for avatar
   const getInitials = () => {
+    // Try userDetails from API first
+    if (userDetails?.firstName && userDetails?.lastName) {
+      return `${userDetails.firstName[0]}${userDetails.lastName[0]}`.toUpperCase()
+    }
+    // Fallback to otherUser
     if (otherUser?.first_name && otherUser?.last_name) {
       return `${otherUser.first_name[0]}${otherUser.last_name[0]}`.toUpperCase()
+    }
+    if (userDetails?.email) {
+      return userDetails.email[0].toUpperCase()
     }
     if (otherUser?.email) {
       return otherUser.email[0].toUpperCase()
@@ -35,13 +44,26 @@ export function ConversationItem({ conversation, isActive, onClick, currentUserI
 
   // Get display name
   const displayName = () => {
+    // Try userDetails from API first
+    if (userDetails?.firstName && userDetails?.lastName) {
+      return `${userDetails.firstName} ${userDetails.lastName}`
+    }
+    // Fallback to otherUser
     if (otherUser?.first_name && otherUser?.last_name) {
       return `${otherUser.first_name} ${otherUser.last_name}`
+    }
+    // Fallback to email
+    if (userDetails?.email) {
+      return userDetails.email
     }
     if (otherUser?.email) {
       return otherUser.email
     }
     return 'Unknown User'
+  }
+
+  const displayEmail = () => {
+    return userDetails?.email || otherUser?.email || 'No email'
   }
 
   // Format timestamp
@@ -61,8 +83,7 @@ export function ConversationItem({ conversation, isActive, onClick, currentUserI
   const unreadCount = currentUserMember?.unreadCount || 0
 
   const relativeTime = formatTime()
-  const statusLabel = isOnline ? 'Đang hoạt động' : 'Offline'
-  const statusDisplay = relativeTime ? `${statusLabel} • ${relativeTime}` : statusLabel
+  const statusDisplay = relativeTime ? `${displayEmail()} • ${relativeTime}` : displayEmail()
 
   return (
     <button
@@ -76,7 +97,6 @@ export function ConversationItem({ conversation, isActive, onClick, currentUserI
         <Avatar className='h-10 w-10'>
           <AvatarFallback className='bg-muted text-sm font-medium text-foreground'>{getInitials()}</AvatarFallback>
         </Avatar>
-        {isOnline && <span className='absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-500' />}
       </div>
       <div className='flex min-w-0 flex-1 flex-col gap-1 overflow-hidden'>
         <div className='flex min-w-0 items-center justify-between gap-2'>
@@ -91,13 +111,7 @@ export function ConversationItem({ conversation, isActive, onClick, currentUserI
           {conversation.latestMessage || 'Chưa có tin nhắn'}
         </p>
         <div className='flex min-w-0 items-center gap-2 pt-1 text-xs text-muted-foreground'>
-          <span
-            className={cn(
-              'flex min-w-0 flex-1 items-center gap-1 truncate',
-              isOnline ? 'text-emerald-600' : 'text-slate-400'
-            )}
-          >
-            {isOnline && <span className='h-1.5 w-1.5 flex-shrink-0 rounded-full bg-emerald-500' />}
+          <span className='flex min-w-0 flex-1 items-center gap-1 truncate'>
             <span className='truncate whitespace-nowrap'>{statusDisplay}</span>
           </span>
         </div>
