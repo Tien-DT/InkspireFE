@@ -144,7 +144,7 @@ export function JobDetailDialog({
           <Separator />
 
           {/* Status Badge */}
-          {job.status === 1 && (
+          {job.isPremium && (
             <div className='flex justify-center'>
               <Badge variant='featured' className='px-4 py-2 text-base'>
                 ⭐ Công việc nổi bật

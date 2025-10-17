@@ -4,6 +4,7 @@ export interface Job {
   description: string
   budget: number
   status: number
+  isPremium?: boolean
   endTime: string
   createdAt: string
   teamSize: string // Changed from number to string to match RecruitmentPost

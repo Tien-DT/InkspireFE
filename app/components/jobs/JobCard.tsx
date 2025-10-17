@@ -39,9 +39,9 @@ export function JobCard({ job, onApplyClick, onViewDetail, skillColors = DEFAULT
                   >
                     {job.title}
                   </h3>
-                  {job.status === 1 && (
+                  {job.isPremium && (
                     <Badge variant='featured' className='shrink-0 mt-1'>
-                      Nổi bật
+                      Tin Ưu Tiên ⭐
                     </Badge>
                   )}
                 </div>

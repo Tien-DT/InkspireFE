@@ -90,6 +90,7 @@ export interface RecruitmentPost {
   endTime: string
   createdAt: string
   status: number
+  isPremium?: boolean
   skills: Skill[]
   user: {
     id: string
