@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
@@ -7,7 +7,7 @@ import { Label } from '~/components/ui/label'
 import { Switch } from '~/components/ui/switch'
 import { toast } from 'sonner'
 import { Alert, AlertDescription } from '~/components/ui/alert'
-import { Info } from 'lucide-react'
+import { Info, RefreshCw } from 'lucide-react'
 import { userPaymentApi, type UserPayment } from '~/apis/userPayment.api'
 import { withdrawApi, type CreateWithdrawRequestDto } from '~/apis/withdraw.api'
 import { getProfileFromLS } from '~/utils/auth'
@@ -23,6 +23,7 @@ interface WithdrawRequestFormProps {
 export function WithdrawRequestForm({ userId, walletBalance, currency, onSuccess }: WithdrawRequestFormProps) {
   const profile = getProfileFromLS()
   const isClient = profile?.role === UserRole.CLIENT
+  const isFreelancer = profile?.role === UserRole.FREELANCER
   
   const [useDefaultPayment, setUseDefaultPayment] = useState(true)
   const [formData, setFormData] = useState({
@@ -31,6 +32,83 @@ export function WithdrawRequestForm({ userId, walletBalance, currency, onSuccess
     bankAccountNumber: '',
     bankAccountName: ''
   })
+  
+  // Fetch commission percentages from admin settings
+  const [commissions, setCommissions] = useState({
+    freelancerCommissionPercentage: 20,
+    clientCommissionPercentage: 0,
+    loading: true
+  })
+
+  useEffect(() => {
+    fetchCommissions()
+  }, [])
+
+  const fetchCommissions = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      console.log('🔍 Fetching commission percentages...')
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/AdminSettings/commission-percentages`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      )
+      
+      console.log('📡 API Response status:', response.status)
+      
+      if (response.ok) {
+        const data = await response.json()
+        console.log('✅ Commission data received:', data)
+        setCommissions({
+          freelancerCommissionPercentage: data.freelancerCommissionPercentage,
+          clientCommissionPercentage: data.clientCommissionPercentage,
+          loading: false
+        })
+        console.log('💾 State updated - Client:', data.clientCommissionPercentage, '%, Freelancer:', data.freelancerCommissionPercentage, '%')
+      } else {
+        const errorText = await response.text()
+        console.error('❌ API Error:', response.status, errorText)
+        toast.error(`Không thể tải cài đặt hoa hồng (${response.status}). Sử dụng giá trị mặc định.`)
+        setCommissions({
+          freelancerCommissionPercentage: 20,
+          clientCommissionPercentage: 0,
+          loading: false
+        })
+      }
+    } catch (error) {
+      console.error('❌ Error fetching commission percentages:', error)
+      toast.error('Lỗi kết nối API. Sử dụng giá trị mặc định.')
+      setCommissions({
+        freelancerCommissionPercentage: 20,
+        clientCommissionPercentage: 0,
+        loading: false
+      })
+    }
+  }
+  
+  // Calculate commission based on user role
+  const commissionPercentage = isClient 
+    ? commissions.clientCommissionPercentage 
+    : commissions.freelancerCommissionPercentage
+  
+  // Debug logging
+  useEffect(() => {
+    if (!commissions.loading) {
+      console.log('👤 User role:', isClient ? 'CLIENT' : 'FREELANCER')
+      console.log('💰 Commission percentage:', commissionPercentage, '%')
+      console.log('📊 Full commissions state:', commissions)
+    }
+  }, [commissions.loading, commissionPercentage])
+  
+  const calculateAmounts = (amount: number) => {
+    const platformFee = Math.round(amount * (commissionPercentage / 100))
+    const netAmount = amount - platformFee
+    console.log(`🧮 Calculate: Amount=${amount}, Commission=${commissionPercentage}%, Fee=${platformFee}, Net=${netAmount}`)
+    return { platformFee, netAmount }
+  }
 
   // Fetch default payment method
   const { data: defaultPayment } = useQuery({
@@ -104,10 +182,55 @@ export function WithdrawRequestForm({ userId, walletBalance, currency, onSuccess
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Tạo yêu cầu rút tiền</CardTitle>
-        <CardDescription>
-          Số dư ví hiện tại: {formatCurrency(walletBalance)}
-        </CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>Tạo yêu cầu rút tiền</CardTitle>
+            <CardDescription>
+              Số dư ví hiện tại: {formatCurrency(walletBalance)}
+            </CardDescription>
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={fetchCommissions}
+            disabled={commissions.loading}
+            className="text-blue-600 hover:text-blue-700"
+            title="Làm mới cài đặt hoa hồng"
+          >
+            <RefreshCw className={`h-4 w-4 ${commissions.loading ? 'animate-spin' : ''}`} />
+          </Button>
+        </div>
+        {commissions.loading ? (
+          <Alert className="mt-2 bg-gray-50 border-gray-200">
+            <RefreshCw className="h-4 w-4 text-gray-600 animate-spin" />
+            <AlertDescription className="text-sm text-gray-600">
+              Đang tải cài đặt hoa hồng...
+            </AlertDescription>
+          </Alert>
+        ) : (
+          <Alert className="mt-2 bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+            <Info className="h-4 w-4 text-blue-600" />
+            <AlertDescription className="text-sm">
+              {isClient ? (
+                commissionPercentage === 0 ? (
+                  <p className="text-green-700">
+                    ✅ <strong>Client không mất phí hoa hồng</strong> - Bạn nhận 100% số tiền rút
+                  </p>
+                ) : (
+                  <p className="text-orange-700">
+                    <strong>Phí rút tiền: {commissionPercentage}%</strong> - Bạn nhận {100 - commissionPercentage}% số tiền rút
+                  </p>
+                )
+              ) : (
+                <p className="text-purple-700">
+                  <strong>Hoa hồng Freelancer: {commissionPercentage}%</strong> - Bạn nhận {100 - commissionPercentage}% số tiền rút
+                </p>
+              )}
+
+            </AlertDescription>
+          </Alert>
+        )}
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -122,24 +245,24 @@ export function WithdrawRequestForm({ userId, walletBalance, currency, onSuccess
               onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
               required
             />
-            {formData.amount && parseFloat(formData.amount) > 0 && (
-              <div className="mt-2 p-3 bg-blue-50 rounded-lg text-sm">
-                <p className="text-gray-700">
+            {formData.amount && parseFloat(formData.amount) > 0 && !commissions.loading && (
+              <div className="mt-2 p-3 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg border border-blue-200 text-sm space-y-1">
+                <p className="text-gray-700 font-semibold">
                   💰 <strong>Tổng rút:</strong> {formatCurrency(parseFloat(formData.amount))}
                 </p>
-                {isClient ? (
-                  <p className="text-green-600">
-                    ✅ <strong>Bạn nhận được:</strong> {formatCurrency(parseFloat(formData.amount))}
-                  </p>
-                ) : (
+                {commissionPercentage > 0 ? (
                   <>
-                    <p className="text-green-600">
-                      ✅ <strong>Bạn nhận được (80%):</strong> {formatCurrency(parseFloat(formData.amount) * 0.8)}
-                    </p>
                     <p className="text-orange-600">
-                      📊 <strong>Hoa hồng platform (20%):</strong> {formatCurrency(parseFloat(formData.amount) * 0.2)}
+                      📊 <strong>Phí rút tiền:({commissionPercentage}%):</strong> {formatCurrency(calculateAmounts(parseFloat(formData.amount)).platformFee)}
+                    </p>
+                    <p className="text-green-600 font-semibold text-base">
+                      ✅ <strong>Bạn nhận được ({100 - commissionPercentage}%):</strong> {formatCurrency(calculateAmounts(parseFloat(formData.amount)).netAmount)}
                     </p>
                   </>
+                ) : (
+                  <p className="text-green-600 font-semibold text-base">
+                    ✅ <strong>Bạn nhận được (100%):</strong> {formatCurrency(parseFloat(formData.amount))}
+                  </p>
                 )}
               </div>
             )}
