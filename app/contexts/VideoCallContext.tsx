@@ -8,10 +8,35 @@ import { useAuth } from './AuthContext'
 // ===== WebRTC Configuration =====
 const ICE_SERVERS: RTCConfiguration = {
   iceServers: [
+    // Google STUN servers
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
-    { urls: 'stun:stun2.l.google.com:19302' }
-  ]
+    { urls: 'stun:stun2.l.google.com:19302' },
+    { urls: 'stun:stun3.l.google.com:19302' },
+    { urls: 'stun:stun4.l.google.com:19302' },
+    
+    // Free TURN servers from Open Relay Project
+    {
+      urls: 'turn:openrelay.metered.ca:80',
+      username: 'openrelayproject',
+      credential: 'openrelayproject'
+    },
+    {
+      urls: 'turn:openrelay.metered.ca:443',
+      username: 'openrelayproject',
+      credential: 'openrelayproject'
+    },
+    {
+      urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+      username: 'openrelayproject',
+      credential: 'openrelayproject'
+    },
+    
+    // Backup TURN server from Twilio's public STUN/TURN (no auth required for testing)
+    { urls: 'stun:global.stun.twilio.com:3478' }
+  ],
+  iceTransportPolicy: 'all', // Try all paths: host, srflx, and relay
+  iceCandidatePoolSize: 10 // Generate more ICE candidates
 }
 
 // ===== Context Interface =====
@@ -70,25 +95,25 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
 
   // ===== WebRTC Setup =====
 
-  const createPeerConnection = useCallback(() => {
+  const createPeerConnection = useCallback((currentCallId: string, currentCaller: any, currentReceiver: any) => {
     const pc = new RTCPeerConnection(ICE_SERVERS)
 
-    // Handle ICE candidates
+    // Handle ICE candidates with passed parameters to avoid stale closure
     pc.onicecandidate = (event) => {
       console.log('[WebRTC] onicecandidate event:', {
         hasCandidate: !!event.candidate,
         candidate: event.candidate?.candidate,
-        callId: callState.callId
+        callId: currentCallId
       })
 
-      if (event.candidate && callState.callId) {
+      if (event.candidate && currentCallId) {
         // Determine target user (the other participant)
         // If I'm the caller, send to receiver; if I'm receiver, send to caller
-        const iAmCaller = callState.caller?.userId === profile?.id
-        const targetUserId = iAmCaller ? callState.receiver?.userId : callState.caller?.userId
+        const iAmCaller = currentCaller?.userId === profile?.id
+        const targetUserId = iAmCaller ? currentReceiver?.userId : currentCaller?.userId
 
         console.log('[WebRTC] Sending ICE candidate:', {
-          callId: callState.callId,
+          callId: currentCallId,
           iAmCaller,
           myId: profile?.id,
           targetUserId,
@@ -97,7 +122,7 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
 
         if (targetUserId) {
           signalRChatService.sendCallIceCandidate({
-            callId: callState.callId,
+            callId: currentCallId,
             targetUserId,
             candidate: event.candidate.toJSON()
           })
@@ -107,6 +132,8 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
         }
       } else if (!event.candidate) {
         console.log('[WebRTC] ICE gathering completed (null candidate)')
+      } else if (!currentCallId) {
+        console.error('[WebRTC] Cannot send ICE candidate - callId is null!')
       }
     }
 
@@ -160,7 +187,7 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
 
     peerConnection.current = pc
     return pc
-  }, [callState.callId, callState.caller?.userId, callState.receiver?.userId, profile?.id])
+  }, [profile?.id])
 
   const getLocalStream = useCallback(async (callType: CallType): Promise<MediaStream> => {
     try {
@@ -248,13 +275,27 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
         // Get local stream
         const stream = await getLocalStream(callType)
 
-        // Create peer connection
-        const pc = createPeerConnection()
+        // Create peer connection with current call details
+        const caller = {
+          userId: profile?.id || '',
+          userName: `${profile?.first_name} ${profile?.last_name}`,
+          isCaller: true
+        }
+        const receiver = {
+          userId: receiverUserId,
+          userName: receiverName,
+          isCaller: false
+        }
+        const pc = createPeerConnection(callId, caller, receiver)
 
-        // Add local tracks to peer connection
+        // Add local tracks to peer connection with explicit logging
+        console.log('[WebRTC] Adding local tracks to peer connection (CALLER)...')
         stream.getTracks().forEach((track) => {
-          pc.addTrack(track, stream)
+          console.log('[WebRTC] Adding track:', track.kind, track.id, 'enabled:', track.enabled)
+          const sender = pc.addTrack(track, stream)
+          console.log('[WebRTC] Track added, sender:', sender.track?.kind)
         })
+        console.log('[WebRTC] All local tracks added')
 
         // Create offer
         const offer = await pc.createOffer()
@@ -353,11 +394,23 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
       // Use EXISTING peer connection (created in handleCallOffer)
       const pc = peerConnection.current
 
-      // Add local tracks to existing peer connection
+      // Add local tracks to existing peer connection with explicit logging
+      console.log('[WebRTC] Adding local tracks to peer connection (RECEIVER)...')
+      console.log('[WebRTC] Current PC state:', pc.signalingState)
+      console.log('[WebRTC] Current transceivers:', pc.getTransceivers().length)
+      
       stream.getTracks().forEach((track) => {
-        console.log('[WebRTC] Adding local track:', track.kind)
-        pc.addTrack(track, stream)
+        console.log('[WebRTC] Adding track:', track.kind, track.id, 'enabled:', track.enabled)
+        const sender = pc.addTrack(track, stream)
+        console.log('[WebRTC] Track added, sender:', sender.track?.kind)
       })
+      
+      console.log('[WebRTC] All local tracks added')
+      console.log('[WebRTC] Transceivers after adding:', pc.getTransceivers().map(t => ({
+        mid: t.mid,
+        direction: t.direction,
+        currentDirection: t.currentDirection
+      })))
 
       // Create answer (remote description already set in handleCallOffer)
       console.log('[WebRTC] Creating answer...')
@@ -532,8 +585,9 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
         isVideoMuted: false
       })
 
-      // Create peer connection for incoming call
-      const pc = createPeerConnection()
+      // Create peer connection for incoming call with call details
+      console.log('[WebRTC] Creating peer connection with callId:', offer.callId)
+      const pc = createPeerConnection(offer.callId, offer.caller, offer.receiver)
 
       // Set remote description from offer
       await pc.setRemoteDescription(new RTCSessionDescription(offer.sdp))
@@ -545,6 +599,7 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
     console.log('[WebRTC] ===== RECEIVED CALL ANSWER =====')
     console.log('[WebRTC] Answer CallId:', answer.callId)
     console.log('[WebRTC] Answer SDP type:', answer.sdp.type)
+    console.log('[WebRTC] Answer SDP:', answer.sdp.sdp)
 
     if (!peerConnection.current) {
       console.error('[WebRTC] No peer connection found for answer')
@@ -552,13 +607,42 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
     }
 
     try {
+      const pc = peerConnection.current
+      
       console.log('[WebRTC] Setting remote description (answer)...')
-      console.log('[WebRTC] Peer connection state before:', peerConnection.current.signalingState)
+      console.log('[WebRTC] Peer connection state before:', pc.signalingState)
+      console.log('[WebRTC] Transceivers before answer:', pc.getTransceivers().map(t => ({
+        mid: t.mid,
+        direction: t.direction,
+        currentDirection: t.currentDirection,
+        sender: t.sender?.track?.kind,
+        receiver: t.receiver?.track?.kind
+      })))
 
-      await peerConnection.current.setRemoteDescription(new RTCSessionDescription(answer.sdp))
+      await pc.setRemoteDescription(new RTCSessionDescription(answer.sdp))
 
-      console.log('[WebRTC] Peer connection state after:', peerConnection.current.signalingState)
-      console.log('[WebRTC] Connection state:', peerConnection.current.connectionState)
+      console.log('[WebRTC] Peer connection state after:', pc.signalingState)
+      console.log('[WebRTC] Connection state:', pc.connectionState)
+      console.log('[WebRTC] ICE connection state:', pc.iceConnectionState)
+      console.log('[WebRTC] Transceivers after answer:', pc.getTransceivers().map(t => ({
+        mid: t.mid,
+        direction: t.direction,
+        currentDirection: t.currentDirection,
+        sender: t.sender?.track?.kind,
+        receiver: t.receiver?.track?.kind
+      })))
+
+      // Check remote tracks
+      const receivers = pc.getReceivers()
+      console.log('[WebRTC] Remote receivers:', receivers.length)
+      receivers.forEach((receiver, idx) => {
+        console.log(`[WebRTC] Receiver ${idx}:`, {
+          trackKind: receiver.track?.kind,
+          trackId: receiver.track?.id,
+          trackEnabled: receiver.track?.enabled,
+          trackReadyState: receiver.track?.readyState
+        })
+      })
 
       // Answer received successfully - connection should now be establishing
       setCallState((prev) => ({

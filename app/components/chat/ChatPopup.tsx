@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { MessageSquareText, ChevronRight } from 'lucide-react'
+import React, { useState, useRef, useEffect } from 'react'
+import { MessageSquareText, ChevronRight, ArrowLeft, Send } from 'lucide-react'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import {
@@ -11,18 +11,23 @@ import { ScrollArea } from '~/components/ui/scroll-area'
 import { Separator } from '~/components/ui/separator'
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
 import { Link, useNavigate } from 'react-router'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { chatApi } from '~/apis/chat.api'
 import { useAuth } from '~/contexts/AuthContext'
-import type { Conversation } from '~/types/chat.type'
-import { formatDistanceToNow } from 'date-fns'
+import type { Conversation, Message } from '~/types/chat.type'
+import { formatDistanceToNow, format } from 'date-fns'
 import { vi } from 'date-fns/locale'
+import { Input } from '~/components/ui/input'
 
 export function ChatPopup() {
   const { profile } = useAuth()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [isOpen, setIsOpen] = useState(false)
   const [closeTimeout, setCloseTimeout] = useState<NodeJS.Timeout | null>(null)
+  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null)
+  const [messageText, setMessageText] = useState('')
+  const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Fetch recent conversations (top 5)
   const { data, isLoading, refetch } = useQuery({
@@ -77,12 +82,67 @@ export function ChatPopup() {
     setIsOpen(open)
   }
 
-  // Handle conversation click
-  const handleConversationClick = (conversation: Conversation) => {
-    setIsOpen(false)
-    // Navigate to chat page with conversation selected
-    navigate(`/chat?conversationId=${conversation.id}`)
+  // Handle conversation click - open in popup
+  const handleConversationClick = (conversation: Conversation, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setSelectedConversation(conversation)
   }
+
+  // Handle back to list
+  const handleBackToList = () => {
+    setSelectedConversation(null)
+    setMessageText('')
+  }
+
+  // Fetch messages for selected conversation
+  const { data: messagesData, isLoading: messagesLoading } = useQuery({
+    queryKey: ['chat-popup-messages', selectedConversation?.id],
+    queryFn: async () => {
+      if (!selectedConversation?.id) return { data: [], totalCount: 0 }
+      const response = await chatApi.getConversationMessages(selectedConversation.id, { page: 1, pageSize: 50 })
+      return response
+    },
+    enabled: !!selectedConversation?.id,
+    staleTime: 0,
+    refetchInterval: selectedConversation ? 3000 : false // Auto-refresh every 3s when viewing conversation
+  })
+
+  const messages = messagesData?.data || []
+
+  // Send message mutation
+  const sendMessageMutation = useMutation({
+    mutationFn: async (text: string) => {
+      if (!selectedConversation?.id) throw new Error('No conversation selected')
+      return chatApi.sendMessage({
+        conversationId: selectedConversation.id,
+        messageContent: text,
+        status: 1
+      })
+    },
+    onSuccess: () => {
+      setMessageText('')
+      queryClient.invalidateQueries({ queryKey: ['chat-popup-messages', selectedConversation?.id] })
+      queryClient.invalidateQueries({ queryKey: ['chat-popup-conversations'] })
+    },
+    onError: (error) => {
+      console.error('Send message error:', error)
+    }
+  })
+
+  // Handle send message
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault()
+    const trimmed = messageText.trim()
+    if (!trimmed || sendMessageMutation.isPending) return
+    sendMessageMutation.mutate(trimmed)
+  }
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    if (selectedConversation && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [messages, selectedConversation])
 
   // Get other member info
   const getOtherMember = (conversation: Conversation) => {
@@ -136,20 +196,22 @@ export function ChatPopup() {
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b">
-          <h3 className="font-semibold text-sm">Tin nhắn</h3>
-          <Link 
-            to="/chat"
-            className="text-xs text-primary hover:underline"
-            onClick={() => setIsOpen(false)}
-          >
-            Xem tất cả
-          </Link>
-        </div>
+        {!selectedConversation ? (
+          <>
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b">
+              <h3 className="font-semibold text-sm">Tin nhắn</h3>
+              <Link 
+                to="/chat"
+                className="text-xs text-primary hover:underline"
+                onClick={() => setIsOpen(false)}
+              >
+                Xem tất cả
+              </Link>
+            </div>
 
-        {/* Conversations list */}
-        <ScrollArea className="h-[400px]">
+            {/* Conversations list */}
+            <ScrollArea className="h-[400px]">
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <div className="flex flex-col items-center gap-2">
@@ -177,7 +239,7 @@ export function ChatPopup() {
                 return (
                   <button
                     key={conversation.id}
-                    onClick={() => handleConversationClick(conversation)}
+                    onClick={(e) => handleConversationClick(conversation, e)}
                     className={`w-full flex items-start gap-3 px-4 py-3 hover:bg-muted/50 transition-colors text-left ${
                       isUnread ? 'bg-primary/5' : ''
                     }`}
@@ -226,23 +288,125 @@ export function ChatPopup() {
               })}
             </div>
           )}
-        </ScrollArea>
+            </ScrollArea>
 
-        {/* Footer - View all */}
-        {conversations.length > 0 && (
+            {/* Footer - View all */}
+            {conversations.length > 0 && (
+              <>
+                <Separator />
+                <div className="p-2">
+                  <Link to="/chat" onClick={() => setIsOpen(false)}>
+                    <Button 
+                      variant="ghost" 
+                      className="w-full justify-center text-sm font-medium"
+                    >
+                      Xem thêm tin nhắn
+                      <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  </Link>
+                </div>
+              </>
+            )}
+          </>
+        ) : (
           <>
-            <Separator />
-            <div className="p-2">
-              <Link to="/chat" onClick={() => setIsOpen(false)}>
-                <Button 
-                  variant="ghost" 
-                  className="w-full justify-center text-sm font-medium"
-                >
-                  Xem thêm tin nhắn
-                  <ChevronRight className="h-4 w-4 ml-1" />
-                </Button>
-              </Link>
-            </div>
+            {/* Conversation Detail View */}
+            {(() => {
+              const otherMember = getOtherMember(selectedConversation)
+              const otherUser = otherMember?.user
+              
+              return (
+                <>
+                  {/* Header with back button */}
+                  <div className="flex items-center gap-3 px-4 py-3 border-b">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={handleBackToList}
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                    </Button>
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src="" alt={otherUser?.first_name || ''} />
+                      <AvatarFallback className="bg-gradient-to-br from-primary/80 to-primary text-white text-xs">
+                        {getUserInitials(otherUser?.first_name, otherUser?.last_name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold truncate">
+                        {otherUser?.first_name && otherUser?.last_name 
+                          ? `${otherUser.first_name} ${otherUser.last_name}`
+                          : otherUser?.email || 'Unknown User'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Messages */}
+                  <ScrollArea className="h-[320px] px-4 py-2">
+                    {messagesLoading ? (
+                      <div className="flex items-center justify-center py-8">
+                        <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-200 border-t-primary" />
+                      </div>
+                    ) : messages.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center py-8 text-center">
+                        <MessageSquareText className="h-10 w-10 text-muted-foreground/50 mb-2" />
+                        <p className="text-sm text-muted-foreground">Chưa có tin nhắn</p>
+                        <p className="text-xs text-muted-foreground/70">Gửi tin nhắn đầu tiên</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {messages.map((message: Message) => {
+                          const isOwnMessage = message.senderId === profile?.id
+                          return (
+                            <div
+                              key={message.id}
+                              className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
+                            >
+                              <div
+                                className={`max-w-[75%] rounded-lg px-3 py-2 ${
+                                  isOwnMessage
+                                    ? 'bg-primary text-primary-foreground'
+                                    : 'bg-muted'
+                                }`}
+                              >
+                                <p className="text-sm whitespace-pre-wrap break-words">{message.messageContent || '(No content)'}</p>
+                                <p className={`text-xs mt-1 ${
+                                  isOwnMessage ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                                }`}>
+                                  {message.sendAt ? format(new Date(message.sendAt), 'HH:mm') : ''}
+                                </p>
+                              </div>
+                            </div>
+                          )
+                        })}
+                        <div ref={messagesEndRef} />
+                      </div>
+                    )}
+                  </ScrollArea>
+
+                  {/* Message Input */}
+                  <div className="border-t p-3">
+                    <form onSubmit={handleSendMessage} className="flex gap-2">
+                      <Input
+                        value={messageText}
+                        onChange={(e) => setMessageText(e.target.value)}
+                        placeholder="Nhập tin nhắn..."
+                        className="flex-1 text-sm"
+                        disabled={sendMessageMutation.isPending}
+                      />
+                      <Button
+                        type="submit"
+                        size="icon"
+                        disabled={!messageText.trim() || sendMessageMutation.isPending}
+                      >
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    </form>
+                  </div>
+                </>
+              )
+            })()}
           </>
         )}
         </DropdownMenuContent>
