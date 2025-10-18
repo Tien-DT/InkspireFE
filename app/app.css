@@ -165,6 +165,7 @@
 /* ===== Animations ===== */
 @theme {
   --animate-arrow-move: arrow-move 1s ease-in-out infinite;
+  --animate-shimmer: shimmer 3s linear infinite;
 
   @keyframes arrow-move {
     0% {
@@ -180,10 +181,10 @@
 
   @keyframes shimmer {
     0% {
-      transform: translateX(-100%);
+      background-position: -200% center;
     }
     100% {
-      transform: translateX(100%);
+      background-position: 200% center;
     }
   }
 

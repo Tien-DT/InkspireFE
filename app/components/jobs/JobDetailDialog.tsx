@@ -34,15 +34,38 @@ export function JobDetailDialog({
         <div className='space-y-6 py-4'>
           {/* User Info */}
           <div className='flex items-center gap-3'>
-            <div className='w-12 h-12 bg-gradient-to-br from-primary to-primary/60 rounded-full flex items-center justify-center text-primary-foreground font-semibold text-lg'>
-              {job.user.firstName.charAt(0)}
-            </div>
-            <div>
-              <p className='font-semibold text-base'>
-                {job.user.firstName} {job.user.lastName}
-              </p>
-              <p className='text-sm text-muted-foreground'>{job.user.email}</p>
-            </div>
+            {job.isPremium ? (
+              <>
+                <div className='w-12 h-12 bg-gradient-to-br from-zinc-900 via-black to-zinc-950 border-2 border-yellow-500/60 rounded-full flex items-center justify-center font-bold text-lg shrink-0 shadow-lg shadow-yellow-500/30'>
+                  <span className='bg-gradient-to-br from-yellow-400 via-yellow-500 to-amber-500 bg-clip-text text-transparent'>
+                    {job.user.firstName.charAt(0)}
+                  </span>
+                </div>
+                <div>
+                  <div className='flex items-center gap-2'>
+                    <p className='font-bold text-base text-amber-600 dark:text-amber-400' style={{
+                      textShadow: '0 0 20px rgba(251, 191, 36, 0.8), 0 0 30px rgba(251, 191, 36, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3)'
+                    }}>
+                      {job.user.firstName} {job.user.lastName}
+                    </p>
+                    <span className='text-amber-500 text-sm animate-pulse'>👑</span>
+                  </div>
+                  <p className='text-sm text-muted-foreground'>{job.user.email}</p>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className='w-12 h-12 bg-gradient-to-br from-primary to-primary/60 rounded-full flex items-center justify-center text-primary-foreground font-semibold text-lg'>
+                  {job.user.firstName.charAt(0)}
+                </div>
+                <div>
+                  <p className='font-semibold text-base'>
+                    {job.user.firstName} {job.user.lastName}
+                  </p>
+                  <p className='text-sm text-muted-foreground'>{job.user.email}</p>
+                </div>
+              </>
+            )}
           </div>
 
           <Separator />
@@ -146,8 +169,9 @@ export function JobDetailDialog({
           {/* Status Badge */}
           {job.isPremium && (
             <div className='flex justify-center'>
-              <Badge variant='featured' className='px-4 py-2 text-base'>
-                ⭐ Công việc nổi bật
+              <Badge variant='featured' className='px-4 py-2 text-base relative overflow-hidden'>
+                <span className='relative z-10'>⭐ Công việc nổi bật</span>
+                <span className='absolute inset-0 bg-gradient-to-r from-transparent via-yellow-300/30 to-transparent animate-shimmer bg-[length:200%_100%]' />
               </Badge>
             </div>
           )}

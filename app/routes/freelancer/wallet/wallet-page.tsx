@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { WithdrawRequestForm } from '~/components/freelancer/withdraw-request-form'
 import { PaymentMethods } from '~/components/freelancer/payment-methods'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
@@ -6,6 +7,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '~
 import { Badge } from '~/components/ui/badge'
 import { Wallet, Clock } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
+import { withdrawApi } from '~/apis/withdraw.api'
+import { walletApi } from '~/apis/wallet.api'
+import { getProfileFromLS } from '~/utils/auth'
+import { UserRole } from '~/types/user.type'
 
 interface WalletData {
   id: string
@@ -30,62 +35,38 @@ interface WithdrawRequest {
 }
 
 export default function WalletPage() {
-  const [wallet, setWallet] = useState<WalletData | null>(null)
-  const [withdrawRequests, setWithdrawRequests] = useState<WithdrawRequest[]>([])
-  const [loading, setLoading] = useState(true)
-  const userId = localStorage.getItem('userId') || ''
+  const queryClient = useQueryClient()
+  const profile = getProfileFromLS()
+  const userId = profile?.id || ''
+  // Role 1 = CLIENT: có rút tiền
+  // Role 2 = FREELANCER: chỉ có phương thức thanh toán
+  const isClient = profile?.role === UserRole.CLIENT
+  const isFreelancer = profile?.role === UserRole.FREELANCER
 
-  useEffect(() => {
-    fetchWalletData()
-    fetchWithdrawRequests()
-  }, [])
+  // Fetch wallet with React Query
+  const { data: walletData, isLoading: walletLoading } = useQuery({
+    queryKey: ['wallet', userId],
+    queryFn: async () => {
+      const response = await walletApi.getWalletByUserId(userId)
+      return response.data
+    },
+    enabled: !!userId
+  })
 
-  const fetchWalletData = async () => {
-    try {
-      const token = localStorage.getItem('token')
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/Wallets?$filter=userId eq '${userId}'`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }
-      )
-      
-      if (response.ok) {
-        const data = await response.json()
-        const wallets = Array.isArray(data) ? data : (data.value || [])
-        if (wallets.length > 0) {
-          setWallet(wallets[0])
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching wallet:', error)
-    }
-  }
+  const wallet = walletData as WalletData | null
 
-  const fetchWithdrawRequests = async () => {
-    try {
-      const token = localStorage.getItem('token')
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/WithdrawRequests?$filter=userId eq '${userId}'&$orderby=createdAt desc`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }
-      )
-      
-      if (response.ok) {
-        const data = await response.json()
-        const requests = Array.isArray(data) ? data : (data.value || [])
-        setWithdrawRequests(requests)
-      }
-    } catch (error) {
-      console.error('Error fetching withdraw requests:', error)
-    } finally {
-      setLoading(false)
-    }
+  // Fetch withdraw requests (only for CLIENT - role 1)
+  const { data: withdrawRequests = [], isLoading: requestsLoading } = useQuery({
+    queryKey: ['withdraw-requests', userId],
+    queryFn: () => withdrawApi.getWithdrawRequests(userId),
+    enabled: !!userId && isClient
+  })
+
+  const loading = walletLoading || requestsLoading
+
+  const handleWithdrawSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ['wallet'] })
+    queryClient.invalidateQueries({ queryKey: ['withdraw-requests'] })
   }
 
   const formatCurrency = (amount: number, currency: string = 'VND') => {
@@ -183,23 +164,21 @@ export default function WalletPage() {
           </div>
         )}
 
-        <Tabs defaultValue="withdraw" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="withdraw">Rút tiền</TabsTrigger>
+        <Tabs defaultValue={isFreelancer ? "payment-methods" : "withdraw"} className="w-full">
+          <TabsList className={isFreelancer ? "w-full" : "grid w-full grid-cols-3"}>
+            {isClient && <TabsTrigger value="withdraw">Rút tiền</TabsTrigger>}
             <TabsTrigger value="payment-methods">Phương thức thanh toán</TabsTrigger>
-            <TabsTrigger value="history">Lịch sử</TabsTrigger>
+            {isClient && <TabsTrigger value="history">Lịch sử</TabsTrigger>}
           </TabsList>
           
+          {isClient && (
           <TabsContent value="withdraw" className="grid gap-8 lg:grid-cols-2">
             {wallet && (
               <WithdrawRequestForm 
                 userId={userId}
                 walletBalance={wallet.balance}
                 currency={wallet.currency}
-                onSuccess={() => {
-                  fetchWalletData()
-                  fetchWithdrawRequests()
-                }}
+                onSuccess={handleWithdrawSuccess}
               />
             )}
 
@@ -244,11 +223,13 @@ export default function WalletPage() {
             </CardContent>
           </Card>
           </TabsContent>
+          )}
           
           <TabsContent value="payment-methods">
             <PaymentMethods />
           </TabsContent>
           
+          {isClient && (
           <TabsContent value="history">
             {withdrawRequests.length === 0 ? (
               <Card>
@@ -295,6 +276,7 @@ export default function WalletPage() {
           </Card>
             )}
           </TabsContent>
+          )}
         </Tabs>
       </div>
     </div>

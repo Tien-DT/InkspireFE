@@ -58,6 +58,12 @@
         "file": "./routes/dashboard-freelancer.tsx",
         "path": "dashboard-freelancer"
       },
+      "routes/dashboard-client": {
+        "id": "routes/dashboard-client",
+        "parentId": "layouts/ProtectedLayout/ProtectedLayout",
+        "file": "./routes/dashboard-client.tsx",
+        "path": "dashboard-client"
+      },
       "routes/post-project": {
         "id": "routes/post-project",
         "parentId": "layouts/ProtectedLayout/ProtectedLayout",
@@ -93,6 +99,12 @@
         "parentId": "layouts/ProtectedLayout/ProtectedLayout",
         "file": "./routes/manage-post-project-new.tsx",
         "path": "manage-post-project"
+      },
+      "routes/edit-recruitment-post.$postId": {
+        "id": "routes/edit-recruitment-post.$postId",
+        "parentId": "layouts/ProtectedLayout/ProtectedLayout",
+        "file": "./routes/edit-recruitment-post.$postId.tsx",
+        "path": "edit-recruitment-post/:postId"
       },
       "routes/manage-applications-new": {
         "id": "routes/manage-applications-new",
@@ -289,6 +301,12 @@
         "file": "./routes/dashboard-freelancer.tsx",
         "path": "dashboard-freelancer"
       },
+      "routes/dashboard-client": {
+        "id": "routes/dashboard-client",
+        "parentId": "layouts/ProtectedLayout/ProtectedLayout",
+        "file": "./routes/dashboard-client.tsx",
+        "path": "dashboard-client"
+      },
       "routes/post-project": {
         "id": "routes/post-project",
         "parentId": "layouts/ProtectedLayout/ProtectedLayout",
@@ -324,6 +342,12 @@
         "parentId": "layouts/ProtectedLayout/ProtectedLayout",
         "file": "./routes/manage-post-project-new.tsx",
         "path": "manage-post-project"
+      },
+      "routes/edit-recruitment-post.$postId": {
+        "id": "routes/edit-recruitment-post.$postId",
+        "parentId": "layouts/ProtectedLayout/ProtectedLayout",
+        "file": "./routes/edit-recruitment-post.$postId.tsx",
+        "path": "edit-recruitment-post/:postId"
       },
       "routes/manage-applications-new": {
         "id": "routes/manage-applications-new",
@@ -497,6 +521,10 @@
                     "path": "dashboard-freelancer"
                   },
                   {
+                    "file": "./routes/dashboard-client.tsx",
+                    "path": "dashboard-client"
+                  },
+                  {
                     "file": "./routes/post-project.tsx",
                     "path": "post-project"
                   },
@@ -519,6 +547,10 @@
                   {
                     "file": "./routes/manage-post-project-new.tsx",
                     "path": "manage-post-project"
+                  },
+                  {
+                    "file": "./routes/edit-recruitment-post.$postId.tsx",
+                    "path": "edit-recruitment-post/:postId"
                   },
                   {
                     "file": "./routes/manage-applications-new.tsx",

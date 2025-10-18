@@ -40,8 +40,9 @@ export function JobCard({ job, onApplyClick, onViewDetail, skillColors = DEFAULT
                     {job.title}
                   </h3>
                   {job.isPremium && (
-                    <Badge variant='featured' className='shrink-0 mt-1'>
-                      Tin Ưu Tiên ⭐
+                    <Badge variant='featured' className='shrink-0 mt-1 relative overflow-hidden'>
+                      <span className='relative z-10'>Tin Ưu Tiên ⭐</span>
+                      <span className='absolute inset-0 bg-gradient-to-r from-transparent via-yellow-300/30 to-transparent animate-shimmer bg-[length:200%_100%]' />
                     </Badge>
                   )}
                 </div>
@@ -62,12 +63,32 @@ export function JobCard({ job, onApplyClick, onViewDetail, skillColors = DEFAULT
 
               {/* User Info */}
               <div className='flex items-center gap-2'>
-                <div className='w-8 h-8 bg-gradient-to-br from-primary to-primary/60 rounded-full flex items-center justify-center text-primary-foreground font-semibold text-sm shrink-0'>
-                  {job.user.firstName.charAt(0)}
-                </div>
-                <span className='text-xs sm:text-sm text-muted-foreground font-medium'>
-                  {job.user.firstName} {job.user.lastName}
-                </span>
+                {job.isPremium ? (
+                  <>
+                    <div className='w-8 h-8 bg-gradient-to-br from-zinc-900 via-black to-zinc-950 border border-yellow-500/50 rounded-full flex items-center justify-center font-bold text-sm shrink-0 shadow-md shadow-yellow-500/20'>
+                      <span className='bg-gradient-to-br from-yellow-400 via-yellow-500 to-amber-500 bg-clip-text text-transparent'>
+                        {job.user.firstName.charAt(0)}
+                      </span>
+                    </div>
+                    <div className='flex items-center gap-1.5'>
+                      <span className='text-xs sm:text-sm font-bold text-amber-600 dark:text-amber-400' style={{
+                        textShadow: '0 0 20px rgba(251, 191, 36, 0.8), 0 0 30px rgba(251, 191, 36, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3)'
+                      }}>
+                        {job.user.firstName} {job.user.lastName}
+                      </span>
+                      <span className='text-amber-500 text-xs animate-pulse'>👑</span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className='w-8 h-8 bg-gradient-to-br from-primary to-primary/60 rounded-full flex items-center justify-center text-primary-foreground font-semibold text-sm shrink-0'>
+                      {job.user.firstName.charAt(0)}
+                    </div>
+                    <span className='text-xs sm:text-sm text-muted-foreground font-medium'>
+                      {job.user.firstName} {job.user.lastName}
+                    </span>
+                  </>
+                )}
               </div>
             </div>
 

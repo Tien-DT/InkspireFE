@@ -15,7 +15,7 @@ import { toast } from 'sonner'
 
 export function NotificationBell() {
   const { isAuthenticated } = useAuth()
-  const { unreadCount, notifications, loading, markAsRead, markAllAsRead, deleteNotification } = useNotifications(isAuthenticated)
+  const { unreadCount, notifications, loading, markAsRead, markAllAsRead, deleteNotification, refresh } = useNotifications(isAuthenticated)
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default')
 
   // Check notification permission on mount and when dropdown opens
@@ -28,6 +28,10 @@ export function NotificationBell() {
   // Handle dropdown open - mark all as read and refresh permission
   const handleOpenChange = (open: boolean) => {
     if (open) {
+      // Refetch notifications immediately
+      console.log('🔔 Notification bell clicked - refetching notifications')
+      refresh()
+      
       // Refresh permission state when opening dropdown
       if (typeof window !== 'undefined' && 'Notification' in window) {
         setNotificationPermission(Notification.permission)
@@ -35,7 +39,7 @@ export function NotificationBell() {
       
       // Mark all as read if has unread
       if (unreadCount > 0) {
-        console.log('🔔 Notification bell clicked - marking all as read')
+        console.log('🔔 Marking all notifications as read')
         markAllAsRead()
       }
     }

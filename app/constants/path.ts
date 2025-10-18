@@ -12,7 +12,9 @@ export const PATH = {
 
   // Protected routes
   profile: '/profile',
-  dashboard: '/dashboard-freelancer',
+  dashboard: '/dashboard-freelancer', // Default dashboard (for backward compatibility)
+  dashboardFreelancer: '/dashboard-freelancer',
+  dashboardClient: '/dashboard-client',
   adminDashboard: '/admin',
   postProject: '/post-project',
   postNewProject: '/post-new-project',

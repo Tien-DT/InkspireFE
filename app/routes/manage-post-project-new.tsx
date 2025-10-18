@@ -11,6 +11,7 @@ import PaginationDemo from '~/components/Pagination'
 import { PageHeader, UnifiedStatsCards, FilterTabs } from '~/components/shared'
 import type { StatsCardConfig as SharedStatsCardConfig, FilterOption } from '~/components/shared'
 import { projectApi } from '~/apis/project.api'
+import { recruitmentApi } from '~/apis/recruitment.api'
 import { userCVApi } from '~/apis/userCV.api'
 import { useChat } from '~/contexts/ChatContext'
 import { useRecruitmentApplications, useUserRecruitmentsByUserId } from '~/hooks/useRecruitments'
@@ -90,6 +91,12 @@ function ManagePostProjectPage() {
     isOpen: boolean
     application: Application | null
   }>({ isOpen: false, application: null })
+  const [deleteConfirmState, setDeleteConfirmState] = useState<{
+    isOpen: boolean
+    postId: string | null
+    postTitle: string | null
+  }>({ isOpen: false, postId: null, postTitle: null })
+  const [deletingPostId, setDeletingPostId] = useState<string | null>(null)
 
   const {
     data: applicationsData,
@@ -164,6 +171,30 @@ function ManagePostProjectPage() {
     },
     onSettled: () => {
       setRejectingApplicationId(null)
+    }
+  })
+
+  const deletePostMutation = useMutation({
+    mutationFn: (postId: string) => recruitmentApi.deleteRecruitmentPost(postId),
+    onSuccess: () => {
+      void refetchPosts()
+      setDeleteConfirmState({ isOpen: false, postId: null, postTitle: null })
+      toast.success('Xóa bài đăng thành công', {
+        description: 'Bài đăng tuyển dụng đã được xóa khỏi hệ thống.'
+      })
+    },
+    onError: (error: unknown) => {
+      const axiosMessage = isAxiosError(error) ? error.response?.data?.message : undefined
+      const message =
+        axiosMessage ??
+        (error instanceof Error ? error.message : 'Có lỗi xảy ra khi xóa bài đăng. Vui lòng thử lại.')
+
+      toast.error('Không thể xóa bài đăng', {
+        description: message
+      })
+    },
+    onSettled: () => {
+      setDeletingPostId(null)
     }
   })
 
@@ -357,6 +388,36 @@ function ManagePostProjectPage() {
     })
   }
 
+  const handleEditPost = (post: UserRecruitmentPost) => {
+    navigate(`/edit-recruitment-post/${post.id}`)
+  }
+
+  const handleDeletePost = (post: UserRecruitmentPost) => {
+    setDeleteConfirmState({
+      isOpen: true,
+      postId: post.id,
+      postTitle: post.title
+    })
+  }
+
+  const handleConfirmDelete = () => {
+    const postId = deleteConfirmState.postId
+    if (!postId || deletePostMutation.isPending) return
+
+    setDeletingPostId(postId)
+    deletePostMutation.mutate(postId)
+  }
+
+  const handleDeleteDialogOpenChange = (open: boolean) => {
+    if (!deletePostMutation.isPending) {
+      setDeleteConfirmState((prev) => ({
+        isOpen: open,
+        postId: open ? prev.postId : null,
+        postTitle: open ? prev.postTitle : null
+      }))
+    }
+  }
+
   const hasError = Boolean(error)
   const applicationsErrorEntity = applicationsError instanceof Error ? applicationsError : null
 
@@ -398,8 +459,8 @@ function ManagePostProjectPage() {
                     key={post.id}
                     post={post}
                     onView={() => handleViewPost(post)}
-                    onEdit={() => console.log('Edit:', post.id)}
-                    onDelete={() => console.log('Delete:', post.id)}
+                    onEdit={() => handleEditPost(post)}
+                    onDelete={() => handleDeletePost(post)}
                     onShare={() => console.log('Share:', post.id)}
                     onViewApplicants={() => handleViewPost(post)}
                   />
@@ -470,6 +531,68 @@ function ManagePostProjectPage() {
                   </span>
                 ) : (
                   'Chấp nhận'
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={deleteConfirmState.isOpen} onOpenChange={handleDeleteDialogOpenChange}>
+          <DialogContent className='sm:max-w-md rounded-3xl border border-destructive/40 bg-card/95 p-8 text-center shadow-xl'>
+            <DialogHeader className='mb-4 space-y-3 text-center'>
+              <div className='mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10 text-destructive'>
+                <svg
+                  xmlns='http://www.w3.org/2000/svg'
+                  width='32'
+                  height='32'
+                  viewBox='0 0 24 24'
+                  fill='none'
+                  stroke='currentColor'
+                  strokeWidth='2'
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                >
+                  <path d='M3 6h18' />
+                  <path d='M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6' />
+                  <path d='M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2' />
+                  <line x1='10' x2='10' y1='11' y2='17' />
+                  <line x1='14' x2='14' y1='11' y2='17' />
+                </svg>
+              </div>
+              <DialogTitle className='text-2xl font-semibold text-foreground'>Xác nhận xóa bài đăng</DialogTitle>
+              <DialogDescription className='text-sm text-muted-foreground'>
+                {deleteConfirmState.postTitle ? (
+                  <>
+                    Bạn có chắc chắn muốn xóa bài đăng{' '}
+                    <span className='font-semibold text-foreground'>&quot;{deleteConfirmState.postTitle}&quot;</span>{' '}
+                    không? Hành động này không thể hoàn tác.
+                  </>
+                ) : (
+                  'Bạn có chắc chắn muốn xóa bài đăng này không? Hành động này không thể hoàn tác.'
+                )}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className='flex-row justify-between gap-3'>
+              <Button
+                variant='ghost'
+                onClick={() => handleDeleteDialogOpenChange(false)}
+                disabled={deletePostMutation.isPending}
+                className='flex-1 rounded-full border border-border/40 px-4 text-sm font-medium text-muted-foreground hover:border-border'
+              >
+                Hủy bỏ
+              </Button>
+              <Button
+                onClick={handleConfirmDelete}
+                disabled={deletePostMutation.isPending}
+                className='flex-1 rounded-full bg-destructive px-4 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90'
+              >
+                {deletePostMutation.isPending ? (
+                  <span className='flex items-center justify-center gap-2'>
+                    <ButtonSpinner className='text-white' />
+                    Đang xử lý...
+                  </span>
+                ) : (
+                  'Xóa bài đăng'
                 )}
               </Button>
             </DialogFooter>

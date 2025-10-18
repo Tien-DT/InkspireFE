@@ -180,7 +180,10 @@ export function Header() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className='cursor-pointer'>
-                    <Link to={PATH.dashboard} className='flex items-center px-2 py-2 rounded-md'>
+                    <Link 
+                      to={isClient ? PATH.dashboardClient : PATH.dashboardFreelancer} 
+                      className='flex items-center px-2 py-2 rounded-md'
+                    >
                       <div className='flex h-8 w-8 items-center justify-center rounded-md bg-blue-500/10 mr-3'>
                         <LayoutDashboard className='h-4 w-4 text-blue-600' />
                       </div>
@@ -196,14 +199,24 @@ export function Header() {
                     </Link>
                   </DropdownMenuItem>
                   {isClient && (
-                    <DropdownMenuItem asChild className='cursor-pointer'>
-                      <Link to={PATH.managePostProject} className='flex items-center px-2 py-2 rounded-md'>
-                        <div className='flex h-8 w-8 items-center justify-center rounded-md bg-green-500/10 mr-3'>
-                          <FileText className='h-4 w-4 text-green-600' />
-                        </div>
-                        <span className='font-medium'>Quản lý bài đăng</span>
-                      </Link>
-                    </DropdownMenuItem>
+                    <>
+                      <DropdownMenuItem asChild className='cursor-pointer'>
+                        <Link to={PATH.managePostProject} className='flex items-center px-2 py-2 rounded-md'>
+                          <div className='flex h-8 w-8 items-center justify-center rounded-md bg-green-500/10 mr-3'>
+                            <FileText className='h-4 w-4 text-green-600' />
+                          </div>
+                          <span className='font-medium'>Quản lý bài đăng</span>
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild className='cursor-pointer'>
+                        <Link to='/freelancer/wallet' className='flex items-center px-2 py-2 rounded-md'>
+                          <div className='flex h-8 w-8 items-center justify-center rounded-md bg-emerald-500/10 mr-3'>
+                            <Wallet className='h-4 w-4 text-emerald-600' />
+                          </div>
+                          <span className='font-medium'>Ví & Rút tiền</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
                   )}
                   {isFreelancer && (
                     <>
@@ -220,7 +233,7 @@ export function Header() {
                           <div className='flex h-8 w-8 items-center justify-center rounded-md bg-emerald-500/10 mr-3'>
                             <Wallet className='h-4 w-4 text-emerald-600' />
                           </div>
-                          <span className='font-medium'>Ví & Rút tiền</span>
+                          <span className='font-medium'>Phương thức thanh toán</span>
                         </Link>
                       </DropdownMenuItem>
                     </>

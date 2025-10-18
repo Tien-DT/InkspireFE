@@ -228,5 +228,45 @@ export const recruitmentApi = {
       }
     )
     return response.data
+  },
+
+  // Update a recruitment post
+  updateRecruitmentPost: async (
+    id: string,
+    data: {
+      title?: string
+      description?: string
+      budget?: number
+      postExpired?: string
+      teamSize?: string
+      skillIds?: string[]
+      status?: number
+    }
+  ) => {
+    const response = await axiosClient.patch<{
+      success: boolean
+      message: string
+      data: {
+        id: string
+        title: string
+        description: string
+        projectName: string
+        budget: number
+        teamSize: string
+        createdAt: string
+        status: number
+        skills: Array<{
+          id: string
+          name: string
+        }>
+      }
+    }>(`${URL_RECRUITMENT_POSTS}/${id}`, data)
+    return response.data
+  },
+
+  // Delete a recruitment post
+  deleteRecruitmentPost: async (id: string) => {
+    const response = await axiosClient.delete(`${URL_RECRUITMENT_POSTS}/${id}`)
+    return response.data
   }
 }

@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { useQuery, useMutation } from '@tanstack/react-query'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
 import { Input } from '~/components/ui/input'
@@ -7,6 +8,10 @@ import { Switch } from '~/components/ui/switch'
 import { toast } from 'sonner'
 import { Alert, AlertDescription } from '~/components/ui/alert'
 import { Info } from 'lucide-react'
+import { userPaymentApi, type UserPayment } from '~/apis/userPayment.api'
+import { withdrawApi, type CreateWithdrawRequestDto } from '~/apis/withdraw.api'
+import { getProfileFromLS } from '~/utils/auth'
+import { UserRole } from '~/types/user.type'
 
 interface WithdrawRequestFormProps {
   userId: string
@@ -15,18 +20,11 @@ interface WithdrawRequestFormProps {
   onSuccess?: () => void
 }
 
-interface PaymentMethod {
-  id: string
-  bankName: string
-  bankAccountNumber: string
-  bankAccountName: string
-  isDefault: boolean
-}
-
 export function WithdrawRequestForm({ userId, walletBalance, currency, onSuccess }: WithdrawRequestFormProps) {
-  const [loading, setLoading] = useState(false)
+  const profile = getProfileFromLS()
+  const isClient = profile?.role === UserRole.CLIENT
+  
   const [useDefaultPayment, setUseDefaultPayment] = useState(true)
-  const [defaultPayment, setDefaultPayment] = useState<PaymentMethod | null>(null)
   const [formData, setFormData] = useState({
     amount: '',
     bankName: '',
@@ -34,37 +32,33 @@ export function WithdrawRequestForm({ userId, walletBalance, currency, onSuccess
     bankAccountName: ''
   })
 
-  useEffect(() => {
-    fetchDefaultPayment()
-  }, [])
+  // Fetch default payment method
+  const { data: defaultPayment } = useQuery({
+    queryKey: ['default-payment', userId],
+    queryFn: () => userPaymentApi.getDefaultPayment(userId),
+    enabled: !!userId,
+    retry: false
+  })
 
-  const fetchDefaultPayment = async () => {
-    try {
-      const token = localStorage.getItem('token')
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/UserPayments/default`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'UserId': userId
-          }
-        }
-      )
-      
-      if (response.ok) {
-        const data = await response.json()
-        setDefaultPayment(data)
-        setFormData({
-          ...formData,
-          bankName: data.bankName,
-          bankAccountNumber: data.bankAccountNumber,
-          bankAccountName: data.bankAccountName
-        })
+  // Create withdraw request mutation
+  const createWithdrawMutation = useMutation({
+    mutationFn: (data: CreateWithdrawRequestDto) => withdrawApi.createWithdrawRequest(data),
+    onSuccess: () => {
+      toast.success('Yêu cầu rút tiền đã được tạo thành công')
+      setFormData({
+        amount: '',
+        bankName: '',
+        bankAccountNumber: '',
+        bankAccountName: ''
+      })
+      if (onSuccess) {
+        onSuccess()
       }
-    } catch (error) {
-      console.error('Error fetching default payment:', error)
+    },
+    onError: (error: any) => {
+      toast.error('Không thể tạo yêu cầu: ' + (error.response?.data || error.message))
     }
-  }
+  })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -90,45 +84,14 @@ export function WithdrawRequestForm({ userId, walletBalance, currency, onSuccess
       return
     }
     
-    setLoading(true)
-    try {
-      const token = localStorage.getItem('token')
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/WithdrawRequests`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          userId,
-          amount,
-          useDefaultPayment,
-          bankName: useDefaultPayment ? undefined : formData.bankName,
-          bankAccountNumber: useDefaultPayment ? undefined : formData.bankAccountNumber,
-          bankAccountName: useDefaultPayment ? undefined : formData.bankAccountName
-        })
-      })
-      
-      if (response.ok) {
-        toast.success('Yêu cầu rút tiền đã được tạo thành công')
-        setFormData({
-          amount: '',
-          bankName: '',
-          bankAccountNumber: '',
-          bankAccountName: ''
-        })
-        if (onSuccess) {
-          onSuccess()
-        }
-      } else {
-        const error = await response.text()
-        toast.error(`Không thể tạo yêu cầu: ${error}`)
-      }
-    } catch (error) {
-      toast.error('Đã xảy ra lỗi khi tạo yêu cầu rút tiền')
-    } finally {
-      setLoading(false)
-    }
+    createWithdrawMutation.mutate({
+      userId,
+      amount,
+      useDefaultPayment,
+      bankName: useDefaultPayment ? undefined : formData.bankName,
+      bankAccountNumber: useDefaultPayment ? undefined : formData.bankAccountNumber,
+      bankAccountName: useDefaultPayment ? undefined : formData.bankAccountName
+    })
   }
 
   const formatCurrency = (amount: number) => {
@@ -164,12 +127,20 @@ export function WithdrawRequestForm({ userId, walletBalance, currency, onSuccess
                 <p className="text-gray-700">
                   💰 <strong>Tổng rút:</strong> {formatCurrency(parseFloat(formData.amount))}
                 </p>
-                <p className="text-green-600">
-                  ✅ <strong>Bạn nhận được (80%):</strong> {formatCurrency(parseFloat(formData.amount) * 0.8)}
-                </p>
-                <p className="text-orange-600">
-                  📊 <strong>Hoa hồng platform (20%):</strong> {formatCurrency(parseFloat(formData.amount) * 0.2)}
-                </p>
+                {isClient ? (
+                  <p className="text-green-600">
+                    ✅ <strong>Bạn nhận được:</strong> {formatCurrency(parseFloat(formData.amount))}
+                  </p>
+                ) : (
+                  <>
+                    <p className="text-green-600">
+                      ✅ <strong>Bạn nhận được (80%):</strong> {formatCurrency(parseFloat(formData.amount) * 0.8)}
+                    </p>
+                    <p className="text-orange-600">
+                      📊 <strong>Hoa hồng platform (20%):</strong> {formatCurrency(parseFloat(formData.amount) * 0.2)}
+                    </p>
+                  </>
+                )}
               </div>
             )}
           </div>
@@ -264,8 +235,8 @@ export function WithdrawRequestForm({ userId, walletBalance, currency, onSuccess
             </Alert>
           )}
           
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Đang xử lý...' : 'Tạo yêu cầu rút tiền'}
+          <Button type="submit" className="w-full" disabled={createWithdrawMutation.isPending}>
+            {createWithdrawMutation.isPending ? 'Đang xử lý...' : 'Tạo yêu cầu rút tiền'}
           </Button>
         </form>
       </CardContent>

@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
 import { Input } from '~/components/ui/input'
@@ -15,26 +16,12 @@ import {
 } from '~/components/ui/dialog'
 import { Switch } from '~/components/ui/switch'
 import { CreditCard, Edit, Trash2, Plus, Check } from 'lucide-react'
-
-interface PaymentMethod {
-  id: string
-  userId: string
-  bankName: string
-  bankAccountNumber: string
-  bankAccountName: string
-  bankBranch?: string
-  swiftCode?: string
-  isDefault: boolean
-  status: number
-  createdAt: string
-  updatedAt?: string
-}
+import { userPaymentApi, type UserPayment, type CreateUserPaymentDto, type UpdateUserPaymentDto } from '~/apis/userPayment.api'
+import { getProfileFromLS } from '~/utils/auth'
 
 export function PaymentMethods() {
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([])
-  const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [editingMethod, setEditingMethod] = useState<PaymentMethod | null>(null)
+  const [editingMethod, setEditingMethod] = useState<UserPayment | null>(null)
   const [formData, setFormData] = useState({
     bankName: '',
     bankAccountNumber: '',
@@ -44,37 +31,67 @@ export function PaymentMethods() {
     isDefault: false
   })
 
-  const userId = localStorage.getItem('userId') || ''
+  const queryClient = useQueryClient()
+  const profile = getProfileFromLS()
+  const userId = profile?.id || ''
 
-  useEffect(() => {
-    fetchPaymentMethods()
-  }, [])
+  // Fetch payment methods with React Query
+  const { data: paymentMethods = [], isLoading: loading } = useQuery({
+    queryKey: ['user-payments', userId],
+    queryFn: () => userPaymentApi.getUserPayments(userId),
+    enabled: !!userId
+  })
 
-  const fetchPaymentMethods = async () => {
-    try {
-      setLoading(true)
-      const token = localStorage.getItem('token')
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/UserPayments`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'UserId': userId
-          }
-        }
-      )
-      
-      if (response.ok) {
-        const data = await response.json()
-        setPaymentMethods(data)
-      }
-    } catch (error) {
-      console.error('Error fetching payment methods:', error)
-      toast.error('Không thể tải phương thức thanh toán')
-    } finally {
-      setLoading(false)
+  // Create mutation
+  const createMutation = useMutation({
+    mutationFn: (data: CreateUserPaymentDto) => userPaymentApi.createPayment(data, userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-payments'] })
+      toast.success('Đã thêm phương thức thanh toán')
+      handleCloseDialog()
+    },
+    onError: (error: any) => {
+      toast.error('Không thể thêm phương thức: ' + (error.response?.data || error.message))
     }
-  }
+  })
+
+  // Update mutation
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateUserPaymentDto }) => 
+      userPaymentApi.updatePayment(id, data, userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-payments'] })
+      toast.success('Đã cập nhật phương thức thanh toán')
+      handleCloseDialog()
+    },
+    onError: (error: any) => {
+      toast.error('Không thể cập nhật: ' + (error.response?.data || error.message))
+    }
+  })
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => userPaymentApi.deletePayment(id, userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-payments'] })
+      toast.success('Đã xóa phương thức thanh toán')
+    },
+    onError: (error: any) => {
+      toast.error('Không thể xóa: ' + (error.response?.data || error.message))
+    }
+  })
+
+  // Set default mutation
+  const setDefaultMutation = useMutation({
+    mutationFn: (id: string) => userPaymentApi.setDefaultPayment(id, userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-payments'] })
+      toast.success('Đã đặt làm mặc định')
+    },
+    onError: (error: any) => {
+      toast.error('Không thể đặt làm mặc định: ' + (error.response?.data || error.message))
+    }
+  })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -84,39 +101,31 @@ export function PaymentMethods() {
       return
     }
     
-    try {
-      const token = localStorage.getItem('token')
-      const url = editingMethod 
-        ? `${import.meta.env.VITE_API_URL}/api/UserPayments/${editingMethod.id}`
-        : `${import.meta.env.VITE_API_URL}/api/UserPayments`
-      
-      const response = await fetch(url, {
-        method: editingMethod ? 'PUT' : 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'UserId': userId
-        },
-        body: JSON.stringify({
-          ...formData,
-          userId: editingMethod ? undefined : userId
-        })
+    if (editingMethod) {
+      updateMutation.mutate({
+        id: editingMethod.id,
+        data: {
+          bankName: formData.bankName,
+          bankAccountNumber: formData.bankAccountNumber,
+          bankAccountName: formData.bankAccountName,
+          bankBranch: formData.bankBranch,
+          swiftCode: formData.swiftCode,
+          isDefault: formData.isDefault
+        }
       })
-      
-      if (response.ok || response.status === 204) {
-        toast.success(editingMethod ? 'Đã cập nhật phương thức thanh toán' : 'Đã thêm phương thức thanh toán')
-        fetchPaymentMethods()
-        handleCloseDialog()
-      } else {
-        const error = await response.text()
-        toast.error(`Không thể ${editingMethod ? 'cập nhật' : 'thêm'} phương thức: ${error}`)
-      }
-    } catch (error) {
-      toast.error('Đã xảy ra lỗi')
+    } else {
+      createMutation.mutate({
+        bankName: formData.bankName,
+        bankAccountNumber: formData.bankAccountNumber,
+        bankAccountName: formData.bankAccountName,
+        bankBranch: formData.bankBranch,
+        swiftCode: formData.swiftCode,
+        isDefault: formData.isDefault
+      })
     }
   }
 
-  const handleEdit = (method: PaymentMethod) => {
+  const handleEdit = (method: UserPayment) => {
     setEditingMethod(method)
     setFormData({
       bankName: method.bankName,
@@ -129,58 +138,15 @@ export function PaymentMethods() {
     setDialogOpen(true)
   }
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = (id: string) => {
     if (!confirm('Bạn có chắc chắn muốn xóa phương thức thanh toán này?')) {
       return
     }
-    
-    try {
-      const token = localStorage.getItem('token')
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/UserPayments/${id}`,
-        {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'UserId': userId
-          }
-        }
-      )
-      
-      if (response.ok || response.status === 204) {
-        toast.success('Đã xóa phương thức thanh toán')
-        fetchPaymentMethods()
-      } else {
-        toast.error('Không thể xóa phương thức thanh toán')
-      }
-    } catch (error) {
-      toast.error('Đã xảy ra lỗi khi xóa')
-    }
+    deleteMutation.mutate(id)
   }
 
-  const handleSetDefault = async (id: string) => {
-    try {
-      const token = localStorage.getItem('token')
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/UserPayments/${id}/set-default`,
-        {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'UserId': userId
-          }
-        }
-      )
-      
-      if (response.ok || response.status === 204) {
-        toast.success('Đã đặt làm mặc định')
-        fetchPaymentMethods()
-      } else {
-        toast.error('Không thể đặt làm mặc định')
-      }
-    } catch (error) {
-      toast.error('Đã xảy ra lỗi')
-    }
+  const handleSetDefault = (id: string) => {
+    setDefaultMutation.mutate(id)
   }
 
   const handleCloseDialog = () => {
