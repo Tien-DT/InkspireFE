@@ -57,7 +57,7 @@ export function WithdrawRequestStatsCards() {
     try {
       const token = localStorage.getItem('token')
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/WithdrawRequests?$select=id,status,amount,netAmount,platformFeeAmount&$expand=user($select=role)`,
+        `${import.meta.env.VITE_API_URL}/api/WithdrawRequests/stats`,
         {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -67,44 +67,23 @@ export function WithdrawRequestStatsCards() {
       
       if (response.ok) {
         const data = await response.json()
-        const requests = Array.isArray(data) ? data : (data.value || data || [])
-        const validRequests = requests.filter((r: any) => r && (r.id || r.Id))
+        console.log('📊 Stats from backend:', data)
         
-        // Normalize data to handle both PascalCase and camelCase
-        const normalizedRequests = validRequests.map((r: any) => ({
-          id: r.Id || r.id,
-          status: r.Status ?? r.status ?? 0,
-          amount: r.Amount ?? r.amount ?? 0,
-          platformFeeAmount: r.PlatformFeeAmount ?? r.platformFeeAmount,
-          netAmount: r.NetAmount ?? r.netAmount,
-          userRole: r.User?.Role ?? r.user?.role ?? r.User?.role ?? r.user?.Role
-        }))
-        
-        // Calculate CLIENT and FREELANCER stats
-        const clientRequests = normalizedRequests.filter((r: any) => r.userRole === 1)
-        const freelancerRequests = normalizedRequests.filter((r: any) => r.userRole === 2)
-        
-        const stats = {
-          totalRequests: normalizedRequests.length,
-          pendingRequests: normalizedRequests.filter((r: any) => r.status === 0).length,
-          approvedRequests: normalizedRequests.filter((r: any) => r.status === 1).length,
-          rejectedRequests: normalizedRequests.filter((r: any) => r.status === 2).length,
-          totalAmount: normalizedRequests.reduce((sum: number, r: any) => sum + r.amount, 0),
-          pendingAmount: normalizedRequests.filter((r: any) => r.status === 0)
-            .reduce((sum: number, r: any) => sum + r.amount, 0),
-          totalPlatformFee: normalizedRequests.reduce((sum: number, r: any) => 
-            sum + (r.platformFeeAmount || r.amount * 0.2), 0),
-          totalNetAmount: normalizedRequests.reduce((sum: number, r: any) => 
-            sum + (r.netAmount || r.amount * 0.8), 0),
-          // CLIENT stats
-          clientRequests: clientRequests.length,
-          clientTotalWithdraw: clientRequests.reduce((sum: number, r: any) => sum + r.amount, 0),
-          // FREELANCER stats
-          freelancerRequests: freelancerRequests.length,
-          freelancerTotalWithdraw: freelancerRequests.reduce((sum: number, r: any) => sum + r.amount, 0)
-        }
-        
-        setStats(stats)
+        // Map backend response (PascalCase) to frontend state (camelCase)
+        setStats({
+          totalRequests: data.totalRequests || 0,
+          pendingRequests: data.pendingRequests || 0,
+          approvedRequests: data.approvedRequests || 0,
+          rejectedRequests: data.rejectedRequests || 0,
+          totalAmount: data.totalAmount || 0,
+          pendingAmount: data.pendingAmount || 0,
+          totalPlatformFee: data.totalPlatformFee || 0,
+          totalNetAmount: data.totalNetAmount || 0,
+          clientRequests: data.clientRequests || 0,
+          clientTotalWithdraw: data.clientTotalWithdraw || 0,
+          freelancerRequests: data.freelancerRequests || 0,
+          freelancerTotalWithdraw: data.freelancerTotalWithdraw || 0
+        })
       }
     } catch (error) {
       console.error('Error fetching withdraw stats:', error)
