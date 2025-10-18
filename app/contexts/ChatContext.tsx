@@ -17,6 +17,7 @@ interface ChatContextInterface {
   onlineUsers: Set<string>
   isConnected: boolean
   isLoading: boolean
+  unreadCount: number // ⭐ NEW: Total unread message count
 
   // Actions
   setCurrentConversation: (conversation: Conversation | null) => void
@@ -57,6 +58,7 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
   const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set())
   const [isConnected, setIsConnected] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0) // ⭐ NEW: Dedicated unread count state
 
   // Get current user ID from profile or JWT
   const currentUserId = useMemo(() => {
@@ -76,6 +78,46 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
     }
     return profile?.email || 'User'
   }, [profile])
+
+  // ⭐ Calculate unread count whenever conversations change
+  useEffect(() => {
+    if (!currentUserId || !conversations || conversations.length === 0) {
+      setUnreadCount(0)
+      return
+    }
+
+    const total = conversations.reduce((sum, conv) => {
+      const currentUserMember = conv.members?.find(m => m.userId === currentUserId)
+      return sum + (currentUserMember?.unreadCount || 0)
+    }, 0)
+
+    setUnreadCount(total)
+  }, [conversations, currentUserId])
+
+  // ⭐ Poll unread count every 5 seconds (simple fallback)
+  useEffect(() => {
+    if (!isAuthenticated || !currentUserId) return
+
+    const pollUnreadCount = async () => {
+      try {
+        const response = await chatApi.getMyConversations({ page: 1, pageSize: 100 })
+        const convs = response.data || []
+        
+        const total = convs.reduce((sum, conv) => {
+          const member = conv.members?.find(m => m.userId === currentUserId)
+          return sum + (member?.unreadCount || 0)
+        }, 0)
+
+        setUnreadCount(total)
+      } catch (error) {
+        console.error('[ChatContext] Failed to poll unread count:', error)
+      }
+    }
+
+    const interval = setInterval(pollUnreadCount, 5000) // Poll every 5 seconds
+
+    return () => clearInterval(interval)
+  }, [isAuthenticated, currentUserId])
 
   // ===== Initialize =====
   useEffect(() => {
@@ -503,6 +545,7 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
       onlineUsers,
       isConnected,
       isLoading,
+      unreadCount, // ⭐ NEW
       setCurrentConversation,
       loadConversations,
       loadMessages,
@@ -524,6 +567,7 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
       onlineUsers,
       isConnected,
       isLoading,
+      unreadCount, // ⭐ NEW
       loadConversations,
       loadMessages,
       sendMessage,

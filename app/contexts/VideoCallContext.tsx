@@ -6,37 +6,48 @@ import { signalRChatService } from '~/lib/signalr'
 import { useAuth } from './AuthContext'
 
 // ===== WebRTC Configuration =====
+// IMPORTANT: Uses FREE Metered TURN servers
+// Get FREE credentials at: https://www.metered.ca/tools/openrelay/
 const ICE_SERVERS: RTCConfiguration = {
   iceServers: [
-    // Google STUN servers
-    { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun1.l.google.com:19302' },
-    { urls: 'stun:stun2.l.google.com:19302' },
-    { urls: 'stun:stun3.l.google.com:19302' },
-    { urls: 'stun:stun4.l.google.com:19302' },
-    
-    // Free TURN servers from Open Relay Project
+    // Metered Free TURN servers (50GB/month free tier)
+    // Multiple endpoints for redundancy and best performance
     {
-      urls: 'turn:openrelay.metered.ca:80',
-      username: 'openrelayproject',
-      credential: 'openrelayproject'
+      urls: 'turn:a.relay.metered.ca:80',
+      username: 'e46a765198c13d7023cf6687',  // REPLACE with your FREE credentials
+      credential: 'EoRS1HSxWIEbg/E6'        // from https://www.metered.ca/tools/openrelay/
     },
     {
-      urls: 'turn:openrelay.metered.ca:443',
-      username: 'openrelayproject',
-      credential: 'openrelayproject'
+      urls: 'turn:a.relay.metered.ca:80?transport=tcp',
+      username: 'e46a765198c13d7023cf6687',
+      credential: 'EoRS1HSxWIEbg/E6'
     },
     {
-      urls: 'turn:openrelay.metered.ca:443?transport=tcp',
-      username: 'openrelayproject',
-      credential: 'openrelayproject'
+      urls: 'turn:a.relay.metered.ca:443',
+      username: 'e46a765198c13d7023cf6687',
+      credential: 'EoRS1HSxWIEbg/E6'
     },
-    
-    // Backup TURN server from Twilio's public STUN/TURN (no auth required for testing)
-    { urls: 'stun:global.stun.twilio.com:3478' }
+    {
+      urls: 'turn:a.relay.metered.ca:443?transport=tcp',
+      username: 'e46a765198c13d7023cf6687',
+      credential: 'EoRS1HSxWIEbg/E6'
+    },
+    // Backup TURN servers (different domain)
+    {
+      urls: 'turn:b.relay.metered.ca:80',
+      username: 'e46a765198c13d7023cf6687',
+      credential: 'EoRS1HSxWIEbg/E6'
+    },
+    {
+      urls: 'turn:b.relay.metered.ca:443',
+      username: 'e46a765198c13d7023cf6687',
+      credential: 'EoRS1HSxWIEbg/E6'
+    }
   ],
-  iceTransportPolicy: 'all', // Try all paths: host, srflx, and relay
-  iceCandidatePoolSize: 10 // Generate more ICE candidates
+  // FORCE RELAY MODE: Always use TURN server (never direct P2P)
+  // This ensures calls ALWAYS work across any network configuration
+  iceTransportPolicy: 'relay', // ONLY use TURN relay (no host/srflx candidates)
+  iceCandidatePoolSize: 10
 }
 
 // ===== Context Interface =====
@@ -100,11 +111,23 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
 
     // Handle ICE candidates with passed parameters to avoid stale closure
     pc.onicecandidate = (event) => {
-      console.log('[WebRTC] onicecandidate event:', {
-        hasCandidate: !!event.candidate,
-        candidate: event.candidate?.candidate,
-        callId: currentCallId
-      })
+      if (event.candidate) {
+        // Log detailed candidate information
+        console.log('[WebRTC] ===== ICE CANDIDATE GENERATED =====')
+        console.log('[WebRTC] Candidate type:', event.candidate.type) // host, srflx, or relay
+        console.log('[WebRTC] Candidate protocol:', event.candidate.protocol) // udp or tcp
+        console.log('[WebRTC] Candidate address:', event.candidate.address)
+        console.log('[WebRTC] Candidate port:', event.candidate.port)
+        console.log('[WebRTC] Full candidate:', event.candidate.candidate)
+        
+        // VERIFY: In relay mode, should ONLY see "relay" type
+        if (event.candidate.type === 'relay') {
+          console.log('[WebRTC] ✅ RELAY CANDIDATE (via TURN server)')
+        } else {
+          console.warn('[WebRTC] ⚠️ Non-relay candidate detected:', event.candidate.type)
+          console.warn('[WebRTC] This should NOT happen in relay mode!')
+        }
+      }
 
       if (event.candidate && currentCallId) {
         // Determine target user (the other participant)
@@ -112,10 +135,8 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
         const iAmCaller = currentCaller?.userId === profile?.id
         const targetUserId = iAmCaller ? currentReceiver?.userId : currentCaller?.userId
 
-        console.log('[WebRTC] Sending ICE candidate:', {
+        console.log('[WebRTC] Sending ICE candidate to peer:', {
           callId: currentCallId,
-          iAmCaller,
-          myId: profile?.id,
           targetUserId,
           candidateType: event.candidate.type
         })
@@ -137,32 +158,32 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
       }
     }
 
-    // Handle remote stream
+    // Handle remote stream - CRITICAL for receiving video/audio
     pc.ontrack = (event) => {
       console.log('[WebRTC] ===== RECEIVED REMOTE TRACK =====')
       console.log('[WebRTC] Track kind:', event.track.kind)
       console.log('[WebRTC] Track id:', event.track.id)
-      console.log('[WebRTC] Track enabled:', event.track.enabled)
-      console.log('[WebRTC] Track readyState:', event.track.readyState)
       console.log('[WebRTC] Streams count:', event.streams?.length)
 
       if (event.streams && event.streams[0]) {
-        console.log('[WebRTC] Stream id:', event.streams[0].id)
-        console.log(
-          '[WebRTC] Stream tracks:',
-          event.streams[0].getTracks().map((t) => ({ kind: t.kind, id: t.id }))
-        )
-
-        remoteStreamRef.current = event.streams[0]
+        const stream = event.streams[0]
+        console.log('[WebRTC] Stream id:', stream.id)
+        console.log('[WebRTC] Stream tracks:', stream.getTracks().map((t) => t.kind))
+        
+        // Set remote stream
+        remoteStreamRef.current = stream
         setCallState((prev) => ({
           ...prev,
-          remoteStream: event.streams[0]
+          remoteStream: stream
         }))
-        console.log('[WebRTC] ===== REMOTE STREAM SET =====')
+        
+        console.log('[WebRTC] ✅ REMOTE STREAM SET SUCCESSFULLY')
       } else {
-        console.error('[WebRTC] No streams in track event!')
+        console.error('[WebRTC] ❌ NO STREAMS IN TRACK EVENT!')
       }
     }
+    
+    console.log('[WebRTC] ontrack handler registered for callId:', currentCallId)
 
     // Handle connection state changes
     pc.onconnectionstatechange = () => {
@@ -182,6 +203,58 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
       } else if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
         console.error('[WebRTC] ===== CONNECTION FAILED/DISCONNECTED =====')
         endCall()
+      }
+    }
+
+    // Handle ICE connection state changes (more detailed than connection state)
+    pc.oniceconnectionstatechange = () => {
+      console.log('[WebRTC] ===== ICE CONNECTION STATE CHANGED =====')
+      console.log('[WebRTC] ICE connection state:', pc.iceConnectionState)
+      
+      if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
+        console.log('[WebRTC] ===== ICE CONNECTION SUCCESSFUL =====')
+        
+        // Get detailed stats about the connection
+        pc.getStats().then(stats => {
+          stats.forEach(report => {
+            // Log active candidate pair
+            if (report.type === 'candidate-pair' && report.state === 'succeeded') {
+              console.log('[WebRTC] ===== ACTIVE CONNECTION INFO =====')
+              console.log('[WebRTC] Connection ID:', report.id)
+              console.log('[WebRTC] Local candidate ID:', report.localCandidateId)
+              console.log('[WebRTC] Remote candidate ID:', report.remoteCandidateId)
+              console.log('[WebRTC] Bytes sent:', report.bytesSent)
+              console.log('[WebRTC] Bytes received:', report.bytesReceived)
+            }
+            
+            // Log local candidate details
+            if (report.type === 'local-candidate' && report.candidateType) {
+              console.log('[WebRTC] Local candidate type:', report.candidateType)
+              console.log('[WebRTC] Local candidate protocol:', report.protocol)
+              console.log('[WebRTC] Local candidate address:', report.address, ':', report.port)
+              
+              if (report.candidateType === 'relay') {
+                console.log('[WebRTC] ✅ CONFIRMED: Using RELAY (TURN server)')
+                console.log('[WebRTC] TURN server:', report.address)
+              } else {
+                console.warn('[WebRTC] ⚠️ WARNING: Not using RELAY!')
+                console.warn('[WebRTC] Connection type:', report.candidateType)
+              }
+            }
+            
+            // Log remote candidate details
+            if (report.type === 'remote-candidate' && report.candidateType) {
+              console.log('[WebRTC] Remote candidate type:', report.candidateType)
+              console.log('[WebRTC] Remote candidate address:', report.address, ':', report.port)
+            }
+          })
+        })
+      } else if (pc.iceConnectionState === 'failed') {
+        console.error('[WebRTC] ===== ICE CONNECTION FAILED =====')
+        console.error('[WebRTC] ICE failed - check TURN server credentials and network')
+        console.error('[WebRTC] Get FREE credentials at: https://www.metered.ca/tools/openrelay/')
+      } else if (pc.iceConnectionState === 'disconnected') {
+        console.warn('[WebRTC] ICE disconnected - connection may be unstable')
       }
     }
 
@@ -526,7 +599,16 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
     const duration = callState.startTime ? Date.now() - callState.startTime : 0
 
     // Determine target user (the other participant)
-    const targetUserId = callState.caller?.isCaller ? callState.receiver?.userId : callState.caller?.userId
+    // If I'm the caller, notify the receiver; if I'm the receiver, notify the caller
+    const iAmCaller = callState.caller?.userId === profile?.id
+    const targetUserId = iAmCaller ? callState.receiver?.userId : callState.caller?.userId
+
+    console.log('[VideoCallContext] endCall - Notifying other user:', {
+      myId: profile?.id,
+      iAmCaller,
+      targetUserId,
+      callId: callState.callId
+    })
 
     if (targetUserId) {
       signalRChatService.sendCallEnd({
@@ -535,6 +617,9 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
         endTime: Date.now(),
         duration
       })
+      console.log('[VideoCallContext] Call end notification sent to:', targetUserId)
+    } else {
+      console.error('[VideoCallContext] Cannot send call end - no target user!')
     }
 
     setCallState({
@@ -553,7 +638,7 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
     })
 
     cleanupStreams()
-  }, [callState.callId, callState.startTime, cleanupStreams])
+  }, [callState.callId, callState.startTime, callState.caller?.userId, callState.receiver?.userId, profile?.id, cleanupStreams])
 
   const toggleAudio = useCallback(() => {
     if (!localStreamRef.current) return
@@ -586,11 +671,23 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
   const handleCallOffer = useCallback(
     async (offer: CallOffer) => {
       console.log('[WebRTC] ===== RECEIVED CALL OFFER =====')
-      console.log('[WebRTC] Offer details:', JSON.stringify(offer, null, 2))
       console.log('[WebRTC] Call ID:', offer.callId)
       console.log('[WebRTC] Call Type:', offer.callType)
       console.log('[WebRTC] Caller:', offer.caller)
       console.log('[WebRTC] Receiver:', offer.receiver)
+      
+      // CRITICAL: Check if offer has media tracks
+      console.log('[WebRTC] ===== ANALYZING OFFER SDP =====')
+      console.log('[WebRTC] Offer SDP type:', offer.sdp.type)
+      console.log('[WebRTC] Offer has audio:', offer.sdp.sdp?.includes('m=audio'))
+      console.log('[WebRTC] Offer has video:', offer.sdp.sdp?.includes('m=video'))
+      console.log('[WebRTC] Offer SDP length:', offer.sdp.sdp?.length)
+      
+      // Count media lines
+      const audioLines = (offer.sdp.sdp?.match(/m=audio/g) || []).length
+      const videoLines = (offer.sdp.sdp?.match(/m=video/g) || []).length
+      console.log('[WebRTC] Audio lines in offer:', audioLines)
+      console.log('[WebRTC] Video lines in offer:', videoLines)
 
       setCallState({
         callId: offer.callId,
@@ -611,13 +708,41 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
       console.log('[WebRTC] Creating peer connection with callId:', offer.callId)
       const pc = createPeerConnection(offer.callId, offer.caller, offer.receiver)
       
-      // Store peer connection reference
+      // Store peer connection reference BEFORE setting remote description
       peerConnection.current = pc
       console.log('[WebRTC] Peer connection stored for receiver')
+      
+      // Check transceivers BEFORE setting remote description
+      console.log('[WebRTC] Transceivers before setRemoteDescription:', pc.getTransceivers().length)
 
       // Set remote description from offer
+      console.log('[WebRTC] Setting remote description from offer...')
       await pc.setRemoteDescription(new RTCSessionDescription(offer.sdp))
-      console.log('[WebRTC] Remote description set from offer')
+      console.log('[WebRTC] Remote description set successfully')
+      
+      // Check transceivers AFTER setting remote description
+      const transceivers = pc.getTransceivers()
+      console.log('[WebRTC] Transceivers after setRemoteDescription:', transceivers.length)
+      transceivers.forEach((t, index) => {
+        console.log(`[WebRTC] Transceiver ${index}:`, {
+          mid: t.mid,
+          direction: t.direction,
+          currentDirection: t.currentDirection,
+          senderTrack: t.sender?.track?.kind,
+          receiverTrack: t.receiver?.track?.kind
+        })
+      })
+      
+      // Check if receiver tracks are available
+      const receivers = pc.getReceivers()
+      console.log('[WebRTC] Receivers after setRemoteDescription:', receivers.length)
+      receivers.forEach((r, index) => {
+        console.log(`[WebRTC] Receiver ${index}:`, {
+          trackKind: r.track?.kind,
+          trackId: r.track?.id,
+          trackReadyState: r.track?.readyState
+        })
+      })
     },
     [createPeerConnection]
   )

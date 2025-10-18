@@ -6,6 +6,8 @@ import { useAuth } from '~/contexts/AuthContext'
 import { UserRole } from '~/types/user.type'
 import { toast } from 'sonner'
 import { LoadingState } from '~/components/ui/spinner'
+import { IncomingCallToast } from '~/components/call/IncomingCallToast'
+import { VideoCallDialog } from '~/components/call/VideoCallDialog'
 
 interface MainLayoutProps {
   children?: React.ReactNode
@@ -43,6 +45,10 @@ function MainLayoutInner({ children }: MainLayoutProps) {
         <Outlet />
       </main>
       <Footer />
+      
+      {/* Global Call Components - Show on all pages */}
+      <IncomingCallToast />
+      <VideoCallDialog />
     </div>
   )
 }

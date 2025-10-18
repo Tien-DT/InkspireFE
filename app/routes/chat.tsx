@@ -4,8 +4,6 @@ import { ChatHeader } from '~/components/chat/ChatHeader'
 import { MessageList } from '~/components/chat/MessageList'
 import { MessageInput } from '~/components/chat/MessageInput'
 import { TypingIndicator } from '~/components/chat/TypingIndicator'
-import { VideoCallDialog } from '~/components/call/VideoCallDialog'
-import { IncomingCallDialog } from '~/components/call/IncomingCallDialog'
 import { useChat } from '~/contexts/ChatContext'
 import { useConnectionStatus } from '~/hooks/useChatHelpers'
 import { Card } from '~/components/ui/card'
@@ -42,9 +40,6 @@ export default function Chat() {
           )}
         </div>
       </Card>
-
-      <VideoCallDialog />
-      <IncomingCallDialog />
     </div>
   )
 }

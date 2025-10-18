@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { MessageSquareText, ChevronRight, ArrowLeft, Send } from 'lucide-react'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
@@ -11,9 +11,10 @@ import { ScrollArea } from '~/components/ui/scroll-area'
 import { Separator } from '~/components/ui/separator'
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar'
 import { Link, useNavigate } from 'react-router'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { chatApi } from '~/apis/chat.api'
 import { useAuth } from '~/contexts/AuthContext'
+import { useChat } from '~/contexts/ChatContext'
 import type { Conversation, Message } from '~/types/chat.type'
 import { formatDistanceToNow, format } from 'date-fns'
 import { vi } from 'date-fns/locale'
@@ -21,33 +22,18 @@ import { Input } from '~/components/ui/input'
 
 export function ChatPopup() {
   const { profile } = useAuth()
+  const { conversations: allConversations, messages: contextMessages, loadMessages, refreshConversations, unreadCount } = useChat()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [isOpen, setIsOpen] = useState(false)
   const [closeTimeout, setCloseTimeout] = useState<NodeJS.Timeout | null>(null)
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null)
   const [messageText, setMessageText] = useState('')
-  const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  // Fetch recent conversations (top 5)
-  const { data, isLoading, refetch } = useQuery({
-    queryKey: ['chat-popup-conversations'],
-    queryFn: async () => {
-      const response = await chatApi.getMyConversations({ page: 1, pageSize: 5 })
-      return response.data || []
-    },
-    enabled: false, // Only fetch when dropdown opens
-    staleTime: 0, // Always refetch
-    gcTime: 0 // Don't cache
-  })
+  // Take top 5 conversations from context
+  const conversations = allConversations.slice(0, 5)
 
-  const conversations = data || []
-
-  // Calculate total unread count
-  const unreadCount = conversations.reduce((total, conv) => {
-    const member = conv.members?.find(m => m.userId === profile?.id)
-    return total + (member?.unreadCount || 0)
-  }, 0)
+  // unreadCount now comes directly from context (updates realtime via SignalR!)
 
   // Cleanup timeout on unmount
   React.useEffect(() => {
@@ -65,8 +51,9 @@ export function ChatPopup() {
       setCloseTimeout(null)
     }
     setIsOpen(true)
-    console.log('💬 Chat popup hovered - refetching conversations')
-    refetch()
+    console.log('💬 Chat popup hovered - refreshing conversations from context')
+    // Context data is already updated via SignalR - just refresh from API if needed
+    refreshConversations()
   }
 
   // Handle mouse leave - close dropdown with delay
@@ -94,20 +81,34 @@ export function ChatPopup() {
     setMessageText('')
   }
 
-  // Fetch messages for selected conversation
-  const { data: messagesData, isLoading: messagesLoading } = useQuery({
-    queryKey: ['chat-popup-messages', selectedConversation?.id],
-    queryFn: async () => {
-      if (!selectedConversation?.id) return { data: [], totalCount: 0 }
-      const response = await chatApi.getConversationMessages(selectedConversation.id, { page: 1, pageSize: 50 })
-      return response
-    },
-    enabled: !!selectedConversation?.id,
-    staleTime: 0,
-    refetchInterval: selectedConversation ? 3000 : false // Auto-refresh every 3s when viewing conversation
-  })
+  // Load messages from context when conversation is selected
+  useEffect(() => {
+    if (selectedConversation?.id && profile?.id) {
+      loadMessages(selectedConversation.id)
+      
+      // Mark conversation as read
+      const currentUserMember = selectedConversation.members?.find(m => m.userId === profile.id)
+      if (currentUserMember && currentUserMember.unreadCount && currentUserMember.unreadCount > 0) {
+        console.log('[ChatPopup] 📖 Marking conversation as read:', selectedConversation.id)
+        chatApi.resetUnreadCount(currentUserMember.id).catch(err => {
+          console.error('[ChatPopup] Failed to mark as read:', err)
+        })
+      }
+    }
+  }, [selectedConversation?.id, loadMessages, profile?.id])
 
-  const messages = messagesData?.data || []
+  // Get messages for selected conversation from context (sort by sendAt - oldest first)
+  const messages = selectedConversation?.id 
+    ? (contextMessages[selectedConversation.id] || [])
+        .slice() // Clone array
+        .sort((a, b) => {
+          // Sort by sendAt ascending (oldest first = oldest at TOP)
+          const dateA = a.sendAt ? new Date(a.sendAt).getTime() : 0
+          const dateB = b.sendAt ? new Date(b.sendAt).getTime() : 0
+          return dateA - dateB // Ascending: oldest -> newest
+        })
+    : []
+  const messagesLoading = false // Context loads in background
 
   // Send message mutation
   const sendMessageMutation = useMutation({
@@ -121,8 +122,7 @@ export function ChatPopup() {
     },
     onSuccess: () => {
       setMessageText('')
-      queryClient.invalidateQueries({ queryKey: ['chat-popup-messages', selectedConversation?.id] })
-      queryClient.invalidateQueries({ queryKey: ['chat-popup-conversations'] })
+      // No need to invalidate queries - context updates via SignalR automatically!
     },
     onError: (error) => {
       console.error('Send message error:', error)
@@ -137,12 +137,7 @@ export function ChatPopup() {
     sendMessageMutation.mutate(trimmed)
   }
 
-  // Scroll to bottom when messages change
-  useEffect(() => {
-    if (selectedConversation && messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
-    }
-  }, [messages, selectedConversation])
+  // DON'T auto-scroll - let user scroll naturally (oldest at top, newest at bottom)
 
   // Get other member info
   const getOtherMember = (conversation: Conversation) => {
@@ -212,14 +207,7 @@ export function ChatPopup() {
 
             {/* Conversations list */}
             <ScrollArea className="h-[400px]">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="flex flex-col items-center gap-2">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-primary" />
-                <p className="text-sm text-muted-foreground">Đang tải...</p>
-              </div>
-            </div>
-          ) : conversations.length === 0 ? (
+          {conversations.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 px-4">
               <MessageSquareText className="h-12 w-12 text-muted-foreground/50 mb-3" />
               <p className="text-sm text-muted-foreground text-center">
@@ -380,7 +368,6 @@ export function ChatPopup() {
                             </div>
                           )
                         })}
-                        <div ref={messagesEndRef} />
                       </div>
                     )}
                   </ScrollArea>

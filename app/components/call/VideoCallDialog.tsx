@@ -19,6 +19,9 @@ export function VideoCallDialog() {
     if (localVideoRef.current && callState.localStream) {
       console.log('[VideoCallDialog] Attaching local stream')
       localVideoRef.current.srcObject = callState.localStream
+      localVideoRef.current.play().catch(err => {
+        console.error('[VideoCallDialog] Error playing local video:', err)
+      })
     }
   }, [callState.localStream])
 
@@ -26,7 +29,16 @@ export function VideoCallDialog() {
   useEffect(() => {
     if (remoteVideoRef.current && callState.remoteStream) {
       console.log('[VideoCallDialog] Attaching remote stream')
+      console.log('[VideoCallDialog] Remote stream tracks:', callState.remoteStream.getTracks().map(t => ({
+        kind: t.kind,
+        enabled: t.enabled,
+        muted: t.muted,
+        readyState: t.readyState
+      })))
       remoteVideoRef.current.srcObject = callState.remoteStream
+      remoteVideoRef.current.play().catch(err => {
+        console.error('[VideoCallDialog] Error playing remote video:', err)
+      })
     }
   }, [callState.remoteStream])
 
@@ -47,23 +59,25 @@ export function VideoCallDialog() {
     return () => clearInterval(interval)
   }, [callState.status, callState.startTime])
 
-  // Only show dialog when in active call
-  const isActiveCall = [
-    CallStatus.Initiating,
-    CallStatus.Ringing,
-    CallStatus.Connecting,
-    CallStatus.Connected
-  ].includes(callState.status)
+  const isCaller = callState.caller?.userId === profile?.id
+  const isReceiver = callState.receiver?.userId === profile?.id
+  const otherParticipant = isCaller ? callState.receiver : callState.caller
 
-  if (!isActiveCall) {
+  // Show conditions:
+  // - CALLER: show when Initiating, Ringing, Connecting, or Connected
+  // - RECEIVER: 
+  //   * DON'T show during Ringing (they see IncomingCallToast instead)
+  //   * DO show during Connecting/Connected (after accepting call)
+  const shouldShowDialog = 
+    (isCaller && [CallStatus.Initiating, CallStatus.Ringing, CallStatus.Connecting, CallStatus.Connected].includes(callState.status)) ||
+    (isReceiver && [CallStatus.Connecting, CallStatus.Connected].includes(callState.status))
+
+  if (!shouldShowDialog) {
     return null
   }
 
-  const isCaller = callState.caller?.userId === profile?.id
-  const otherParticipant = isCaller ? callState.receiver : callState.caller
-
   return (
-    <Dialog open={isActiveCall}>
+    <Dialog open={shouldShowDialog}>
       <DialogContent className="max-w-4xl h-[80vh] p-0">
         <div className="relative w-full h-full bg-gray-900 rounded-lg overflow-hidden">
           {/* Remote Video (Main) */}

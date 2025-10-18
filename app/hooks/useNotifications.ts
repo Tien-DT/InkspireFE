@@ -145,7 +145,7 @@ export function useNotifications(isAuthenticated: boolean = false) {
       if (wasUnread) {
         setUnreadCount(prev => Math.max(0, prev - 1))
       }
-      toast.success('Notification deleted')
+      toast.success('Đã xóa thông báo')
     } catch (error) {
       console.error('Error deleting notification:', error)
       toast.error('Failed to delete notification')
