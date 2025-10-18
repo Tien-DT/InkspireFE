@@ -311,17 +311,8 @@ function ProjectDetailContent() {
 
   const handleDeposit = async (timeline: TimelineItem) => {
     try {
-      // Get wallet balance
-      const wallet = walletData?.data
-      const availableBalance = wallet?.balance || 0
-
-      // Check if user has enough funds
-      if (availableBalance < timeline.budget) {
-        setShowInsufficientFundsDialog(true)
-        return
-      }
-
       // Update milestone status to 2 (Đã thanh toán)
+      // Backend will check wallet balance and handle the deposit
       await updateMilestone.mutateAsync({
         milestoneId: timeline.id,
         payload: {
@@ -336,8 +327,14 @@ function ProjectDetailContent() {
         typeof errorData === 'string'
           ? errorData
           : (errorData as { message?: string })?.message || 'Đặt cọc thất bại. Vui lòng thử lại.'
-      setErrorMessage(errorMsg)
-      setShowErrorDialog(true)
+      
+      // Check if error is about insufficient balance
+      if (errorMsg.includes('Số dư ví không đủ') || errorMsg.includes('không đủ để đặt cọc')) {
+        setShowInsufficientFundsDialog(true)
+      } else {
+        setErrorMessage(errorMsg)
+        setShowErrorDialog(true)
+      }
     }
   }
 
