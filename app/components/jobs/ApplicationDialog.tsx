@@ -76,13 +76,13 @@ export function ApplicationDialog({ open, onOpenChange, onSubmit, isSubmitting =
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className='sm:max-w-[600px]'>
+      <DialogContent className='sm:max-w-[700px]'>
         <DialogHeader>
           <DialogTitle className='text-2xl font-bold'>Nộp hồ sơ ứng tuyển</DialogTitle>
           <DialogDescription>Vui lòng tải lên CV và viết thư giới thiệu của bạn</DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmitForm)} className='space-y-6 py-4'>
+        <form onSubmit={handleSubmit(onSubmitForm)} className='space-y-6 py-4 w-full overflow-y-auto max-h-[70vh]'>
           {/* CV Upload */}
           <div className='space-y-3'>
             <Label htmlFor='cv-upload' className='flex items-center text-base font-semibold'>
@@ -164,15 +164,14 @@ export function ApplicationDialog({ open, onOpenChange, onSubmit, isSubmitting =
               id='coverLetter'
               placeholder='Viết giới thiệu ngắn gọn về bản thân (điểm mạnh, kinh nghiệm) và nêu rõ mong muốn, lý do bạn muốn ứng tuyển cho vị trí này. (Tối thiểu 50 ký tự)'
               rows={6}
-              className={cn('resize-none', errors.coverLetter && 'border-destructive')}
+              className={cn('w-full', errors.coverLetter && 'border-destructive')}
               {...register('coverLetter')}
               disabled={isSubmitting}
               aria-invalid={!!errors.coverLetter}
             />
-            <div className='flex justify-between text-xs text-muted-foreground'>
-              <span>{coverLetter.length}/2000 ký tự</span>
-              {coverLetter.length > 0 && coverLetter.length < 50 && (
-                <span className='text-amber-600'>Còn thiếu {50 - coverLetter.length} ký tự</span>
+            <div className='flex flex-wrap justify-between gap-2 text-xs text-muted-foreground'>
+              {coverLetter.length > 0 && coverLetter.length < 10 && (
+                <span className='text-amber-600 flex-shrink-0'>Còn thiếu {10 - coverLetter.length} ký tự</span>
               )}
             </div>
             {errors.coverLetter && <p className='text-sm text-destructive'>{errors.coverLetter.message}</p>}
