@@ -97,6 +97,14 @@ export function ChatPopup() {
     }
   }, [selectedConversation?.id, loadMessages, profile?.id])
 
+  // ⭐ Refresh messages when popup is opened (hover) and conversation is already selected
+  useEffect(() => {
+    if (isOpen && selectedConversation?.id) {
+      console.log('[ChatPopup] 🔄 Popup opened, refreshing messages for conversation:', selectedConversation.id)
+      loadMessages(selectedConversation.id)
+    }
+  }, [isOpen, selectedConversation?.id, loadMessages])
+
   // Get messages for selected conversation from context (sort by sendAt - oldest first)
   const messages = selectedConversation?.id 
     ? (contextMessages[selectedConversation.id] || [])
@@ -122,7 +130,15 @@ export function ChatPopup() {
     },
     onSuccess: () => {
       setMessageText('')
-      // No need to invalidate queries - context updates via SignalR automatically!
+      
+      // Reload messages immediately to show the new message
+      if (selectedConversation?.id) {
+        console.log('[ChatPopup] ✅ Message sent, reloading messages...')
+        loadMessages(selectedConversation.id)
+        
+        // Also refresh conversations to update latest message
+        refreshConversations()
+      }
     },
     onError: (error) => {
       console.error('Send message error:', error)
