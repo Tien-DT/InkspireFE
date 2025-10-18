@@ -40,6 +40,7 @@ export function TransactionTable() {
   const [currentPage, setCurrentPage] = useState(1)
   const [transactions, setTransactions] = useState<TransactionRecord[]>([])
   const [totalPages, setTotalPages] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [filters, setFilters] = useState({
     type: undefined as string | undefined,
@@ -72,6 +73,7 @@ export function TransactionTable() {
         }))
         setTransactions(formattedTransactions)
         setTotalPages(response.data.totalPages)
+        setTotalCount(response.data.totalCount)
       }
     } catch (error) {
       console.error('Failed to fetch transactions:', error)
@@ -203,7 +205,10 @@ export function TransactionTable() {
           </Table>
         </div>
 
-        <div className='mt-3 flex justify-center'>
+        <div className='mt-3 flex flex-col sm:flex-row items-center justify-between gap-3'>
+          <div className='text-sm text-slate-600'>
+            Hiển thị {(currentPage - 1) * 10 + 1} - {Math.min(currentPage * 10, totalCount)} trong tổng {totalCount} giao dịch
+          </div>
           <Pagination>
             <PaginationContent>
               <PaginationItem>
@@ -215,37 +220,54 @@ export function TransactionTable() {
                       changePage(currentPage - 1)
                     }
                   }}
+                  className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
                 />
               </PaginationItem>
-              {[1, 2, 3].map((page) => (
-                <PaginationItem key={page}>
-                  <PaginationLink
-                    href='#'
-                    isActive={currentPage === page}
-                    onClick={(event) => {
-                      event.preventDefault()
-                      changePage(page)
-                    }}
-                  >
-                    {page}
+              
+              {currentPage > 2 && (
+                <>
+                  <PaginationItem>
+                    <PaginationLink href='#' onClick={(e) => { e.preventDefault(); changePage(1); }}>
+                      1
+                    </PaginationLink>
+                  </PaginationItem>
+                  {currentPage > 3 && <PaginationItem><PaginationEllipsis /></PaginationItem>}
+                </>
+              )}
+              
+              {currentPage > 1 && (
+                <PaginationItem>
+                  <PaginationLink href='#' onClick={(e) => { e.preventDefault(); changePage(currentPage - 1); }}>
+                    {currentPage - 1}
                   </PaginationLink>
                 </PaginationItem>
-              ))}
+              )}
+              
               <PaginationItem>
-                <PaginationEllipsis />
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationLink
-                  href='#'
-                  isActive={currentPage === totalPages}
-                  onClick={(event) => {
-                    event.preventDefault()
-                    changePage(totalPages)
-                  }}
-                >
-                  {totalPages}
+                <PaginationLink href='#' isActive>
+                  {currentPage}
                 </PaginationLink>
               </PaginationItem>
+              
+              {currentPage < totalPages && (
+                <PaginationItem>
+                  <PaginationLink href='#' onClick={(e) => { e.preventDefault(); changePage(currentPage + 1); }}>
+                    {currentPage + 1}
+                  </PaginationLink>
+                </PaginationItem>
+              )}
+              
+              {currentPage < totalPages - 1 && (
+                <>
+                  {currentPage < totalPages - 2 && <PaginationItem><PaginationEllipsis /></PaginationItem>}
+                  <PaginationItem>
+                    <PaginationLink href='#' onClick={(e) => { e.preventDefault(); changePage(totalPages); }}>
+                      {totalPages}
+                    </PaginationLink>
+                  </PaginationItem>
+                </>
+              )}
+              
               <PaginationItem>
                 <PaginationNext
                   href='#'
@@ -255,6 +277,7 @@ export function TransactionTable() {
                       changePage(currentPage + 1)
                     }
                   }}
+                  className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
                 />
               </PaginationItem>
             </PaginationContent>

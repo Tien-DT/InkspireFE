@@ -51,6 +51,7 @@ export function ProjectTable() {
   const [currentPage, setCurrentPage] = useState(1)
   const [projects, setProjects] = useState<ProjectRecord[]>([])
   const [totalPages, setTotalPages] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [filters, setFilters] = useState({
     status: undefined as number | undefined,
@@ -92,6 +93,7 @@ export function ProjectTable() {
         }))
         setProjects(formattedProjects)
         setTotalPages(response.data.totalPages)
+        setTotalCount(response.data.totalCount)
       }
     } catch (error) {
       console.error('Failed to fetch projects:', error)
@@ -300,7 +302,10 @@ export function ProjectTable() {
           </Table>
         </div>
 
-        <div className='mt-3 flex justify-center'>
+        <div className='mt-3 flex flex-col sm:flex-row items-center justify-between gap-3'>
+          <div className='text-sm text-slate-600'>
+            Hiển thị {(currentPage - 1) * 10 + 1} - {Math.min(currentPage * 10, totalCount)} trong tổng {totalCount} dự án
+          </div>
           <Pagination>
             <PaginationContent>
               <PaginationItem>
@@ -312,37 +317,54 @@ export function ProjectTable() {
                       handlePageChange(currentPage - 1)
                     }
                   }}
+                  className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
                 />
               </PaginationItem>
-              {[1, 2, 3].map((page) => (
-                <PaginationItem key={page}>
-                  <PaginationLink
-                    href='#'
-                    isActive={currentPage === page}
-                    onClick={(event) => {
-                      event.preventDefault()
-                      handlePageChange(page)
-                    }}
-                  >
-                    {page}
+              
+              {currentPage > 2 && (
+                <>
+                  <PaginationItem>
+                    <PaginationLink href='#' onClick={(e) => { e.preventDefault(); handlePageChange(1); }}>
+                      1
+                    </PaginationLink>
+                  </PaginationItem>
+                  {currentPage > 3 && <PaginationItem><PaginationEllipsis /></PaginationItem>}
+                </>
+              )}
+              
+              {currentPage > 1 && (
+                <PaginationItem>
+                  <PaginationLink href='#' onClick={(e) => { e.preventDefault(); handlePageChange(currentPage - 1); }}>
+                    {currentPage - 1}
                   </PaginationLink>
                 </PaginationItem>
-              ))}
+              )}
+              
               <PaginationItem>
-                <PaginationEllipsis />
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationLink
-                  href='#'
-                  isActive={currentPage === totalPages}
-                  onClick={(event) => {
-                    event.preventDefault()
-                    handlePageChange(totalPages)
-                  }}
-                >
-                  {totalPages}
+                <PaginationLink href='#' isActive>
+                  {currentPage}
                 </PaginationLink>
               </PaginationItem>
+              
+              {currentPage < totalPages && (
+                <PaginationItem>
+                  <PaginationLink href='#' onClick={(e) => { e.preventDefault(); handlePageChange(currentPage + 1); }}>
+                    {currentPage + 1}
+                  </PaginationLink>
+                </PaginationItem>
+              )}
+              
+              {currentPage < totalPages - 1 && (
+                <>
+                  {currentPage < totalPages - 2 && <PaginationItem><PaginationEllipsis /></PaginationItem>}
+                  <PaginationItem>
+                    <PaginationLink href='#' onClick={(e) => { e.preventDefault(); handlePageChange(totalPages); }}>
+                      {totalPages}
+                    </PaginationLink>
+                  </PaginationItem>
+                </>
+              )}
+              
               <PaginationItem>
                 <PaginationNext
                   href='#'
@@ -352,6 +374,7 @@ export function ProjectTable() {
                       handlePageChange(currentPage + 1)
                     }
                   }}
+                  className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
                 />
               </PaginationItem>
             </PaginationContent>
