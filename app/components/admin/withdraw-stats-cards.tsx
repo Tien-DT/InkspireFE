@@ -11,7 +11,12 @@ export function WithdrawRequestStatsCards() {
     totalAmount: 0,
     pendingAmount: 0,
     totalPlatformFee: 0,
-    totalNetAmount: 0
+    totalNetAmount: 0,
+    // CLIENT stats
+    clientRequests: 0,
+    clientTotalWithdraw: 0,
+    freelancerRequests: 0,
+    freelancerTotalWithdraw: 0
   })
 
   useEffect(() => {
@@ -22,7 +27,7 @@ export function WithdrawRequestStatsCards() {
     try {
       const token = localStorage.getItem('token')
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/WithdrawRequests?$select=id,status,amount,netAmount,platformFeeAmount`,
+        `${import.meta.env.VITE_API_URL}/api/WithdrawRequests?$select=id,status,amount,netAmount,platformFeeAmount&$expand=user($select=role)`,
         {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -41,8 +46,13 @@ export function WithdrawRequestStatsCards() {
           status: r.Status ?? r.status ?? 0,
           amount: r.Amount ?? r.amount ?? 0,
           platformFeeAmount: r.PlatformFeeAmount ?? r.platformFeeAmount,
-          netAmount: r.NetAmount ?? r.netAmount
+          netAmount: r.NetAmount ?? r.netAmount,
+          userRole: r.User?.Role ?? r.user?.role ?? r.User?.role ?? r.user?.Role
         }))
+        
+        // Calculate CLIENT and FREELANCER stats
+        const clientRequests = normalizedRequests.filter((r: any) => r.userRole === 1)
+        const freelancerRequests = normalizedRequests.filter((r: any) => r.userRole === 2)
         
         const stats = {
           totalRequests: normalizedRequests.length,
@@ -55,7 +65,13 @@ export function WithdrawRequestStatsCards() {
           totalPlatformFee: normalizedRequests.reduce((sum: number, r: any) => 
             sum + (r.platformFeeAmount || r.amount * 0.2), 0),
           totalNetAmount: normalizedRequests.reduce((sum: number, r: any) => 
-            sum + (r.netAmount || r.amount * 0.8), 0)
+            sum + (r.netAmount || r.amount * 0.8), 0),
+          // CLIENT stats
+          clientRequests: clientRequests.length,
+          clientTotalWithdraw: clientRequests.reduce((sum: number, r: any) => sum + r.amount, 0),
+          // FREELANCER stats
+          freelancerRequests: freelancerRequests.length,
+          freelancerTotalWithdraw: freelancerRequests.reduce((sum: number, r: any) => sum + r.amount, 0)
         }
         
         setStats(stats)
@@ -142,15 +158,72 @@ export function WithdrawRequestStatsCards() {
             {formatCurrency(stats.totalPlatformFee)}
           </div>
           <p className='text-xs sm:text-sm text-purple-600 mt-1'>
-            Từ tổng {formatCurrency(stats.totalAmount)} yêu cầu rút tiền (20% hoa hồng)
+            Từ tổng {formatCurrency(stats.totalAmount)} yêu cầu rút tiền
           </p>
           <div className='mt-2 pt-2 border-t border-purple-200'>
             <p className='text-xs sm:text-sm text-gray-600'>
-              Freelancer nhận: <span className='font-semibold text-green-600'>{formatCurrency(stats.totalNetAmount)}</span>
+              Người nhận: <span className='font-semibold text-green-600'>{formatCurrency(stats.totalNetAmount)}</span>
             </p>
           </div>
         </CardContent>
       </Card>
+
+      {/* Role-based statistics */}
+      <div className='grid gap-2 md:grid-cols-2'>
+        {/* CLIENT stats */}
+        <Card className='bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 border-0'>
+          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-1.5'>
+            <CardTitle className='text-sm sm:text-base font-bold text-blue-700'>
+              Thống kê CLIENT
+            </CardTitle>
+            <Banknote className='h-5 w-5 text-blue-600 flex-shrink-0' />
+          </CardHeader>
+          <CardContent className='p-3 sm:p-4'>
+            <div className='space-y-2'>
+              <div className='flex justify-between items-center'>
+                <span className='text-xs sm:text-sm text-gray-600'>Số yêu cầu:</span>
+                <span className='font-bold text-blue-700'>{stats.clientRequests}</span>
+              </div>
+              <div className='flex justify-between items-center'>
+                <span className='text-xs sm:text-sm text-gray-600'>Tổng rút:</span>
+                <span className='font-bold text-blue-700'>{formatCurrency(stats.clientTotalWithdraw)}</span>
+              </div>
+              <div className='pt-2 border-t border-blue-200'>
+                <p className='text-xs text-blue-600'>
+                  ✓ Không mất phí hoa hồng (0% commission)
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* FREELANCER stats */}
+        <Card className='bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 border-0'>
+          <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-1.5'>
+            <CardTitle className='text-sm sm:text-base font-bold text-purple-700'>
+              Thống kê FREELANCER
+            </CardTitle>
+            <Banknote className='h-5 w-5 text-purple-600 flex-shrink-0' />
+          </CardHeader>
+          <CardContent className='p-3 sm:p-4'>
+            <div className='space-y-2'>
+              <div className='flex justify-between items-center'>
+                <span className='text-xs sm:text-sm text-gray-600'>Số yêu cầu:</span>
+                <span className='font-bold text-purple-700'>{stats.freelancerRequests}</span>
+              </div>
+              <div className='flex justify-between items-center'>
+                <span className='text-xs sm:text-sm text-gray-600'>Tổng rút:</span>
+                <span className='font-bold text-purple-700'>{formatCurrency(stats.freelancerTotalWithdraw)}</span>
+              </div>
+              <div className='pt-2 border-t border-purple-200'>
+                <p className='text-xs text-purple-600'>
+                  ⓘ Có phí hoa hồng (20% commission)
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

@@ -31,6 +31,7 @@ interface WithdrawRequest {
     firstName?: string
     lastName?: string
     email?: string
+    role?: number
   }
   walletId: string
   amount: number
@@ -56,7 +57,8 @@ const normalizeWithdrawRequest = (data: any): WithdrawRequest => {
     user: data.User ? {
       firstName: data.User.FirstName || data.User.firstName,
       lastName: data.User.LastName || data.User.lastName,
-      email: data.User.Email || data.User.email
+      email: data.User.Email || data.User.email,
+      role: data.User.Role ?? data.User.role
     } : data.user,
     walletId: data.WalletId || data.walletId,
     amount: data.Amount ?? data.amount ?? 0,
@@ -406,8 +408,9 @@ export function WithdrawRequestTable() {
             <TableHeader>
               <TableRow className='text-xs sm:text-sm'>
                 <TableHead>Người dùng</TableHead>
+                <TableHead>Role</TableHead>
                 <TableHead>Tổng tiền</TableHead>
-                <TableHead>Freelancer nhận</TableHead>
+                <TableHead>Người nhận</TableHead>
                 <TableHead>Hoa hồng</TableHead>
                 <TableHead>Số tài khoản</TableHead>
                 <TableHead>Tên ngân hàng</TableHead>
@@ -421,7 +424,7 @@ export function WithdrawRequestTable() {
             <TableBody>
               {withdrawRequests.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={11} className="text-center py-8 text-gray-500">
+                  <TableCell colSpan={12} className="text-center py-8 text-gray-500">
                     Không có yêu cầu rút tiền nào
                   </TableCell>
                 </TableRow>
@@ -435,6 +438,19 @@ export function WithdrawRequestTable() {
                         </div>
                         <div className="text-sm text-gray-500">{request.user?.email || ''}</div>
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      {request.user?.role === 1 ? (
+                        <Badge variant="default" className="bg-blue-600 hover:bg-blue-700">
+                          CLIENT
+                        </Badge>
+                      ) : request.user?.role === 2 ? (
+                        <Badge variant="default" className="bg-purple-600 hover:bg-purple-700">
+                          FREELANCER
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary">N/A</Badge>
+                      )}
                     </TableCell>
                     <TableCell className="font-medium">
                       {request.amount ? formatCurrency(request.amount) : '0 ₫'}
