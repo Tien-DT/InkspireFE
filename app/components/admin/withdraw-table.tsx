@@ -97,29 +97,28 @@ export function WithdrawRequestTable() {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
-  const [pageSize] = useState(20)
+  const [pageSize, setPageSize] = useState(20)
 
   useEffect(() => {
     fetchWithdrawRequests()
-  }, [currentPage])
+  }, [currentPage, pageSize])
+  
+  // Reset to page 1 when pageSize changes
+  const handlePageSizeChange = (newPageSize: number) => {
+    // Validate: must be between 1 and 100
+    const validSize = Math.max(1, Math.min(100, newPageSize))
+    setPageSize(validSize)
+    setCurrentPage(1)
+  }
 
   const fetchWithdrawRequests = async () => {
     try {
       setLoading(true)
       const token = localStorage.getItem('token')
       
-      // OData pagination parameters
-      const skip = (currentPage - 1) * pageSize
-      const odataParams = [
-        `$expand=user,wallet`,
-        `$orderby=createdAt desc`,
-        `$top=${pageSize}`,
-        `$skip=${skip}`,
-        `$count=true`
-      ].join('&')
-      
+      // Use new pagination API (no OData)
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/WithdrawRequests?${odataParams}`,
+        `${import.meta.env.VITE_API_URL}/api/WithdrawRequests?page=${currentPage}&pageSize=${pageSize}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -129,32 +128,17 @@ export function WithdrawRequestTable() {
       
       if (response.ok) {
         const data = await response.json()
+        console.log('📊 API Response:', data)
         
-        let rawRequests: any[] = []
-        let count = 0
+        // Normalize items from PascalCase to camelCase
+        const normalizedRequests = (data.items || []).map(normalizeWithdrawRequest)
         
-        // OData returns data in 'value' property with @odata.count for total
-        if (data['@odata.count'] !== undefined) {
-          count = data['@odata.count']
-          rawRequests = data.value || []
-        } else if (Array.isArray(data)) {
-          // Direct array response (non-OData or OData without count)
-          rawRequests = data
-          count = data.length
-        } else if (data.value) {
-          // OData format without count
-          rawRequests = data.value
-          count = data.value.length
-        } else {
-          rawRequests = []
-          count = 0
-        }
-        
-        // Normalize all requests from PascalCase to camelCase
-        const normalizedRequests = rawRequests.map(normalizeWithdrawRequest)
+        console.log('📝 Fetched items:', normalizedRequests.length, 'Total count:', data.totalCount)
         
         setWithdrawRequests(normalizedRequests)
-        setTotalCount(count)
+        setTotalCount(data.totalCount || 0)
+      } else {
+        toast.error('Không thể tải danh sách yêu cầu rút tiền')
       }
     } catch (error) {
       console.error('Error fetching withdraw requests:', error)
@@ -528,10 +512,34 @@ export function WithdrawRequestTable() {
           </Table>
           
           {/* Pagination */}
-          {totalCount > pageSize && (
-            <div className="flex items-center justify-between px-4 py-4 border-t">
-              <div className="text-sm text-gray-500">
-                Hiển thị {((currentPage - 1) * pageSize) + 1} - {Math.min(currentPage * pageSize, totalCount)} trong tổng số {totalCount} yêu cầu
+          {withdrawRequests.length > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-4 border-t">
+              <div className="flex items-center gap-4">
+                <div className="text-sm text-gray-500">
+                  Hiển thị {totalCount === 0 ? 0 : ((currentPage - 1) * pageSize) + 1} - {Math.min(currentPage * pageSize, totalCount)} trong tổng số {totalCount} yêu cầu
+                </div>
+                <div className="flex items-center gap-2">
+                  <label htmlFor="pageSize" className="text-sm text-gray-500 whitespace-nowrap">
+                    Số dòng:
+                  </label>
+                  <input
+                    id="pageSize"
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={pageSize}
+                    onChange={(e) => handlePageSizeChange(Number(e.target.value) || 20)}
+                    onBlur={(e) => {
+                      // On blur, ensure valid value
+                      const val = Number(e.target.value)
+                      if (isNaN(val) || val < 1) {
+                        handlePageSizeChange(20)
+                      }
+                    }}
+                    className="border border-gray-300 rounded-md px-3 py-1 text-sm w-16 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    title="Nhập số dòng (1-100)"
+                  />
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <Button
@@ -552,7 +560,7 @@ export function WithdrawRequestTable() {
                   onClick={() => setCurrentPage(p => Math.min(Math.ceil(totalCount / pageSize), p + 1))}
                   disabled={currentPage >= Math.ceil(totalCount / pageSize)}
                 >
-                  Sau
+                  Tiếp
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
