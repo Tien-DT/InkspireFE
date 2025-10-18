@@ -20,6 +20,7 @@
     "verify-deploy:full": "node verify-deployment.mjs --build"
   },
   "dependencies": {
+    "@daily-co/daily-js": "^0.85.0",
     "@hookform/resolvers": "^5.2.2",
     "@microsoft/signalr": "^9.0.6",
     "@radix-ui/react-accordion": "^1.2.12",

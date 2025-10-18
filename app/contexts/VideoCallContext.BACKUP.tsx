@@ -402,11 +402,6 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
 
       // Use EXISTING peer connection (created in handleCallOffer)
       const pc = peerConnection.current
-      
-      if (!pc) {
-        console.error('[WebRTC] No peer connection found - cannot accept call')
-        throw new Error('No peer connection available')
-      }
 
       // Add local tracks to existing peer connection with explicit logging
       console.log('[WebRTC] Adding local tracks to peer connection (RECEIVER)...')
@@ -610,14 +605,9 @@ export const VideoCallProvider = ({ children }: VideoCallProviderProps) => {
       // Create peer connection for incoming call with call details
       console.log('[WebRTC] Creating peer connection with callId:', offer.callId)
       const pc = createPeerConnection(offer.callId, offer.caller, offer.receiver)
-      
-      // Store peer connection reference
-      peerConnection.current = pc
-      console.log('[WebRTC] Peer connection stored for receiver')
 
       // Set remote description from offer
       await pc.setRemoteDescription(new RTCSessionDescription(offer.sdp))
-      console.log('[WebRTC] Remote description set from offer')
     },
     [createPeerConnection]
   )
