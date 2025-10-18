@@ -440,11 +440,11 @@ export function WithdrawRequestTable() {
                       {request.amount ? formatCurrency(request.amount) : '0 ₫'}
                     </TableCell>
                     <TableCell className="font-medium text-green-600">
-                      {formatCurrency(request.netAmount || request.amount * 0.8 || 0)}
+                      {formatCurrency(request.netAmount ?? request.amount * 0.8)}
                     </TableCell>
                     <TableCell className="text-orange-600">
-                      {formatCurrency(request.platformFeeAmount || request.amount * 0.2 || 0)}
-                      {request.platformFeePercentage && (
+                      {formatCurrency(request.platformFeeAmount ?? request.amount * 0.2)}
+                      {request.platformFeePercentage !== undefined && request.platformFeePercentage !== null && (
                         <div className="text-xs text-gray-500">({request.platformFeePercentage}%)</div>
                       )}
                     </TableCell>
@@ -575,11 +575,11 @@ export function WithdrawRequestTable() {
                   <p><strong>Tổng tiền rút:</strong> {actionDialog.request.amount ? formatCurrency(actionDialog.request.amount) : '0 ₫'}</p>
                   <div className="p-3 bg-gray-50 rounded-md space-y-1">
                     <p className="text-green-600">
-                      <strong>Freelancer nhận:</strong> {formatCurrency(actionDialog.request.netAmount || actionDialog.request.amount * 0.8 || 0)}
+                      <strong>Người dùng nhận:</strong> {formatCurrency(actionDialog.request.netAmount ?? actionDialog.request.amount * 0.8)}
                     </p>
                     <p className="text-orange-600">
-                      <strong>Hoa hồng platform:</strong> {formatCurrency(actionDialog.request.platformFeeAmount || actionDialog.request.amount * 0.2 || 0)}
-                      {actionDialog.request.platformFeePercentage && ` (${actionDialog.request.platformFeePercentage}%)`}
+                      <strong>Hoa hồng platform:</strong> {formatCurrency(actionDialog.request.platformFeeAmount ?? actionDialog.request.amount * 0.2)}
+                      {actionDialog.request.platformFeePercentage !== undefined && actionDialog.request.platformFeePercentage !== null && ` (${actionDialog.request.platformFeePercentage}%)`}
                     </p>
                   </div>
                   <div className="border-t pt-2">
