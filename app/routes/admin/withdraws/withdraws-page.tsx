@@ -1,5 +1,6 @@
 import { WithdrawRequestStatsCards } from '~/components/admin/withdraw-stats-cards'
 import { WithdrawRequestTable } from '~/components/admin/withdraw-table'
+import { CommissionSettings } from '~/components/admin/commission-settings'
 
 export default function WithdrawsPage() {
   return (
@@ -9,6 +10,8 @@ export default function WithdrawsPage() {
           <h1 className='text-3xl font-bold text-sky-700'>Quản lý yêu cầu rút tiền</h1>
           <p className='text-sm text-slate-600'>Xem xét và xử lý các yêu cầu rút tiền từ người dùng.</p>
         </div>
+
+        <CommissionSettings />
 
         <WithdrawRequestStatsCards />
 

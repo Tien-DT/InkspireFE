@@ -18,10 +18,40 @@ export function WithdrawRequestStatsCards() {
     freelancerRequests: 0,
     freelancerTotalWithdraw: 0
   })
+  
+  const [commissions, setCommissions] = useState({
+    freelancerCommissionPercentage: 20,
+    clientCommissionPercentage: 0
+  })
 
   useEffect(() => {
     fetchStats()
+    fetchCommissions()
   }, [])
+
+  const fetchCommissions = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/AdminSettings/commission-percentages`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      )
+      
+      if (response.ok) {
+        const data = await response.json()
+        setCommissions({
+          freelancerCommissionPercentage: data.freelancerCommissionPercentage,
+          clientCommissionPercentage: data.clientCommissionPercentage
+        })
+      }
+    } catch (error) {
+      console.error('Error fetching commission percentages:', error)
+    }
+  }
 
   const fetchStats = async () => {
     try {
@@ -190,7 +220,10 @@ export function WithdrawRequestStatsCards() {
               </div>
               <div className='pt-2 border-t border-blue-200'>
                 <p className='text-xs text-blue-600'>
-                  ✓ Không mất phí hoa hồng (0% commission)
+                  {commissions.clientCommissionPercentage === 0 
+                    ? '✓ Không mất phí hoa hồng (0% commission)'
+                    : `ⓘ Có phí hoa hồng (${commissions.clientCommissionPercentage}% commission)`
+                  }
                 </p>
               </div>
             </div>
@@ -217,7 +250,7 @@ export function WithdrawRequestStatsCards() {
               </div>
               <div className='pt-2 border-t border-purple-200'>
                 <p className='text-xs text-purple-600'>
-                  ⓘ Có phí hoa hồng (20% commission)
+                  ⓘ Có phí hoa hồng ({commissions.freelancerCommissionPercentage}% commission)
                 </p>
               </div>
             </div>
