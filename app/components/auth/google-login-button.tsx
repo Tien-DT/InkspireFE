@@ -6,7 +6,6 @@ import { auth, googleProvider } from '~/lib/firebase'
 import { authApi } from '~/apis/auth.api'
 import { GoogleIcon } from '~/components/icons/google-icon'
 import { Button } from '~/components/ui/button'
-import { ButtonSpinner } from '~/components/ui/button-spinner'
 import {
   setAccessTokenToLS,
   setRefreshTokenToLS,
@@ -106,19 +105,21 @@ export function GoogleLoginButton({ rememberMe = false, onSuccess, onError }: Go
         // Check if this is a role required error for new user
         const errorCode = error?.response?.data?.error
         const errorMessage = error?.response?.data?.message
-        
+
         console.log('Error code:', errorCode)
         console.log('Error message:', errorMessage)
-        
-        if (errorCode === 'ROLE_REQUIRED' || 
-            (errorCode === 'google_auth_failed' && errorMessage?.includes('ROLE_REQUIRED'))) {
+
+        if (
+          errorCode === 'ROLE_REQUIRED' ||
+          (errorCode === 'google_auth_failed' && errorMessage?.includes('ROLE_REQUIRED'))
+        ) {
           console.log('ROLE_REQUIRED detected, showing dialog')
           // Don't show error toast, just open role selection dialog
           setShowRoleDialog(true)
           setIsLoading(false)
           return
         }
-        
+
         if (errorCode === 'INVALID_CREDENTIALS') {
           toast.error('Email hoặc mật khẩu không đúng')
         } else if (error?.response?.data?.error === 'EMAIL_NOT_VERIFIED') {
@@ -240,11 +241,7 @@ export function GoogleLoginButton({ rememberMe = false, onSuccess, onError }: Go
           </>
         )}
       </Button>
-      <RoleSelectionDialog
-        open={showRoleDialog}
-        onClose={handleDialogClose}
-        onSelectRole={handleRoleSelected}
-      />
+      <RoleSelectionDialog open={showRoleDialog} onClose={handleDialogClose} onSelectRole={handleRoleSelected} />
     </>
   )
 }

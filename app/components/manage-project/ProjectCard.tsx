@@ -125,9 +125,9 @@ export function ProjectCard({ project }: ProjectCardProps) {
                 <FolderKanban className='h-3.5 w-3.5 shrink-0 text-primary' />
                 <span className='truncate'>{project.category || 'Danh mục chưa cập nhật'}</span>
               </div>
-              <div className='min-w-0'>
+              <div className='max-w-xl space-y-2'>
                 <h3 className='line-clamp-2 text-xl font-semibold text-foreground break-words'>{project.title}</h3>
-                <p className='mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground break-words'>
+                <p className='mt-2 truncate overflow-hidden text-sm leading-relaxed text-muted-foreground break-words'>
                   {project.description || 'Chưa có mô tả chi tiết cho dự án này.'}
                 </p>
               </div>
