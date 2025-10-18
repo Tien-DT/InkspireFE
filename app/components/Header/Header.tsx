@@ -51,7 +51,8 @@ export function Header() {
 
   // Determine if user is a client (CLIENT role) or freelancer (other roles)
   const isClient = profile?.role === UserRole.CLIENT
-  const isFreelancer = profile?.role !== undefined && profile?.role !== UserRole.CLIENT
+  const isFreelancer = profile?.role !== undefined && profile?.role !== UserRole.CLIENT && profile?.role !== UserRole.ADMIN
+  const isAdmin = profile?.role === UserRole.ADMIN
 
   // Format currency
   const formatCurrency = (amount: number) => {
@@ -75,8 +76,8 @@ export function Header() {
 
   const userInitials = getUserInitials()
 
-  // Navigation items
-  const navItems = [
+  // Navigation items - Hide all for ADMIN
+  const navItems = isAdmin ? [] : [
     ...(profile?.role !== UserRole.FREELANCER ? [{ name: 'Đăng tuyển dụng', link: PATH.postProject }] : []),
     ...(profile?.role !== UserRole.CLIENT ? [{ name: 'Tìm việc làm', link: PATH.jobsFreelancer }] : []),
     { name: 'Cách thức hoạt động', link: '#how-it-works' }
@@ -109,31 +110,36 @@ export function Header() {
 
           {authReady && isAuthenticated ? (
             <div className='flex items-center gap-3'>
-              {/* Notifications */}
-              <NotificationBell />
+              {/* Hide notifications, messages, wallet for ADMIN */}
+              {!isAdmin && (
+                <>
+                  {/* Notifications */}
+                  <NotificationBell />
 
-              {/* Messages */}
-              <Button variant='ghost' size='icon' className='relative h-9 w-9 hover:bg-muted' asChild>
-                <Link to='/chat'>
-                  <MessageSquareDot className='h-5 w-5' />
-                  {unreadCount > 0 && (
-                    <span className='absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-white'>
-                      {unreadCount > 99 ? '99+' : unreadCount}
+                  {/* Messages */}
+                  <Button variant='ghost' size='icon' className='relative h-9 w-9 hover:bg-muted' asChild>
+                    <Link to='/chat'>
+                      <MessageSquareDot className='h-5 w-5' />
+                      {unreadCount > 0 && (
+                        <span className='absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-white'>
+                          {unreadCount > 99 ? '99+' : unreadCount}
+                        </span>
+                      )}
+                    </Link>
+                  </Button>
+
+                  {/* Wallet */}
+                  <Link
+                    to={PATH.payment}
+                    className='group hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-emerald-50 to-green-50 hover:from-emerald-100 hover:to-green-100 border border-emerald-200/60 transition-all duration-200 shadow-sm hover:shadow-md'
+                  >
+                    <Wallet className='h-4 w-4 text-emerald-600 transition-transform group-hover:scale-110' />
+                    <span className='text-sm font-semibold text-emerald-700 tabular-nums'>
+                      {wallet ? formatCurrency(wallet.balance) : '0 ₫'}
                     </span>
-                  )}
-                </Link>
-              </Button>
-
-              {/* Wallet */}
-              <Link
-                to={PATH.payment}
-                className='group hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-emerald-50 to-green-50 hover:from-emerald-100 hover:to-green-100 border border-emerald-200/60 transition-all duration-200 shadow-sm hover:shadow-md'
-              >
-                <Wallet className='h-4 w-4 text-emerald-600 transition-transform group-hover:scale-110' />
-                <span className='text-sm font-semibold text-emerald-700 tabular-nums'>
-                  {wallet ? formatCurrency(wallet.balance) : '0 ₫'}
-                </span>
-              </Link>
+                  </Link>
+                </>
+              )}
 
               {/* User Menu */}
               <DropdownMenu>
@@ -160,10 +166,15 @@ export function Header() {
                     <div className='flex flex-col space-y-1.5'>
                       <div className='flex items-center gap-2'>
                         <p className='text-sm font-semibold leading-none text-foreground'>{userName || 'User'}</p>
-                        {isPremium && (
+                        {isPremium && !isAdmin && (
                           <Badge variant='featured' className='h-5 px-1.5 text-[10px]'>
                             <Crown className='h-3 w-3 mr-0.5' />
                             Premium
+                          </Badge>
+                        )}
+                        {isAdmin && (
+                          <Badge variant='default' className='h-5 px-1.5 text-[10px] bg-red-600'>
+                            Admin
                           </Badge>
                         )}
                       </div>
@@ -171,71 +182,86 @@ export function Header() {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator className='my-1' />
-                  <DropdownMenuItem asChild className='cursor-pointer'>
-                    <Link to={PATH.profile} className='flex items-center px-2 py-2 rounded-md'>
-                      <div className='flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 mr-3'>
-                        <User className='h-4 w-4 text-primary' />
-                      </div>
-                      <span className='font-medium'>Thông tin cá nhân</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild className='cursor-pointer'>
-                    <Link 
-                      to={isClient ? PATH.dashboardClient : PATH.dashboardFreelancer} 
-                      className='flex items-center px-2 py-2 rounded-md'
-                    >
-                      <div className='flex h-8 w-8 items-center justify-center rounded-md bg-blue-500/10 mr-3'>
-                        <LayoutDashboard className='h-4 w-4 text-blue-600' />
-                      </div>
-                      <span className='font-medium'>Dashboard</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild className='cursor-pointer'>
-                    <Link to={PATH.manageProjects} className='flex items-center px-2 py-2 rounded-md'>
-                      <div className='flex h-8 w-8 items-center justify-center rounded-md bg-purple-500/10 mr-3'>
-                        <Briefcase className='h-4 w-4 text-purple-600' />
-                      </div>
-                      <span className='font-medium'>Quản lý dự án</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  {isClient && (
+                  {isAdmin ? (
+                    // Admin menu - only admin dashboard
+                    <DropdownMenuItem asChild className='cursor-pointer'>
+                      <Link to='/admin' className='flex items-center px-2 py-2 rounded-md'>
+                        <div className='flex h-8 w-8 items-center justify-center rounded-md bg-red-500/10 mr-3'>
+                          <LayoutDashboard className='h-4 w-4 text-red-600' />
+                        </div>
+                        <span className='font-medium'>Trang quản trị</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  ) : (
+                    // Regular user menu
                     <>
                       <DropdownMenuItem asChild className='cursor-pointer'>
-                        <Link to={PATH.managePostProject} className='flex items-center px-2 py-2 rounded-md'>
-                          <div className='flex h-8 w-8 items-center justify-center rounded-md bg-green-500/10 mr-3'>
-                            <FileText className='h-4 w-4 text-green-600' />
+                        <Link to={PATH.profile} className='flex items-center px-2 py-2 rounded-md'>
+                          <div className='flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 mr-3'>
+                            <User className='h-4 w-4 text-primary' />
                           </div>
-                          <span className='font-medium'>Quản lý bài đăng</span>
+                          <span className='font-medium'>Thông tin cá nhân</span>
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild className='cursor-pointer'>
-                        <Link to='/freelancer/wallet' className='flex items-center px-2 py-2 rounded-md'>
-                          <div className='flex h-8 w-8 items-center justify-center rounded-md bg-emerald-500/10 mr-3'>
-                            <Wallet className='h-4 w-4 text-emerald-600' />
+                        <Link 
+                          to={isClient ? PATH.dashboardClient : PATH.dashboardFreelancer} 
+                          className='flex items-center px-2 py-2 rounded-md'
+                        >
+                          <div className='flex h-8 w-8 items-center justify-center rounded-md bg-blue-500/10 mr-3'>
+                            <LayoutDashboard className='h-4 w-4 text-blue-600' />
                           </div>
-                          <span className='font-medium'>Ví & Rút tiền</span>
-                        </Link>
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                  {isFreelancer && (
-                    <>
-                      <DropdownMenuItem asChild className='cursor-pointer'>
-                        <Link to={PATH.manageApplications} className='flex items-center px-2 py-2 rounded-md'>
-                          <div className='flex h-8 w-8 items-center justify-center rounded-md bg-orange-500/10 mr-3'>
-                            <FileText className='h-4 w-4 text-orange-600' />
-                          </div>
-                          <span className='font-medium'>Quản lý ứng tuyển</span>
+                          <span className='font-medium'>Dashboard</span>
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild className='cursor-pointer'>
-                        <Link to='/freelancer/wallet' className='flex items-center px-2 py-2 rounded-md'>
-                          <div className='flex h-8 w-8 items-center justify-center rounded-md bg-emerald-500/10 mr-3'>
-                            <Wallet className='h-4 w-4 text-emerald-600' />
+                        <Link to={PATH.manageProjects} className='flex items-center px-2 py-2 rounded-md'>
+                          <div className='flex h-8 w-8 items-center justify-center rounded-md bg-purple-500/10 mr-3'>
+                            <Briefcase className='h-4 w-4 text-purple-600' />
                           </div>
-                          <span className='font-medium'>Phương thức thanh toán</span>
+                          <span className='font-medium'>Quản lý dự án</span>
                         </Link>
                       </DropdownMenuItem>
+                      {isClient && (
+                        <>
+                          <DropdownMenuItem asChild className='cursor-pointer'>
+                            <Link to={PATH.managePostProject} className='flex items-center px-2 py-2 rounded-md'>
+                              <div className='flex h-8 w-8 items-center justify-center rounded-md bg-green-500/10 mr-3'>
+                                <FileText className='h-4 w-4 text-green-600' />
+                              </div>
+                              <span className='font-medium'>Quản lý bài đăng</span>
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild className='cursor-pointer'>
+                            <Link to='/freelancer/wallet' className='flex items-center px-2 py-2 rounded-md'>
+                              <div className='flex h-8 w-8 items-center justify-center rounded-md bg-emerald-500/10 mr-3'>
+                                <Wallet className='h-4 w-4 text-emerald-600' />
+                              </div>
+                              <span className='font-medium'>Ví & Rút tiền</span>
+                            </Link>
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                      {isFreelancer && (
+                        <>
+                          <DropdownMenuItem asChild className='cursor-pointer'>
+                            <Link to={PATH.manageApplications} className='flex items-center px-2 py-2 rounded-md'>
+                              <div className='flex h-8 w-8 items-center justify-center rounded-md bg-orange-500/10 mr-3'>
+                                <FileText className='h-4 w-4 text-orange-600' />
+                              </div>
+                              <span className='font-medium'>Quản lý ứng tuyển</span>
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild className='cursor-pointer'>
+                            <Link to='/freelancer/wallet' className='flex items-center px-2 py-2 rounded-md'>
+                              <div className='flex h-8 w-8 items-center justify-center rounded-md bg-emerald-500/10 mr-3'>
+                                <Wallet className='h-4 w-4 text-emerald-600' />
+                              </div>
+                              <span className='font-medium'>Phương thức thanh toán</span>
+                            </Link>
+                          </DropdownMenuItem>
+                        </>
+                      )}
                     </>
                   )}
                   <DropdownMenuSeparator className='my-1' />

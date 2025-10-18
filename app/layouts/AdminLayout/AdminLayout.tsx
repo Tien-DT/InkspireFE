@@ -1,4 +1,4 @@
-import { Outlet, Link, useLocation, useNavigate } from 'react-router'
+import { Outlet, Link, useLocation, useNavigate, Navigate } from 'react-router'
 import logo from '~/assets/logo.png'
 import {
   DropdownMenu,
@@ -38,6 +38,9 @@ import {
 import { useAuth } from '~/contexts/AuthContext'
 import { cn } from '~/lib/utils'
 import { toast } from 'sonner'
+import { UserRole } from '~/types/user.type'
+import { LoadingState } from '~/components/ui/spinner'
+import { PATH } from '~/constants/path'
 
 type NavItem = {
   to: string
@@ -76,8 +79,43 @@ function SidebarNavItem({ to, label, icon: Icon, end }: NavItem) {
 }
 
 export default function AdminLayout() {
-  const { profile, logout } = useAuth()
+  const { profile, logout, isAuthenticated, authReady } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+
+  // Wait for auth to be ready
+  if (!authReady) {
+    return <LoadingState message='Đang kiểm tra quyền truy cập...' size='md' variant='blast' className='min-h-screen' />
+  }
+
+  // Check if user is authenticated
+  if (!isAuthenticated) {
+    toast.error('Vui lòng đăng nhập để truy cập trang Admin')
+    return (
+      <Navigate
+        to={PATH.login}
+        replace
+        state={{
+          from: location.pathname,
+          message: 'Vui lòng đăng nhập để truy cập trang Admin'
+        }}
+      />
+    )
+  }
+
+  // Check if user has ADMIN role (role = 3)
+  if (profile?.role !== UserRole.ADMIN) {
+    toast.error('Bạn không có quyền truy cập trang Admin')
+    return (
+      <Navigate
+        to={PATH.home}
+        replace
+        state={{
+          message: 'Bạn không có quyền truy cập trang Admin'
+        }}
+      />
+    )
+  }
 
   const initial = (profile?.email || 'U').charAt(0).toUpperCase()
 

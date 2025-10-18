@@ -62,11 +62,11 @@ export const useLogin = () => {
 
       // Redirect based on user role
       const userProfile = response.user || extractUserFromToken(response.access_token)
-      if (userProfile?.role === UserRole.MARKETER || userProfile?.role === UserRole.PROJECT_MANAGER) {
-        // Admin roles redirect to admin dashboard
+      if (userProfile?.role === UserRole.ADMIN) {
+        // Admin role (role = 3) redirect to admin dashboard
         navigate('/admin')
       } else {
-        // Other roles redirect to homepage
+        // Other roles (CLIENT, FREELANCER) redirect to homepage
         navigate('/')
       }
     },

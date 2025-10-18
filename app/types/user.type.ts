@@ -7,7 +7,8 @@ export enum UserStatus {
 export enum UserRole {
   CLIENT = 1,
   FREELANCER = 2,
-  MARKETER = 3,
+  ADMIN = 3,
+  MARKETER = 3, // Alias for ADMIN
   PROJECT_MANAGER = 4
 }
 
