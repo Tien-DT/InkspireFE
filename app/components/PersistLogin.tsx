@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Outlet } from 'react-router'
 import { useAuth } from '~/contexts/AuthContext'
 import { authApi } from '~/apis/auth.api'
@@ -18,27 +18,18 @@ interface PersistLoginProps {
 
 /**
  * Component để handle silent refresh khi reload trang
- * Kiểm tra và refresh token trước khi render app
+ * Không hiển thị UI - sử dụng hydrateFallback của React Router thay vào đó
  */
 export default function PersistLogin({ children }: PersistLoginProps) {
-  const { authReady, setAuthReady, refreshAuth } = useAuth()
-  const [isLoading, setIsLoading] = useState(true)
+  const { setAuthReady, refreshAuth } = useAuth()
 
   useEffect(() => {
     const attemptSilentRefresh = async () => {
       try {
-        // Minimum loading time - 1.5 seconds for better UX
-        const startTime = Date.now()
-        const minLoadTime = 1500
-
         // Safety check to ensure functions are available
         if (typeof getRefreshTokenFromLS !== 'function' || typeof getAccessTokenFromLS !== 'function') {
           console.error('Auth utility functions not available')
-          const elapsed = Date.now() - startTime
-          const remaining = Math.max(0, minLoadTime - elapsed)
-          await new Promise((resolve) => setTimeout(resolve, remaining))
           setAuthReady(true)
-          setIsLoading(false)
           return
         }
 
@@ -47,11 +38,7 @@ export default function PersistLogin({ children }: PersistLoginProps) {
 
         // Nếu không có refresh token, không cần refresh
         if (!refreshToken) {
-          const elapsed = Date.now() - startTime
-          const remaining = Math.max(0, minLoadTime - elapsed)
-          await new Promise((resolve) => setTimeout(resolve, remaining))
           setAuthReady(true)
-          setIsLoading(false)
           return
         }
 
@@ -66,11 +53,7 @@ export default function PersistLogin({ children }: PersistLoginProps) {
             // Nếu token còn hiệu lực > 5 phút, không cần refresh
             if (timeUntilExpiry > 300) {
               refreshAuth()
-              const elapsed = Date.now() - startTime
-              const remaining = Math.max(0, minLoadTime - elapsed)
-              await new Promise((resolve) => setTimeout(resolve, remaining))
               setAuthReady(true)
-              setIsLoading(false)
               return
             }
           }
@@ -93,11 +76,6 @@ export default function PersistLogin({ children }: PersistLoginProps) {
         // Refresh auth state
         refreshAuth()
 
-        // Ensure minimum loading time
-        const elapsed = Date.now() - startTime
-        const remaining = Math.max(0, minLoadTime - elapsed)
-        await new Promise((resolve) => setTimeout(resolve, remaining))
-
         window.dispatchEvent(new CustomEvent('session:refreshed'))
       } catch (error) {
         console.log('Silent refresh failed:', error)
@@ -105,39 +83,16 @@ export default function PersistLogin({ children }: PersistLoginProps) {
         // Refresh thất bại, clear auth data
         clearAllAuth()
 
-        // Ensure minimum loading time even on error
-        const elapsed = Date.now() - Date.now()
-        const remaining = Math.max(0, 1500 - elapsed)
-        await new Promise((resolve) => setTimeout(resolve, remaining))
-
         // Phát tín hiệu cho session manager
         window.dispatchEvent(new CustomEvent('session:refreshed'))
       } finally {
         setAuthReady(true)
-        setIsLoading(false)
       }
     }
 
     // Chỉ chạy một lần khi component mount
-    if (!authReady) {
-      attemptSilentRefresh()
-    }
-  }, [authReady, setAuthReady, refreshAuth])
-
-  // Hiển thị loading spinner trong khi đang refresh
-  if (isLoading || !authReady) {
-    return (
-      <div className='min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-background to-blue-50 dark:from-emerald-950/20 dark:via-background dark:to-blue-950/20'>
-        <div className='flex flex-col items-center space-y-6'>
-          {/* Full gradient spinner - solid center */}
-          <div className='relative w-16 h-16'>
-            <div className='w-full h-full rounded-full bg-gradient-to-r from-emerald-500 to-blue-500 animate-spin' />
-          </div>
-          <p className='text-sm text-muted-foreground animate-pulse'>Đang tải ứng dụng...</p>
-        </div>
-      </div>
-    )
-  }
+    attemptSilentRefresh()
+  }, [setAuthReady, refreshAuth])
 
   return children ? <>{children}</> : <Outlet />
 }

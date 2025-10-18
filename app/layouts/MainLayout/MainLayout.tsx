@@ -5,7 +5,6 @@ import Header from '~/components/Header'
 import { useAuth } from '~/contexts/AuthContext'
 import { UserRole } from '~/types/user.type'
 import { toast } from 'sonner'
-import { LoadingState } from '~/components/ui/spinner'
 import { IncomingCallToast } from '~/components/call/IncomingCallToast'
 import { VideoCallDialog } from '~/components/call/VideoCallDialog'
 
@@ -17,9 +16,9 @@ function MainLayoutInner({ children }: MainLayoutProps) {
   const { profile, authReady } = useAuth()
   const location = useLocation()
 
-  // Wait for auth to be ready
+  // Nếu authReady chưa true, hydrateFallback sẽ hiển thị
   if (!authReady) {
-    return <LoadingState message='Đang tải...' size='md' variant='blast' className='min-h-screen' />
+    return null
   }
 
   // Redirect ADMIN to /admin if they try to access public pages
@@ -45,7 +44,7 @@ function MainLayoutInner({ children }: MainLayoutProps) {
         <Outlet />
       </main>
       <Footer />
-      
+
       {/* Global Call Components - Show on all pages */}
       <IncomingCallToast />
       <VideoCallDialog />

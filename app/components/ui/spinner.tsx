@@ -22,8 +22,9 @@ const borderSizes = {
 }
 
 /**
- * Unified Spinner component với hiệu ứng mượt mà
- * Sử dụng cho tất cả loading states trong app
+ * @deprecated Sử dụng hydrateFallback của React Router thay vào đó
+ * Thay vì dùng component Spinner, hãy return null khi isLoading/!authReady
+ * React Router sẽ tự động hiển thị HydrateFallback
  */
 export function Spinner({ size = 'md', variant = 'blast', className, label }: SpinnerProps) {
   const baseClasses = cn('inline-block rounded-full animate-spin', sizeClasses[size], borderSizes[size], className)
@@ -89,7 +90,7 @@ export function Spinner({ size = 'md', variant = 'blast', className, label }: Sp
 }
 
 /**
- * Full page loading overlay với backdrop
+ * @deprecated Sử dụng hydrateFallback của React Router thay vào đó
  */
 interface LoadingOverlayProps {
   message?: string
@@ -109,7 +110,7 @@ export function LoadingOverlay({ message = 'Đang tải...', size = 'lg', varian
 }
 
 /**
- * Inline loading state cho sections
+ * @deprecated Sử dụng hydrateFallback của React Router thay vào đó
  */
 interface LoadingStateProps {
   message?: string
@@ -133,7 +134,8 @@ export function LoadingState({
 }
 
 /**
- * Button loading spinner (nhỏ gọn cho inline buttons)
+ * Button loading spinner - GIỮ LẠI cho button submit states
+ * Đây là ngoại lệ vì nó được dùng inline trong buttons, không phải layout-level loading
  */
 export function ButtonSpinner({ className }: { className?: string }) {
   return (
