@@ -2,6 +2,7 @@ import { cn } from '~/lib/utils'
 import { IconMenu2, IconX } from '@tabler/icons-react'
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'motion/react'
 import React, { useRef, useState } from 'react'
+import { Link } from 'react-router'
 
 interface NavbarProps {
   children: React.ReactNode
@@ -109,12 +110,12 @@ export const NavItems = ({ items, className, onItemClick }: NavItemsProps) => {
       )}
     >
       {items.map((item, idx) => (
-        <a
+        <Link
+          to={item.link}
           onMouseEnter={() => setHovered(idx)}
           onClick={onItemClick}
           className='relative px-4 py-2 text-neutral-600 dark:text-neutral-300'
           key={`link-${idx}`}
-          href={item.link}
         >
           {hovered === idx && (
             <motion.div
@@ -123,7 +124,7 @@ export const NavItems = ({ items, className, onItemClick }: NavItemsProps) => {
             />
           )}
           <span className='relative z-20'>{item.name}</span>
-        </a>
+        </Link>
       ))}
     </motion.div>
   )
