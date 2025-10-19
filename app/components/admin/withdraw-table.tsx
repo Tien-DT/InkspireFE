@@ -97,7 +97,8 @@ export function WithdrawRequestTable() {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
-  const [pageSize, setPageSize] = useState(20)
+  const [pageSize, setPageSize] = useState(5)
+  const [isLoadingPage, setIsLoadingPage] = useState(false)
 
   useEffect(() => {
     fetchWithdrawRequests()
@@ -113,7 +114,7 @@ export function WithdrawRequestTable() {
 
   const fetchWithdrawRequests = async () => {
     try {
-      setLoading(true)
+      setIsLoadingPage(true)
       const token = localStorage.getItem('token')
       
       // Use new pagination API (no OData)
@@ -144,7 +145,7 @@ export function WithdrawRequestTable() {
       console.error('Error fetching withdraw requests:', error)
       toast.error('Không thể tải danh sách yêu cầu rút tiền')
     } finally {
-      setLoading(false)
+      setIsLoadingPage(false)
     }
   }
 
@@ -406,7 +407,16 @@ export function WithdrawRequestTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {withdrawRequests.length === 0 ? (
+              {isLoadingPage ? (
+                <TableRow>
+                  <TableCell colSpan={12} className="text-center py-8">
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
+                      <span className="text-gray-500">Đang tải dữ liệu...</span>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : withdrawRequests.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={12} className="text-center py-8 text-gray-500">
                     Không có yêu cầu rút tiền nào
@@ -528,12 +538,12 @@ export function WithdrawRequestTable() {
                     min="1"
                     max="100"
                     value={pageSize}
-                    onChange={(e) => handlePageSizeChange(Number(e.target.value) || 20)}
+                    onChange={(e) => handlePageSizeChange(Number(e.target.value) || 5)}
                     onBlur={(e) => {
                       // On blur, ensure valid value
                       const val = Number(e.target.value)
                       if (isNaN(val) || val < 1) {
-                        handlePageSizeChange(20)
+                        handlePageSizeChange(5)
                       }
                     }}
                     className="border border-gray-300 rounded-md px-3 py-1 text-sm w-16 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -546,7 +556,7 @@ export function WithdrawRequestTable() {
                   variant="outline"
                   size="sm"
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
+                  disabled={currentPage === 1 || isLoadingPage}
                 >
                   <ChevronLeft className="h-4 w-4" />
                   Trước
@@ -558,7 +568,7 @@ export function WithdrawRequestTable() {
                   variant="outline"
                   size="sm"
                   onClick={() => setCurrentPage(p => Math.min(Math.ceil(totalCount / pageSize), p + 1))}
-                  disabled={currentPage >= Math.ceil(totalCount / pageSize)}
+                  disabled={currentPage >= Math.ceil(totalCount / pageSize) || isLoadingPage}
                 >
                   Tiếp
                   <ChevronRight className="h-4 w-4" />

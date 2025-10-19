@@ -5,10 +5,11 @@ import { PaymentMethods } from '~/components/freelancer/payment-methods'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '~/components/ui/table'
 import { Badge } from '~/components/ui/badge'
-import { Wallet, Clock } from 'lucide-react'
+import { Wallet, Clock, ArrowUpCircle, ArrowDownCircle } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import { withdrawApi } from '~/apis/withdraw.api'
 import { walletApi } from '~/apis/wallet.api'
+import { transactionApi } from '~/apis/transaction.api'
 import { getProfileFromLS } from '~/utils/auth'
 import { UserRole } from '~/types/user.type'
 
@@ -62,11 +63,24 @@ export default function WalletPage() {
     enabled: !!userId && isClient
   })
 
+  // Fetch user transactions (for both CLIENT and FREELANCER)
+  const { data: transactionsData, isLoading: transactionsLoading } = useQuery({
+    queryKey: ['user-transactions', userId],
+    queryFn: async () => {
+      if (!userId) return null
+      return await transactionApi.getUserTransactions(userId)
+    },
+    enabled: !!userId
+  })
+
+  const transactions = transactionsData?.data || []
+
   const loading = walletLoading || requestsLoading
 
   const handleWithdrawSuccess = () => {
     queryClient.invalidateQueries({ queryKey: ['wallet'] })
     queryClient.invalidateQueries({ queryKey: ['withdraw-requests'] })
+    queryClient.invalidateQueries({ queryKey: ['user-transactions'] })
   }
 
   const formatCurrency = (amount: number, currency: string = 'VND') => {
@@ -103,6 +117,63 @@ export default function WalletPage() {
         return <Badge variant="default">Tự động</Badge>
       default:
         return <Badge variant="outline">Không xác định</Badge>
+    }
+  }
+
+  const getTransactionTypeBadge = (type: string, direction: string) => {
+    // Direction "in" = tiền vào ví (cho client là nạp tiền, cho freelancer là nhận thanh toán)
+    // Direction "out" = tiền ra khỏi ví (cho client là rút tiền/thanh toán)
+    if (direction === 'in') {
+      return (
+        <div className="flex items-center gap-1 text-green-600">
+          <ArrowDownCircle className="h-4 w-4" />
+          <span className="text-sm font-medium">Tiền vào</span>
+        </div>
+      )
+    } else {
+      return (
+        <div className="flex items-center gap-1 text-red-600">
+          <ArrowUpCircle className="h-4 w-4" />
+          <span className="text-sm font-medium">Tiền ra</span>
+        </div>
+      )
+    }
+  }
+
+  const getTransactionDescription = (transaction: any) => {
+    const type = transaction.type?.toLowerCase()
+    
+    // SEPAY_PAYMENT = nạp tiền qua SePay (tiền vào)
+    if (type === 'sepay_payment' || type === 'deposit') {
+      return 'Nạp tiền qua SePay'
+    } 
+    // Withdraw = rút tiền (tiền ra)
+    else if (type === 'withdraw' || type === 'withdrawal') {
+      return 'Rút tiền từ ví'
+    } 
+    // Subscription = thanh toán gói dịch vụ (tiền ra)
+    else if (type === 'subscription') {
+      return 'Thanh toán gói dịch vụ'
+    }
+    // Payment = giao dịch thanh toán dự án
+    else if (type === 'payment') {
+      return transaction.direction === 'in' ? 'Nhận thanh toán từ dự án' : 'Thanh toán cho dự án'
+    } 
+    // Refund = hoàn tiền
+    else if (type === 'refund') {
+      return 'Hoàn tiền'
+    }
+    // Momo payment
+    else if (type === 'momo_payment') {
+      return 'Nạp tiền qua MoMo'
+    }
+    // VNPay payment
+    else if (type === 'vnpay_payment') {
+      return 'Nạp tiền qua VNPay'
+    }
+    // Default
+    else {
+      return transaction.type || 'Giao dịch'
     }
   }
 
@@ -165,10 +236,10 @@ export default function WalletPage() {
         )}
 
         <Tabs defaultValue={isFreelancer ? "payment-methods" : "withdraw"} className="w-full">
-          <TabsList className={isFreelancer ? "w-full" : "grid w-full grid-cols-3"}>
+          <TabsList className={isClient ? "grid w-full grid-cols-3" : "w-full"}>
             {isClient && <TabsTrigger value="withdraw">Rút tiền</TabsTrigger>}
             <TabsTrigger value="payment-methods">Phương thức thanh toán</TabsTrigger>
-            {isClient && <TabsTrigger value="history">Lịch sử</TabsTrigger>}
+            {isClient && <TabsTrigger value="history">Lịch sử giao dịch</TabsTrigger>}
           </TabsList>
           
           {isClient && (
@@ -231,49 +302,106 @@ export default function WalletPage() {
           
           {isClient && (
           <TabsContent value="history">
-            {withdrawRequests.length === 0 ? (
-              <Card>
-                <CardContent className="text-center py-8">
-                  <p className="text-gray-500">Chưa có yêu cầu rút tiền nào</p>
+            <Card>
+              <CardHeader>
+                <CardTitle>Lịch sử giao dịch</CardTitle>
+                <CardDescription>
+                  Theo dõi các giao dịch nạp và rút tiền từ ví của bạn
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {transactionsLoading ? (
+                  <div className="text-center py-8 text-gray-500">Đang tải...</div>
+                ) : transactions.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    Chưa có giao dịch nào
+                  </div>
+                ) : (
+                  <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Ngày giao dịch</TableHead>
+                          <TableHead>Loại</TableHead>
+                          <TableHead>Mô tả</TableHead>
+                          <TableHead className="text-right">Số tiền</TableHead>
+                          <TableHead>Trạng thái</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {transactions.map((transaction) => (
+                          <TableRow key={transaction.id}>
+                            <TableCell className="text-sm">
+                              {formatDate(transaction.createdAt)}
+                            </TableCell>
+                            <TableCell>
+                              {getTransactionTypeBadge(transaction.type, transaction.direction)}
+                            </TableCell>
+                            <TableCell className="text-sm">
+                              {getTransactionDescription(transaction)}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <span className={transaction.direction === 'in' ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'}>
+                                {transaction.direction === 'in' ? '+' : '-'}
+                                {formatCurrency(transaction.amount, transaction.currency || 'VND')}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              {transaction.status === 1 ? (
+                                <Badge variant="outline" className="border-green-500 text-green-700">
+                                  Thành công
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="border-yellow-500 text-yellow-700">
+                                  Đang xử lý
+                                </Badge>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                )}
+              </CardContent>
+            </Card>
+
+            {withdrawRequests.length > 0 && (
+              <Card className="mt-6">
+                <CardHeader>
+                  <CardTitle>Yêu cầu rút tiền</CardTitle>
+                  <CardDescription>Lịch sử các yêu cầu rút tiền của bạn</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Ngày tạo</TableHead>
+                        <TableHead>Số tiền</TableHead>
+                        <TableHead>Ngân hàng</TableHead>
+                        <TableHead>Loại</TableHead>
+                        <TableHead>Trạng thái</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {withdrawRequests.map((request) => (
+                        <TableRow key={request.id}>
+                          <TableCell>{formatDate(request.createdAt)}</TableCell>
+                          <TableCell>{formatCurrency(request.amount, wallet?.currency)}</TableCell>
+                          <TableCell>
+                            {request.bankName && (
+                              <div className="text-sm">
+                                <div>{request.bankName}</div>
+                                <div className="text-gray-500">{request.bankAccountNumber}</div>
+                              </div>
+                            )}
+                          </TableCell>
+                          <TableCell>{getRequestTypeBadge(request.requestType)}</TableCell>
+                          <TableCell>{getStatusBadge(request.status)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </CardContent>
               </Card>
-            ) : (
-          <Card>
-            <CardHeader>
-              <CardTitle>Tất cả yêu cầu rút tiền</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Ngày tạo</TableHead>
-                    <TableHead>Số tiền</TableHead>
-                    <TableHead>Ngân hàng</TableHead>
-                    <TableHead>Loại</TableHead>
-                    <TableHead>Trạng thái</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {withdrawRequests.map((request) => (
-                    <TableRow key={request.id}>
-                      <TableCell>{formatDate(request.createdAt)}</TableCell>
-                      <TableCell>{formatCurrency(request.amount, wallet?.currency)}</TableCell>
-                      <TableCell>
-                        {request.bankName && (
-                          <div className="text-sm">
-                            <div>{request.bankName}</div>
-                            <div className="text-gray-500">{request.bankAccountNumber}</div>
-                          </div>
-                        )}
-                      </TableCell>
-                      <TableCell>{getRequestTypeBadge(request.requestType)}</TableCell>
-                      <TableCell>{getStatusBadge(request.status)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
             )}
           </TabsContent>
           )}
