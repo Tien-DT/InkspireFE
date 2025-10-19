@@ -929,9 +929,15 @@ function ProjectDetailContent() {
 
                               {/* Show completion badge when status is 'completed' (status 3) */}
                               {isCompleted && (
-                                <div className='flex items-center gap-2 text-green-600 text-base font-semibold'>
-                                  <Check className='h-5 w-5' />
-                                  Đã hoàn thành
+                                <div className='flex items-center gap-2'>
+                                  <div className='flex items-center gap-2 text-green-600 text-base font-semibold'>
+                                    <Check className='h-5 w-5' />
+                                    Đã hoàn thành
+                                  </div>
+                                  <TimelineItemWithComplaints
+                                    milestoneId={timeline.id}
+                                    onViewComplaint={handleViewComplaintResult}
+                                  />
                                 </div>
                               )}
                             </div>
@@ -1029,9 +1035,15 @@ function ProjectDetailContent() {
                           )}
 
                           {isFreelancer && isCompleted && (
-                            <div className='flex items-center gap-2 text-green-600 text-base font-semibold'>
-                              <Check className='h-5 w-5' />
-                              Đã hoàn thành
+                            <div className='flex items-center gap-2'>
+                              <div className='flex items-center gap-2 text-green-600 text-base font-semibold'>
+                                <Check className='h-5 w-5' />
+                                Đã hoàn thành
+                              </div>
+                              <TimelineItemWithComplaints
+                                milestoneId={timeline.id}
+                                onViewComplaint={handleViewComplaintResult}
+                              />
                             </div>
                           )}
                         </div>
