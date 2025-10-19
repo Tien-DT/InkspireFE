@@ -171,3 +171,19 @@ export const useComplaintsByMilestone = (milestoneId: string) => {
     refetchInterval: 1000 * 6
   })
 }
+
+export const useRetryComplaint = (options: { onSuccess?: (data: unknown) => void; onError?: (error: unknown) => void } = {}) => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (complaintId: string) => projectApi.retryComplaint(complaintId),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['milestoneComplaints'] })
+      queryClient.invalidateQueries({ queryKey: ['complaint'] })
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
+      queryClient.invalidateQueries({ queryKey: ['milestones'] })
+      options.onSuccess?.(data)
+    },
+    onError: options.onError
+  })
+}

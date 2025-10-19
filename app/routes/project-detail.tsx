@@ -18,7 +18,8 @@ import {
   useUpdateProject,
   useUploadMilestoneDocument,
   useSubmitComplaint,
-  useComplaintsByMilestone
+  useComplaintsByMilestone,
+  useRetryComplaint
 } from '~/hooks/useProjects'
 import type { Milestone } from '~/apis/project.api'
 import { useWallet } from '~/hooks/useUser'
@@ -399,9 +400,13 @@ function ProjectDetailContent() {
   }
 
   const handleViewComplaintResult = (milestoneId: string, complaints: any[]) => {
+    // Prioritize failed complaints, then completed ones
+    const failedComplaint = complaints.find((c: any) => c.processingStatus === 3)
     const completedComplaint = complaints.find((c: any) => c.processingStatus === 2)
-    if (completedComplaint) {
-      setSelectedComplaint(completedComplaint)
+    
+    const complaintToShow = failedComplaint || completedComplaint
+    if (complaintToShow) {
+      setSelectedComplaint(complaintToShow)
       setIsComplaintResultDialogOpen(true)
     }
   }

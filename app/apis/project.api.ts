@@ -218,6 +218,11 @@ export const projectApi = {
     return response.data
   },
 
+  retryComplaint: async (complaintId: string): Promise<any> => {
+    const response = await axiosClient.post(`${URL_PROJECT_MILESTONES}/complaints/${complaintId}/retry`)
+    return response.data
+  },
+
   checkPostLimit: async (
     userId: string
   ): Promise<{

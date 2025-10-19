@@ -3,10 +3,14 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription
+  DialogDescription,
+  DialogFooter
 } from '~/components/ui/dialog'
 import { Badge } from '~/components/ui/badge'
-import { Check, X, AlertCircle, Clock } from 'lucide-react'
+import { Button } from '~/components/ui/button'
+import { Check, X, AlertCircle, Clock, RefreshCw } from 'lucide-react'
+import { useRetryComplaint } from '~/hooks/useProjects'
+import { toast } from 'sonner'
 
 interface MilestoneComplaint {
   id: string
@@ -81,6 +85,22 @@ export function ComplaintResultDialog({ isOpen, onClose, complaint }: ComplaintR
   const missingElements = parseJsonArray(complaint.missingElements)
 
   const isCompleted = complaint.processingStatus === 2
+  const isFailed = complaint.processingStatus === 3
+
+  const retryComplaint = useRetryComplaint({
+    onSuccess: () => {
+      toast.success('Đã gửi yêu cầu xử lý lại khiếu nại')
+      onClose()
+    },
+    onError: (error) => {
+      console.error('Retry complaint error:', error)
+      toast.error('Không thể gửi yêu cầu xử lý lại. Vui lòng thử lại sau.')
+    }
+  })
+
+  const handleRetry = () => {
+    retryComplaint.mutate(complaint.id)
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -113,12 +133,14 @@ export function ComplaintResultDialog({ isOpen, onClose, complaint }: ComplaintR
           )}
 
           {/* Processing failed */}
-          {complaint.processingStatus === 3 && complaint.errorMessage && (
+          {isFailed && (
             <div className='bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3'>
               <X className='h-5 w-5 text-red-600 mt-0.5' />
-              <div>
-                <p className='font-semibold text-red-900'>Xử lý thất bại</p>
-                <p className='text-sm text-red-700'>{complaint.errorMessage}</p>
+              <div className='flex-1'>
+                <p className='font-semibold text-red-900'>Lỗi A.I đang quá tải</p>
+                <p className='text-sm text-red-700 mt-1'>
+                  {complaint.errorMessage || 'Hệ thống AI đang quá tải. Vui lòng thử lại sau.'}
+                </p>
               </div>
             </div>
           )}
@@ -293,6 +315,32 @@ export function ComplaintResultDialog({ isOpen, onClose, complaint }: ComplaintR
             </>
           )}
         </div>
+
+        {/* Footer with Retry button for failed complaints */}
+        {isFailed && (
+          <DialogFooter className='pt-4'>
+            <Button variant='outline' onClick={onClose}>
+              Đóng
+            </Button>
+            <Button 
+              onClick={handleRetry} 
+              disabled={retryComplaint.isPending}
+              className='bg-blue-600 hover:bg-blue-700 text-white'
+            >
+              {retryComplaint.isPending ? (
+                <>
+                  <Clock className='h-4 w-4 mr-2 animate-spin' />
+                  Đang xử lý...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className='h-4 w-4 mr-2' />
+                  Thử lại
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   )

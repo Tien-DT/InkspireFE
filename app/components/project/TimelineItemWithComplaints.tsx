@@ -17,18 +17,20 @@ export function TimelineItemWithComplaints({
   
   const complaints = complaintsData?.data || []
   const hasCompletedComplaint = complaints.some((c: any) => c.processingStatus === 2)
+  const hasFailedComplaint = complaints.some((c: any) => c.processingStatus === 3)
   
-  if (!hasCompletedComplaint) return null
+  // Show button if there's either completed or failed complaint
+  if (!hasCompletedComplaint && !hasFailedComplaint) return null
   
   return (
     <Button
       size='sm'
-      variant='outline'
+      variant={hasFailedComplaint ? 'destructive' : 'outline'}
       onClick={() => onViewComplaint(milestoneId, complaints)}
       className={className}
     >
       <FileText className='h-4 w-4 mr-1.5' />
-      Xem kết quả khiếu nại
+      {hasFailedComplaint ? 'Xem lỗi & Thử lại' : 'Xem kết quả khiếu nại'}
     </Button>
   )
 }
