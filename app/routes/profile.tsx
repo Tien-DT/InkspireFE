@@ -12,7 +12,7 @@ import { ProfileSkills } from '~/components/profile/ProfileSkills'
 import { ProfileTabs } from '~/components/profile/ProfileTabs'
 import { ProfileEditForm } from '~/components/profile/ProfileEditForm'
 import { ProfileEmptyState } from '~/components/profile/ProfileEmptyState'
-import { ProfileLoadingState, ProfileErrorState } from '~/components/profile/ProfileStates'
+import { ProfileErrorState } from '~/components/profile/ProfileStates'
 import { ProfileIntroTab } from '~/components/profile/tabs/ProfileIntroTab'
 
 import type { ProfileData, PortfolioItem } from '~/types/profile.type'
@@ -131,9 +131,9 @@ function ProfilePage() {
     setIsEditDialogOpen(false)
   }
 
-  // Loading state
+  // Loading state - hydrateFallback will show
   if (isLoading) {
-    return <ProfileLoadingState />
+    return null
   }
 
   // Error state
@@ -151,18 +151,10 @@ function ProfilePage() {
       <div className='px-4 py-12 sm:px-6 lg:px-8'>
         <div className='mb-12 flex flex-col items-center justify-end gap-6 text-center md:flex-row md:justify-between md:text-left'>
           <div className='w-full flex-1'>
-            <h1 className='text-3xl font-semibold text-foreground sm:text-4xl'>
-              Hồ sơ cá nhân
-            </h1>
-            <p className='mt-3 text-base text-muted-foreground'>
-              Không gian thể hiện bản thân và kinh nghiệm của bạn
-            </p>
+            <h1 className='text-3xl font-semibold text-foreground sm:text-4xl'>Hồ sơ cá nhân</h1>
+            <p className='mt-3 text-base text-muted-foreground'>Không gian thể hiện bản thân và kinh nghiệm của bạn</p>
           </div>
-          <Button
-            onClick={() => setIsEditDialogOpen(true)}
-            variant='shine'
-            size='lg'
-          >
+          <Button onClick={() => setIsEditDialogOpen(true)} variant='shine' size='lg'>
             <Edit className='mr-2 h-5 w-5' />
             Chỉnh sửa profile
           </Button>

@@ -10,7 +10,7 @@ import { ProfileContact } from '~/components/profile/ProfileContact'
 import { ProfilePricing } from '~/components/profile/ProfilePricing'
 import { ProfileSkills } from '~/components/profile/ProfileSkills'
 import { ProfileTabs } from '~/components/profile/ProfileTabs'
-import { ProfileLoadingState, ProfileErrorState } from '~/components/profile/ProfileStates'
+import { ProfileErrorState } from '~/components/profile/ProfileStates'
 import { ProfileIntroTab } from '~/components/profile/tabs/ProfileIntroTab'
 import { ProfilePortfolioTab, ProfileReviewsTab } from '~/components/profile/tabs'
 
@@ -108,7 +108,7 @@ function UserProfilePage() {
   }
 
   if (isLoading) {
-    return <ProfileLoadingState />
+    return null
   }
 
   if (error || !profileData) {

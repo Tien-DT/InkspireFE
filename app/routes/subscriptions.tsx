@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { Crown, Check, Star, Zap } from 'lucide-react'
-import { LoadingState } from '~/components/ui/spinner'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '~/components/ui/card'
 import { Badge } from '~/components/ui/badge'
@@ -148,7 +147,7 @@ export default function SubscriptionPage() {
   }
 
   if (isLoading || isLoadingProfile) {
-    return <LoadingState message='Đang tải thông tin gói đăng ký...' size='lg' variant='blast' />
+    return null
   }
 
   return (
@@ -165,7 +164,10 @@ export default function SubscriptionPage() {
         {/* Subscription Cards */}
         <div className='grid md:grid-cols-3 gap-8 mb-12'>
           {subscriptions.map((subscription) => (
-            <Card key={subscription.id} className='relative bg-white backdrop-blur-md shadow-none border-none transition-all hover:backdrop-blur-lg'>
+            <Card
+              key={subscription.id}
+              className='relative bg-white backdrop-blur-md shadow-none border-none transition-all hover:backdrop-blur-lg'
+            >
               {subscription.type === 2 && (
                 <Badge className='absolute -top-3 left-1/2 transform -translate-x-1/2' variant='default'>
                   Phổ biến nhất

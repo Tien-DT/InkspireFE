@@ -8,7 +8,6 @@ import { ButtonSpinner } from '~/components/ui/button-spinner'
 import { useLogin } from '~/hooks/useAuth'
 import { GoogleLoginButton } from '~/components/auth/google-login-button'
 import { Link } from 'react-router'
-import { LoadingOverlay } from '~/components/auth/LoadingOverlay'
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)

@@ -1,6 +1,7 @@
 import { useVideoCall, CallStatusEnum } from '~/contexts/VideoCallContext'
 import { DailyVideoCall } from '~/components/video/DailyVideoCall'
 import { useAuth } from '~/contexts/AuthContext'
+import { useRef } from 'react'
 
 export function VideoCallDialog() {
   const { callState, endCall } = useVideoCall()

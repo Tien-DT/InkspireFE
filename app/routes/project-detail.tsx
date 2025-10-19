@@ -1,11 +1,9 @@
-import { Check, Clock, Download, FileText, ImageIcon, MessageCircle, Plus, Share2, X } from 'lucide-react'
+import { Check, Clock, Download, MessageCircle, Plus, Share2, X } from 'lucide-react'
 import { Suspense, useState } from 'react'
 import { useParams, useNavigate } from 'react-router'
 import { format } from 'date-fns'
 import { vi } from 'date-fns/locale'
 import { toast } from 'sonner'
-import { LoadingState } from '~/components/ui/spinner'
-import { HydrateFallback } from '~/components/ui'
 import { Badge } from '~/components/ui/badge'
 import { Button } from '~/components/ui/button'
 import { Card, CardContent } from '~/components/ui/card'
@@ -38,6 +36,7 @@ import { EvaluationDialog } from '~/components/project/EvaluationDialog'
 import { ComplainDialog } from '~/components/project/ComplainDialog'
 import { ComplaintResultDialog } from '~/components/project/ComplaintResultDialog'
 import { TimelineItemWithComplaints } from '~/components/project/TimelineItemWithComplaints'
+import { HydrateFallback } from '~/components/ui'
 
 export interface TimelineItem {
   id: string
@@ -197,7 +196,7 @@ function ProjectDetailContent() {
   }
 
   if (isLoading || milestonesLoading) {
-    return <LoadingState message='Đang tải dữ liệu dự án...' size='lg' variant='blast' />
+    return null
   }
 
   if (error) {

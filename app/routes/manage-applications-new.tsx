@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
-import { Loader2 } from 'lucide-react'
-// import { Briefcase, AlertCircle, XCircle } from 'lucide-react'
+import { Loader2, AlertCircle } from 'lucide-react'
+// import { Briefcase, XCircle } from 'lucide-react'
 import {
   // StatsCard,
   // FilterTabs,
@@ -63,7 +63,7 @@ const transformUserCVToApplication = (userCV: UserCVDto): JobApplication => {
 
 function ManageApplicationsPage() {
   const { profile } = useAuth()
-  // const [filterStatus, setFilterStatus] = useState<FilterStatus>('all')
+  const [filterStatus] = useState<FilterStatus>('all')
   const queryClient = useQueryClient()
 
   // Fetch user applications (UserCV) from API

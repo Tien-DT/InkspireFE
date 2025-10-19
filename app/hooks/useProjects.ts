@@ -123,7 +123,7 @@ export const useEvaluateMilestoneFile = () => {
 }
 
 export const useEvaluateMilestoneFileByUrl = (
-  options: { onSuccess?: (data: any) => void; onError?: (error: any) => void } = {}
+  options: { onSuccess?: (data: unknown) => void; onError?: (error: unknown) => void } = {}
 ) => {
   return useMutation({
     mutationFn: (body: { requirementText: string; fileUrl: string; fileName: string; contentType: string }) =>
@@ -133,7 +133,7 @@ export const useEvaluateMilestoneFileByUrl = (
   })
 }
 
-export const useSubmitComplaint = (options: { onSuccess?: (data: any) => void; onError?: (error: any) => void } = {}) => {
+export const useSubmitComplaint = (options: { onSuccess?: (data: unknown) => void; onError?: (error: unknown) => void } = {}) => {
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -154,9 +154,9 @@ export const useGetComplaint = (complaintId: string) => {
     queryKey: ['complaint', complaintId],
     queryFn: () => projectApi.getComplaint(complaintId),
     enabled: !!complaintId,
-    refetchInterval: (data) => {
+    refetchInterval: (state) => {
       // Poll every 3 seconds while processing (status 0 or 1)
-      const processingStatus = data?.data?.processingStatus
+      const processingStatus = (state as unknown as Record<string, unknown>)?.processingStatus
       return processingStatus === 0 || processingStatus === 1 ? 3000 : false
     }
   })

@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import { Plus, Edit2, Trash2 } from 'lucide-react'
-import { LoadingState } from '~/components/ui/spinner'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
 import { Button } from '~/components/ui/button'
 import { Badge } from '~/components/ui/badge'
@@ -116,7 +115,7 @@ export default function AdminSubscriptionsPage() {
   }
 
   if (isLoading) {
-    return <LoadingState message='Đang tải danh sách gói đăng ký...' size='lg' variant='blast' />
+    return null
   }
 
   return (

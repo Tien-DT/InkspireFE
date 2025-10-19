@@ -1,21 +1,12 @@
 import { Button } from '~/components/ui/button'
-import { Spinner } from '~/components/ui/spinner'
 
-interface ProfileLoadingStateProps {
-  message?: string
-}
-
-export function ProfileLoadingState({ message = 'Đang tải thông tin profile...' }: ProfileLoadingStateProps) {
-  return (
-    <div className='flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-background to-muted/20'>
-      <div className='text-center'>
-        <div className='mx-auto mb-4 flex h-12 w-12 items-center justify-center'>
-          <Spinner size='lg' variant='blast' />
-        </div>
-        <p className='text-sm text-muted-foreground/70'>{message}</p>
-      </div>
-    </div>
-  )
+/**
+ * @deprecated ProfileLoadingState - Sử dụng hydrateFallback của React Router thay vào đó
+ * Trả về null từ route khi isLoading = true, React Router sẽ hiển thị HydrateFallback
+ */
+export function ProfileLoadingState() {
+  // No longer used - hydrateFallback will handle loading
+  return null
 }
 
 interface ProfileErrorStateProps {

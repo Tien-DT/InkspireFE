@@ -39,7 +39,6 @@ import { useAuth } from '~/contexts/AuthContext'
 import { cn } from '~/lib/utils'
 import { toast } from 'sonner'
 import { UserRole } from '~/types/user.type'
-import { LoadingState } from '~/components/ui/spinner'
 import { PATH } from '~/constants/path'
 
 type NavItem = {
@@ -83,9 +82,9 @@ export default function AdminLayout() {
   const navigate = useNavigate()
   const location = useLocation()
 
-  // Wait for auth to be ready
+  // Nếu authReady chưa true, hydrateFallback sẽ hiển thị
   if (!authReady) {
-    return <LoadingState message='Đang kiểm tra quyền truy cập...' size='md' variant='blast' className='min-h-screen' />
+    return null
   }
 
   // Check if user is authenticated

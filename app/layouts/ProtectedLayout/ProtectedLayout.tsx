@@ -2,7 +2,6 @@ import { Navigate, Outlet, useLocation } from 'react-router'
 import { PATH } from '~/constants/path'
 import { RecruitmentFormProvider } from '~/contexts/RecruitmentFormContext'
 import { useAuth } from '~/contexts/AuthContext'
-import { LoadingState } from '~/components/ui/spinner'
 import { UserRole } from '~/types/user.type'
 import { toast } from 'sonner'
 
@@ -11,7 +10,9 @@ export default function ProtectedLayout() {
   const location = useLocation()
 
   if (!authReady) {
-    return <LoadingState message='Đang kiểm tra phiên đăng nhập...' size='md' variant='blast' className='min-h-screen' />
+    // Nếu authReady chưa true, hydrateFallback sẽ hiển thị
+    // Trả về null để tránh duplicate loading UI
+    return null
   }
 
   if (!isAuthenticated) {
