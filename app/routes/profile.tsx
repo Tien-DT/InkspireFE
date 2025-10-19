@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Edit } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '~/components/ui/dialog'
@@ -14,50 +14,21 @@ import { ProfileEditForm } from '~/components/profile/ProfileEditForm'
 import { ProfileEmptyState } from '~/components/profile/ProfileEmptyState'
 import { ProfileErrorState } from '~/components/profile/ProfileStates'
 import { ProfileIntroTab } from '~/components/profile/tabs/ProfileIntroTab'
+import { toast } from 'sonner'
 
 import type { ProfileData, PortfolioItem } from '~/types/profile.type'
 import type { ProfileFormValues } from '~/lib/validations/profile.schema'
 import { AuthErrorBoundary } from '~/components/errors/AuthErrorBoundary'
 import { PortfolioEditTab, ProfilePortfolioTab, ProfileReviewsTab } from '~/components/profile/tabs'
-
-// Mock portfolio data - will be replaced with API later
-const MOCK_PORTFOLIO: PortfolioItem[] = [
-  {
-    id: 1,
-    title: 'Logo thiết kế cho startup AI',
-    category: 'Logo Design',
-    description: 'Thiết kế logo hiện đại cho các công ty công nghệ AI',
-    image: ''
-  },
-  {
-    id: 2,
-    title: 'Brand identity cho chuỗi cafe',
-    category: 'Brand Identity',
-    description: 'Hệ thống nhận diện thương hiệu hoàn chỉnh cho chuỗi cafe',
-    image: ''
-  },
-  {
-    id: 3,
-    title: 'Logo cho ứng dụng fintech',
-    category: 'Logo Design',
-    description: 'Logo tối giản cho ứng dụng tài chính',
-    image: ''
-  },
-  {
-    id: 4,
-    title: 'Thiết kế logo thương mại điện tử',
-    category: 'Logo Design',
-    description: 'Logo năng động cho nền tảng thương mại điện tử',
-    image: ''
-  }
-]
+import { portfolioApi } from '~/apis/portfolio.api'
 
 type EditTabType = 'profile' | 'portfolio'
 
 function ProfilePage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [editingTab, setEditingTab] = useState<EditTabType>('profile')
-  const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>(MOCK_PORTFOLIO)
+  const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([])
+  const [loadingPortfolios, setLoadingPortfolios] = useState(false)
 
   // Get current user from localStorage
   const currentUser = getProfileFromLS()
@@ -65,6 +36,31 @@ function ProfilePage() {
 
   // Fetch user profile from API
   const { data: userProfileData, isLoading, error } = useUserProfile(userId)
+
+  // Fetch user portfolios
+  useEffect(() => {
+    if (userId) {
+      setLoadingPortfolios(true)
+      portfolioApi.getUserPortfolios(userId)
+        .then((portfolios) => {
+          setPortfolioItems(portfolios.map(p => ({
+            id: p.id,
+            name: p.name || '',
+            project: p.project || '',
+            skill: p.skill || '',
+            description: p.description || '',
+            imageUrl: p.imageUrl || '',
+            pdfUrl: p.pdfUrl || ''
+          })))
+        })
+        .catch((err) => {
+          console.error('Failed to load portfolios:', err)
+        })
+        .finally(() => {
+          setLoadingPortfolios(false)
+        })
+    }
+  }, [userId])
 
   // Profile data from API - memoized to prevent re-creation
   const profileData = useMemo<ProfileData | null>(() => {
@@ -124,11 +120,56 @@ function ProfilePage() {
     setIsEditDialogOpen(false)
   }
 
-  const handleSavePortfolio = (items: PortfolioItem[]) => {
-    // TODO: Call API to save portfolio
-    console.log('Save portfolio:', items)
-    setPortfolioItems(items)
-    setIsEditDialogOpen(false)
+  const handleSavePortfolio = async (items: PortfolioItem[]) => {
+    if (!userId) return
+
+    try {
+      // Save each portfolio item
+      const savePromises = items.map(async (item) => {
+        if (item.id.startsWith('temp-')) {
+          // Create new portfolio
+          return await portfolioApi.createPortfolio({
+            userId: userId,
+            name: item.name,
+            project: item.project,
+            skill: item.skill,
+            description: item.description,
+            imageUrl: item.imageUrl,
+            pdfUrl: item.pdfUrl,
+            status: 1
+          })
+        } else {
+          // Update existing portfolio
+          return await portfolioApi.updatePortfolio(item.id, {
+            name: item.name,
+            project: item.project,
+            skill: item.skill,
+            description: item.description,
+            imageUrl: item.imageUrl,
+            pdfUrl: item.pdfUrl
+          })
+        }
+      })
+
+      await Promise.all(savePromises)
+
+      // Refresh portfolios
+      const updatedPortfolios = await portfolioApi.getUserPortfolios(userId)
+      setPortfolioItems(updatedPortfolios.map(p => ({
+        id: p.id,
+        name: p.name || '',
+        project: p.project || '',
+        skill: p.skill || '',
+        description: p.description || '',
+        imageUrl: p.imageUrl || '',
+        pdfUrl: p.pdfUrl || ''
+      })))
+
+      toast.success('Đã lưu portfolio')
+      setIsEditDialogOpen(false)
+    } catch (error) {
+      toast.error('Không thể lưu portfolio')
+    }
   }
 
   // Loading state - hydrateFallback will show

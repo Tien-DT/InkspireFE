@@ -1,9 +1,11 @@
 export interface PortfolioItem {
-  id: number
-  title: string
-  category: string
+  id: string
+  name: string
+  project: string
+  skill: string
   description: string
-  image: string
+  imageUrl: string
+  pdfUrl: string
 }
 
 export interface ProfileData {
