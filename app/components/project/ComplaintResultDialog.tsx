@@ -157,38 +157,40 @@ export function ComplaintResultDialog({ isOpen, onClose, complaint }: ComplaintR
 
               {/* Scores */}
               <div className='bg-white border-2 border-gray-200 rounded-lg p-6'>
-                <h3 className='text-lg font-bold text-gray-900 mb-4'>Điểm đánh giá</h3>
-                <div className='grid grid-cols-2 gap-4'>
+                <h3 className='text-lg font-bold text-gray-900 mb-4'>Điểm đánh giá của AI</h3>
+                <div className='grid grid-cols-1 gap-4'>
                   {complaint.evaluationScore !== undefined && (
-                    <div className='flex justify-between items-center p-3 bg-gray-50 rounded-lg'>
-                      <span className='text-sm font-medium text-gray-700'>Tổng điểm:</span>
-                      <span className='text-xl font-bold text-blue-600'>{complaint.evaluationScore.toFixed(1)}/10</span>
+                    <div className='flex justify-between items-center p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border-2 border-blue-300'>
+                      <span className='text-base font-bold text-gray-900'>Điểm tổng thể:</span>
+                      <span className='text-2xl font-bold text-blue-700'>{complaint.evaluationScore.toFixed(1)}/10</span>
                     </div>
                   )}
-                  {complaint.contentQualityScore !== undefined && (
-                    <div className='flex justify-between items-center p-3 bg-gray-50 rounded-lg'>
-                      <span className='text-sm font-medium text-gray-700'>Chất lượng nội dung:</span>
-                      <span className='text-xl font-bold text-blue-600'>{complaint.contentQualityScore.toFixed(1)}/10</span>
-                    </div>
-                  )}
-                  {complaint.technicalAccuracyScore !== undefined && (
-                    <div className='flex justify-between items-center p-3 bg-gray-50 rounded-lg'>
-                      <span className='text-sm font-medium text-gray-700'>Độ chính xác kỹ thuật:</span>
-                      <span className='text-xl font-bold text-blue-600'>{complaint.technicalAccuracyScore.toFixed(1)}/10</span>
-                    </div>
-                  )}
-                  {complaint.styleComplianceScore !== undefined && (
-                    <div className='flex justify-between items-center p-3 bg-gray-50 rounded-lg'>
-                      <span className='text-sm font-medium text-gray-700'>Tuân thủ phong cách:</span>
-                      <span className='text-xl font-bold text-blue-600'>{complaint.styleComplianceScore.toFixed(1)}/10</span>
-                    </div>
-                  )}
-                  {complaint.completenessScore !== undefined && (
-                    <div className='flex justify-between items-center p-3 bg-gray-50 rounded-lg'>
-                      <span className='text-sm font-medium text-gray-700'>Tính hoàn thiện:</span>
-                      <span className='text-xl font-bold text-blue-600'>{complaint.completenessScore.toFixed(1)}/10</span>
-                    </div>
-                  )}
+                  <div className='grid grid-cols-2 gap-4'>
+                    {complaint.contentQualityScore !== undefined && (
+                      <div className='flex justify-between items-center p-3 bg-gray-50 rounded-lg'>
+                        <span className='text-sm font-medium text-gray-700'>Chất lượng nội dung:</span>
+                        <span className='text-xl font-bold text-blue-600'>{complaint.contentQualityScore.toFixed(1)}/10</span>
+                      </div>
+                    )}
+                    {complaint.technicalAccuracyScore !== undefined && (
+                      <div className='flex justify-between items-center p-3 bg-gray-50 rounded-lg'>
+                        <span className='text-sm font-medium text-gray-700'>Độ chính xác kỹ thuật:</span>
+                        <span className='text-xl font-bold text-blue-600'>{complaint.technicalAccuracyScore.toFixed(1)}/10</span>
+                      </div>
+                    )}
+                    {complaint.styleComplianceScore !== undefined && (
+                      <div className='flex justify-between items-center p-3 bg-gray-50 rounded-lg'>
+                        <span className='text-sm font-medium text-gray-700'>Tuân thủ phong cách:</span>
+                        <span className='text-xl font-bold text-blue-600'>{complaint.styleComplianceScore.toFixed(1)}/10</span>
+                      </div>
+                    )}
+                    {complaint.completenessScore !== undefined && (
+                      <div className='flex justify-between items-center p-3 bg-gray-50 rounded-lg'>
+                        <span className='text-sm font-medium text-gray-700'>Tính hoàn thiện:</span>
+                        <span className='text-xl font-bold text-blue-600'>{complaint.completenessScore.toFixed(1)}/10</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
