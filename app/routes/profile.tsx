@@ -33,6 +33,7 @@ function ProfilePage() {
   // Get current user from localStorage
   const currentUser = getProfileFromLS()
   const userId = currentUser?.id
+  const userRole = currentUser?.role
 
   // Fetch user profile from API
   const { data: userProfileData, isLoading, error } = useUserProfile(userId)
@@ -231,16 +232,18 @@ function ProfilePage() {
             <div className='overflow-hidden rounded-2xl border border-border/30 bg-card/30 backdrop-blur-md'>
               <Tabs defaultValue='intro' className='w-full'>
                 <div className='sticky top-0 z-10 border-b border-border/20 bg-card/20 px-6 pb-4 pt-6 backdrop-blur-sm'>
-                  <ProfileTabs />
+                  <ProfileTabs userRole={userRole} />
                 </div>
 
                 <TabsContent value='intro' className='mt-0 space-y-6 px-6 pb-6 pt-4'>
                   <ProfileIntroTab bio={profileData.bio} />
                 </TabsContent>
 
-                <TabsContent value='portfolio' className='mt-0 space-y-6 px-6 pb-6 pt-4'>
-                  <ProfilePortfolioTab portfolio={profileData.portfolio} />
-                </TabsContent>
+                {userRole === 2 && (
+                  <TabsContent value='portfolio' className='mt-0 space-y-6 px-6 pb-6 pt-4'>
+                    <ProfilePortfolioTab portfolio={profileData.portfolio} />
+                  </TabsContent>
+                )}
 
                 <TabsContent value='reviews' className='mt-0 space-y-6 px-6 pb-6 pt-4'>
                   <ProfileReviewsTab />
@@ -270,19 +273,21 @@ function ProfilePage() {
               className='flex min-h-0 flex-1 flex-col overflow-hidden'
             >
               <div className='shrink-0 border-b border-border/20 bg-card/20 px-6 pb-2 pt-4 backdrop-blur-sm'>
-                <TabsList className='grid w-full grid-cols-2 rounded-xl bg-card/40 p-1 text-muted-foreground'>
+                <TabsList className={`grid w-full ${userRole === 2 ? 'grid-cols-2' : 'grid-cols-1'} rounded-xl bg-card/40 p-1 text-muted-foreground`}>
                   <TabsTrigger
                     value='profile'
                     className='rounded-lg px-6 py-2 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground'
                   >
                     Thông tin Profile
                   </TabsTrigger>
-                  <TabsTrigger
-                    value='portfolio'
-                    className='rounded-lg px-6 py-2 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground'
-                  >
-                    Portfolio
-                  </TabsTrigger>
+                  {userRole === 2 && (
+                    <TabsTrigger
+                      value='portfolio'
+                      className='rounded-lg px-6 py-2 text-sm font-semibold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground'
+                    >
+                      Portfolio
+                    </TabsTrigger>
+                  )}
                 </TabsList>
               </div>
 
@@ -294,13 +299,15 @@ function ProfilePage() {
                 />
               </TabsContent>
 
-              <TabsContent value='portfolio' className='mt-0 flex-1 min-h-0 overflow-y-auto px-6 scrollbar-hide'>
-                <PortfolioEditTab
-                  initialItems={portfolioItems}
-                  onSave={handleSavePortfolio}
-                  onCancel={() => setIsEditDialogOpen(false)}
-                />
-              </TabsContent>
+              {userRole === 2 && (
+                <TabsContent value='portfolio' className='mt-0 flex-1 min-h-0 overflow-y-auto px-6 scrollbar-hide'>
+                  <PortfolioEditTab
+                    initialItems={portfolioItems}
+                    onSave={handleSavePortfolio}
+                    onCancel={() => setIsEditDialogOpen(false)}
+                  />
+                </TabsContent>
+              )}
             </Tabs>
           </DialogContent>
         </Dialog>

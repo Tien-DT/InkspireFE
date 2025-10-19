@@ -43,11 +43,30 @@ export function PortfolioEditTab({ initialItems, onSave, onCancel }: PortfolioEd
     setUploadingStates({ ...uploadingStates, [newItem.id]: { image: false, pdf: false } })
   }
 
-  const handleRemovePortfolio = (id: string) => {
-    setPortfolioItems(portfolioItems.filter((item) => item.id !== id))
-    const newStates = { ...uploadingStates }
-    delete newStates[id]
-    setUploadingStates(newStates)
+  const handleRemovePortfolio = async (id: string) => {
+    // If it's a temporary item (not saved to DB yet), just remove from local state
+    if (id.startsWith('temp-')) {
+      setPortfolioItems(portfolioItems.filter((item) => item.id !== id))
+      const newStates = { ...uploadingStates }
+      delete newStates[id]
+      setUploadingStates(newStates)
+      toast.success('Đã xóa portfolio')
+      return
+    }
+
+    // If it's a real item from DB, delete from database
+    try {
+      await portfolioApi.deletePortfolio(id)
+      setPortfolioItems(portfolioItems.filter((item) => item.id !== id))
+      const newStates = { ...uploadingStates }
+      delete newStates[id]
+      setUploadingStates(newStates)
+      toast.success('Đã xóa portfolio')
+    } catch (error) {
+      console.error('Delete portfolio error:', error)
+      const errorMsg = error instanceof Error ? error.message : 'Xóa portfolio thất bại'
+      toast.error(errorMsg)
+    }
   }
 
   const handleUpdatePortfolio = (id: string, field: keyof PortfolioItem, value: string) => {
@@ -258,6 +277,7 @@ export function PortfolioEditTab({ initialItems, onSave, onCancel }: PortfolioEd
                     size='sm'
                     className='text-red-600 hover:text-red-700 hover:bg-red-50'
                     onClick={() => handleRemovePortfolio(item.id)}
+                    disabled={uploadingStates[item.id]?.image || uploadingStates[item.id]?.pdf}
                   >
                     <Trash2 className='h-4 w-4' />
                   </Button>
