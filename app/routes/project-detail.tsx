@@ -19,7 +19,8 @@ import {
   useUpdateMilestone,
   useUpdateProject,
   useUploadMilestoneDocument,
-  useSubmitComplaint
+  useSubmitComplaint,
+  useComplaintsByMilestone
 } from '~/hooks/useProjects'
 import type { Milestone } from '~/apis/project.api'
 import { useWallet } from '~/hooks/useUser'
@@ -35,6 +36,8 @@ import {
 import { AlertCircle, CheckCircle2 } from 'lucide-react'
 import { EvaluationDialog } from '~/components/project/EvaluationDialog'
 import { ComplainDialog } from '~/components/project/ComplainDialog'
+import { ComplaintResultDialog } from '~/components/project/ComplaintResultDialog'
+import { TimelineItemWithComplaints } from '~/components/project/TimelineItemWithComplaints'
 
 export interface TimelineItem {
   id: string
@@ -141,6 +144,9 @@ function ProjectDetailContent() {
   })
   const [isComplainDialogOpen, setIsComplainDialogOpen] = useState(false)
   const [currentTimelineForComplain, setCurrentTimelineForComplain] = useState<TimelineItem | null>(null)
+  const [isComplaintResultDialogOpen, setIsComplaintResultDialogOpen] = useState(false)
+  const [selectedComplaint, setSelectedComplaint] = useState<any>(null)
+  const [isSubmittingFile, setIsSubmittingFile] = useState(false)
 
   const submitComplaint = useSubmitComplaint({
     onSuccess: () => {
@@ -374,6 +380,7 @@ function ProjectDetailContent() {
       return
     }
 
+    setIsSubmittingFile(true)
     try {
       await uploadMilestoneDocument.mutateAsync({ milestoneId, file: selectedFile })
       await updateMilestone.mutateAsync({
@@ -387,6 +394,16 @@ function ProjectDetailContent() {
     } catch (error) {
       console.error('Failed to submit milestone document', error)
       toast.error('Nộp file thất bại')
+    } finally {
+      setIsSubmittingFile(false)
+    }
+  }
+
+  const handleViewComplaintResult = (milestoneId: string, complaints: any[]) => {
+    const completedComplaint = complaints.find((c: any) => c.processingStatus === 2)
+    if (completedComplaint) {
+      setSelectedComplaint(completedComplaint)
+      setIsComplaintResultDialogOpen(true)
     }
   }
 
@@ -540,6 +557,12 @@ function ProjectDetailContent() {
         onClose={() => setIsComplainDialogOpen(false)}
         onSubmit={handleComplainSubmit}
         fileUrl={currentTimelineForComplain?.fileUrl || ''}
+      />
+
+      <ComplaintResultDialog
+        isOpen={isComplaintResultDialogOpen}
+        onClose={() => setIsComplaintResultDialogOpen(false)}
+        complaint={selectedComplaint}
       />
 
       <div className='container mx-auto px-4 py-6 space-y-6 flex min-h-screen bg-background'>
@@ -836,6 +859,10 @@ function ProjectDetailContent() {
                                       </Button>
                                     </a>
                                   )}
+                                  <TimelineItemWithComplaints
+                                    milestoneId={timeline.id}
+                                    onViewComplaint={handleViewComplaintResult}
+                                  />
                                   <Button
                                     size='sm'
                                     onClick={() => handleCompleteTimeline(timeline)}
@@ -874,17 +901,29 @@ function ProjectDetailContent() {
 
                               {/* Show "Đang kiểm tra khiếu nại" when status is under-complaint-review */}
                               {timeline.status === 'under-complaint-review' && (
-                                <div className='flex items-center gap-2 text-purple-600 text-base font-semibold'>
-                                  <Clock className='h-5 w-5 animate-pulse' />
-                                  Đang kiểm tra khiếu nại bằng AI
+                                <div className='flex items-center gap-2'>
+                                  <div className='flex items-center gap-2 text-purple-600 text-base font-semibold'>
+                                    <Clock className='h-5 w-5 animate-pulse' />
+                                    Đang kiểm tra khiếu nại bằng AI
+                                  </div>
+                                  <TimelineItemWithComplaints
+                                    milestoneId={timeline.id}
+                                    onViewComplaint={handleViewComplaintResult}
+                                  />
                                 </div>
                               )}
 
                               {/* Show "Chờ freelancer sửa lại" when status is pending-revision */}
                               {timeline.status === 'pending-revision' && (
-                                <div className='flex items-center gap-2 text-red-600 text-base font-semibold'>
-                                  <X className='h-5 w-5' />
-                                  Chờ freelancer sửa lại
+                                <div className='flex items-center gap-2'>
+                                  <div className='flex items-center gap-2 text-red-600 text-base font-semibold'>
+                                    <X className='h-5 w-5' />
+                                    Chờ freelancer sửa lại
+                                  </div>
+                                  <TimelineItemWithComplaints
+                                    milestoneId={timeline.id}
+                                    onViewComplaint={handleViewComplaintResult}
+                                  />
                                 </div>
                               )}
 
@@ -912,31 +951,56 @@ function ProjectDetailContent() {
                                 Kiểm tra sản phẩm bằng AI
                               </Button>
                               <Input type='file' accept='.pdf,.jpg,.jpeg,.png,.svg' onChange={handleFileChange} />
-                              <Button onClick={() => handleSubmitFile(timeline.id)} disabled={!selectedFile}>
-                                Nộp file
+                              <Button onClick={() => handleSubmitFile(timeline.id)} disabled={!selectedFile || isSubmittingFile}>
+                                {isSubmittingFile ? (
+                                  <>
+                                    <Clock className='h-4 w-4 mr-1.5 animate-spin' />
+                                    Đang nộp...
+                                  </>
+                                ) : (
+                                  'Nộp file'
+                                )}
                               </Button>
                             </div>
                           )}
 
                           {isFreelancer && timeline.status === 'pending-confirmation' && (
-                            <div className='flex items-center gap-2 text-orange-600 text-base font-semibold'>
-                              <Clock className='h-5 w-5' />
-                              Chờ xác nhận
+                            <div className='flex items-center gap-2'>
+                              <div className='flex items-center gap-2 text-orange-600 text-base font-semibold'>
+                                <Clock className='h-5 w-5' />
+                                Chờ xác nhận
+                              </div>
+                              <TimelineItemWithComplaints
+                                milestoneId={timeline.id}
+                                onViewComplaint={handleViewComplaintResult}
+                              />
                             </div>
                           )}
 
                           {isFreelancer && timeline.status === 'under-complaint-review' && (
-                            <div className='flex items-center gap-2 text-purple-600 text-base font-semibold'>
-                              <Clock className='h-5 w-5 animate-pulse' />
-                              Khách hàng đã gửi khiếu nại, AI đang kiểm tra
+                            <div className='flex items-center gap-2'>
+                              <div className='flex items-center gap-2 text-purple-600 text-base font-semibold'>
+                                <Clock className='h-5 w-5 animate-pulse' />
+                                Khách hàng đã gửi khiếu nại, AI đang kiểm tra
+                              </div>
+                              <TimelineItemWithComplaints
+                                milestoneId={timeline.id}
+                                onViewComplaint={handleViewComplaintResult}
+                              />
                             </div>
                           )}
 
                           {isFreelancer && timeline.status === 'pending-revision' && (
                             <div className='flex flex-col gap-3'>
-                              <div className='flex items-center gap-2 text-red-600 text-base font-semibold'>
-                                <X className='h-5 w-5' />
-                                Khách hàng không chấp nhận file, vui lòng nộp lại (Chờ sửa lại)
+                              <div className='flex items-center gap-2'>
+                                <div className='flex items-center gap-2 text-red-600 text-base font-semibold'>
+                                  <X className='h-5 w-5' />
+                                  Khách hàng không chấp nhận file, vui lòng nộp lại (Chờ sửa lại)
+                                </div>
+                                <TimelineItemWithComplaints
+                                  milestoneId={timeline.id}
+                                  onViewComplaint={handleViewComplaintResult}
+                                />
                               </div>
                               <div className='flex items-center gap-2'>
                                 <Button
@@ -950,8 +1014,15 @@ function ProjectDetailContent() {
                                   Kiểm tra sản phẩm bằng AI
                                 </Button>
                                 <Input type='file' accept='.pdf,.jpg,.jpeg,.png,.svg' onChange={handleFileChange} />
-                                <Button onClick={() => handleSubmitFile(timeline.id)} disabled={!selectedFile}>
-                                  Nộp lại file
+                                <Button onClick={() => handleSubmitFile(timeline.id)} disabled={!selectedFile || isSubmittingFile}>
+                                  {isSubmittingFile ? (
+                                    <>
+                                      <Clock className='h-4 w-4 mr-1.5 animate-spin' />
+                                      Đang nộp...
+                                    </>
+                                  ) : (
+                                    'Nộp lại file'
+                                  )}
                                 </Button>
                               </div>
                             </div>

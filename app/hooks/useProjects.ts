@@ -161,3 +161,13 @@ export const useGetComplaint = (complaintId: string) => {
     }
   })
 }
+
+export const useComplaintsByMilestone = (milestoneId: string) => {
+  return useQuery({
+    queryKey: ['milestoneComplaints', milestoneId],
+    queryFn: () => projectApi.getMilestoneComplaints(milestoneId),
+    enabled: !!milestoneId,
+    staleTime: 1000 * 3,
+    refetchInterval: 1000 * 6
+  })
+}
