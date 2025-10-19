@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Briefcase, Clock, FileText, Megaphone, TrendingUp, Users, Wallet } from 'lucide-react'
+import { Briefcase, Clock, FileText, Megaphone, TrendingUp, Users, Wallet, DollarSign } from 'lucide-react'
 import { useNavigate } from 'react-router'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { Badge } from '~/components/ui/badge'
@@ -10,6 +10,7 @@ import { AuthErrorBoundary } from '~/components/errors'
 import { projectApi } from '~/apis/project.api'
 import { recruitmentApi } from '~/apis/recruitment.api'
 import { walletApi } from '~/apis/wallet.api'
+import { statisticsApi } from '~/apis/statistics.api'
 import { getProfileFromLS } from '~/utils/auth'
 import { PATH } from '~/constants/path'
 import { formatDistanceToNow } from 'date-fns'
@@ -50,9 +51,28 @@ function ClientDashboardPage() {
     enabled: !!profile?.id
   })
 
+  // Fetch client spending statistics
+  const { data: spendingData, isLoading: spendingLoading } = useQuery({
+    queryKey: ['client-spending', profile?.id],
+    queryFn: async () => {
+      if (!profile?.id) return null
+      return await statisticsApi.getClientSpending(profile.id)
+    },
+    enabled: !!profile?.id
+  })
+
   const posts = postsData?.data || []
   const projects = projectsData?.data || []
   const wallet = walletData?.data
+  const spendingStats = spendingData?.data
+
+  // Debug: Log spending stats
+  if (spendingStats) {
+    console.log('Client Spending Stats:', spendingStats)
+    if (spendingStats.debug) {
+      console.log('Debug Info:', spendingStats.debug)
+    }
+  }
 
   const activePosts = posts.filter((p) => p.status === ProjectStatus.ACTIVE)
   const activeProjects = projects.filter((p) => p.status === 1 || p.status === 2)
@@ -187,6 +207,35 @@ function ClientDashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Spending Stats Card */}
+      <Card className='border-border/40 hover:shadow-lg transition-shadow'>
+        <CardHeader className='flex flex-row items-center justify-between pb-2'>
+          <CardTitle className='text-base font-medium'>Tổng chi phí dự án</CardTitle>
+          <DollarSign className='h-6 w-6 text-muted-foreground' />
+        </CardHeader>
+        <CardContent>
+          {spendingLoading ? (
+            <div className='space-y-2'>
+              <Skeleton className='h-10 w-32' />
+              <Skeleton className='h-4 w-48' />
+            </div>
+          ) : (
+            <div className='space-y-2'>
+              <div className='text-4xl font-bold text-red-600'>
+                {spendingStats ? `${spendingStats.totalSpent.toLocaleString('vi-VN')} ₫` : '0 ₫'}
+              </div>
+              <div className='flex items-center gap-4 text-sm text-muted-foreground'>
+                <span>Đã thanh toán: <span className='font-medium text-foreground'>{spendingStats ? `${spendingStats.totalPaid.toLocaleString('vi-VN')} ₫` : '0 ₫'}</span></span>
+                <span>•</span>
+                <span>{spendingStats ? spendingStats.completedProjects : 0} dự án hoàn thành</span>
+                <span>•</span>
+                <span>{spendingStats ? spendingStats.activeProjects : 0} dự án đang thực hiện</span>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <div className='grid grid-cols-1 lg:grid-cols-2 gap-8'>
         {/* Recent Recruitment Posts */}

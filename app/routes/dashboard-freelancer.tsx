@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Briefcase, Clock, DollarSign, FileText, TrendingUp, Wallet } from 'lucide-react'
+import { Briefcase, Clock, DollarSign, FileText, TrendingUp, Wallet, ArrowDownCircle } from 'lucide-react'
 import { useNavigate } from 'react-router'
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { Badge } from '~/components/ui/badge'
@@ -10,6 +10,7 @@ import { projectApi } from '~/apis/project.api'
 import { userCVApi } from '~/apis/userCV.api'
 import { recruitmentApi } from '~/apis/recruitment.api'
 import { walletApi } from '~/apis/wallet.api'
+import { statisticsApi } from '~/apis/statistics.api'
 import { getProfileFromLS } from '~/utils/auth'
 import { PATH } from '~/constants/path'
 import { formatDistanceToNow } from 'date-fns'
@@ -60,10 +61,29 @@ function FreelancerDashboardPage() {
     }
   })
 
+  // Fetch freelancer income statistics
+  const { data: incomeData, isLoading: incomeLoading } = useQuery({
+    queryKey: ['freelancer-income', profile?.id],
+    queryFn: async () => {
+      if (!profile?.id) return null
+      return await statisticsApi.getFreelancerIncome(profile.id)
+    },
+    enabled: !!profile?.id
+  })
+
   const projects = projectsData?.data || []
   const applications = applicationsData?.data?.items || []
   const wallet = walletData?.data
   const jobs = jobsData?.data?.items || []
+  const incomeStats = incomeData?.data
+
+  // Debug: Log income stats
+  if (incomeStats) {
+    console.log('Freelancer Income Stats:', incomeStats)
+    if (incomeStats.debug) {
+      console.log('Debug Info:', incomeStats.debug)
+    }
+  }
 
   const activeProjects = projects.filter((p) => p.status === 1 || p.status === 2)
   const pendingApplications = applications.filter((a) => a.status === 1)
@@ -189,6 +209,75 @@ function FreelancerDashboardPage() {
             <p className='text-xs text-muted-foreground mt-1'>
               Hoàn thiện hồ sơ
             </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Income Stats Cards */}
+      <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
+        {/* Total Project Income */}
+        <Card className='border-border/40 hover:shadow-lg transition-shadow'>
+          <CardHeader className='flex flex-row items-center justify-between pb-2'>
+            <CardTitle className='text-sm font-medium text-muted-foreground'>Thu nhập từ dự án</CardTitle>
+            <DollarSign className='h-5 w-5 text-muted-foreground' />
+          </CardHeader>
+          <CardContent>
+            {incomeLoading ? (
+              <Skeleton className='h-8 w-24' />
+            ) : (
+              <>
+                <div className='text-3xl font-bold text-green-600'>
+                  {incomeStats ? `${incomeStats.totalProjectIncome.toLocaleString('vi-VN')} ₫` : '0 ₫'}
+                </div>
+                <p className='text-xs text-muted-foreground mt-1'>
+                  {incomeStats ? `${incomeStats.completedMilestones} cột mốc hoàn thành` : 'Chưa có thu nhập'}
+                </p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Total Received */}
+        <Card className='border-border/40 hover:shadow-lg transition-shadow'>
+          <CardHeader className='flex flex-row items-center justify-between pb-2'>
+            <CardTitle className='text-sm font-medium text-muted-foreground'>Số tiền đã nhận</CardTitle>
+            <ArrowDownCircle className='h-5 w-5 text-muted-foreground' />
+          </CardHeader>
+          <CardContent>
+            {incomeLoading ? (
+              <Skeleton className='h-8 w-24' />
+            ) : (
+              <>
+                <div className='text-3xl font-bold text-blue-600'>
+                  {incomeStats ? `${incomeStats.totalReceived.toLocaleString('vi-VN')} ₫` : '0 ₫'}
+                </div>
+                <p className='text-xs text-muted-foreground mt-1'>
+                  Đã chuyển vào ví
+                </p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Platform Fee */}
+        <Card className='border-border/40 hover:shadow-lg transition-shadow'>
+          <CardHeader className='flex flex-row items-center justify-between pb-2'>
+            <CardTitle className='text-sm font-medium text-muted-foreground'>Phí nền tảng</CardTitle>
+            <TrendingUp className='h-5 w-5 text-muted-foreground' />
+          </CardHeader>
+          <CardContent>
+            {incomeLoading ? (
+              <Skeleton className='h-8 w-24' />
+            ) : (
+              <>
+                <div className='text-3xl font-bold text-orange-600'>
+                  {incomeStats ? `${incomeStats.platformFee.toLocaleString('vi-VN')} ₫` : '0 ₫'}
+                </div>
+                <p className='text-xs text-muted-foreground mt-1'>
+                  {incomeStats ? `Kỳ vọng nhận: ${incomeStats.expectedReceived.toLocaleString('vi-VN')} ₫` : '10% doanh thu'}
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
