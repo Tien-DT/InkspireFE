@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
-import { Edit } from 'lucide-react'
+import { Edit, KeyRound } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '~/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
@@ -14,6 +14,7 @@ import { ProfileEditForm } from '~/components/profile/ProfileEditForm'
 import { ProfileEmptyState } from '~/components/profile/ProfileEmptyState'
 import { ProfileErrorState } from '~/components/profile/ProfileStates'
 import { ProfileIntroTab } from '~/components/profile/tabs/ProfileIntroTab'
+import { ChangePasswordDialog } from '~/components/profile/ChangePasswordDialog'
 import { toast } from 'sonner'
 
 import type { ProfileData, PortfolioItem } from '~/types/profile.type'
@@ -29,6 +30,7 @@ function ProfilePage() {
   const [editingTab, setEditingTab] = useState<EditTabType>('profile')
   const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([])
   const [loadingPortfolios, setLoadingPortfolios] = useState(false)
+  const [isChangePasswordDialogOpen, setIsChangePasswordDialogOpen] = useState(false)
 
   // Get current user from localStorage
   const currentUser = getProfileFromLS()
@@ -203,10 +205,16 @@ function ProfilePage() {
             <h1 className='text-3xl font-semibold text-foreground sm:text-4xl'>Hồ sơ cá nhân</h1>
             <p className='mt-3 text-base text-muted-foreground'>Không gian thể hiện bản thân và kinh nghiệm của bạn</p>
           </div>
-          <Button onClick={() => setIsEditDialogOpen(true)} variant='shine' size='lg'>
-            <Edit className='mr-2 h-5 w-5' />
-            Chỉnh sửa profile
-          </Button>
+          <div className='flex gap-3'>
+            <Button onClick={() => setIsChangePasswordDialogOpen(true)} variant='outline' size='lg'>
+              <KeyRound className='mr-2 h-5 w-5' />
+              Đổi mật khẩu
+            </Button>
+            <Button onClick={() => setIsEditDialogOpen(true)} variant='shine' size='lg'>
+              <Edit className='mr-2 h-5 w-5' />
+              Chỉnh sửa profile
+            </Button>
+          </div>
         </div>
 
         <div className='grid gap-8 lg:grid-cols-[360px_1fr]'>
@@ -318,6 +326,12 @@ function ProfilePage() {
             </Tabs>
           </DialogContent>
         </Dialog>
+
+        {/* Change Password Dialog */}
+        <ChangePasswordDialog
+          open={isChangePasswordDialogOpen}
+          onOpenChange={setIsChangePasswordDialogOpen}
+        />
       </div>
     </div>
   )
