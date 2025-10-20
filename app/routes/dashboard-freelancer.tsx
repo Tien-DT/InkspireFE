@@ -9,12 +9,12 @@ import { AuthErrorBoundary } from '~/components/errors'
 import { projectApi } from '~/apis/project.api'
 import { userCVApi } from '~/apis/userCV.api'
 import { recruitmentApi } from '~/apis/recruitment.api'
-import { walletApi } from '~/apis/wallet.api'
 import { statisticsApi } from '~/apis/statistics.api'
 import { getProfileFromLS } from '~/utils/auth'
 import { PATH } from '~/constants/path'
 import { formatDistanceToNow } from 'date-fns'
 import { vi } from 'date-fns/locale'
+import { useWallet } from '~/hooks/useWallet'
 
 function FreelancerDashboardPage() {
   const navigate = useNavigate()
@@ -40,15 +40,8 @@ function FreelancerDashboardPage() {
     enabled: !!profile?.id
   })
 
-  // Fetch wallet
-  const { data: walletData, isLoading: walletLoading } = useQuery({
-    queryKey: ['wallet', profile?.id],
-    queryFn: async () => {
-      if (!profile?.id) return null
-      return await walletApi.getWalletByUserId(profile.id)
-    },
-    enabled: !!profile?.id
-  })
+  // Fetch wallet with SignalR support
+  const { data: walletData, isLoading: walletLoading } = useWallet(profile?.id)
 
   // Fetch available jobs
   const { data: jobsData, isLoading: jobsLoading } = useQuery({
@@ -73,7 +66,7 @@ function FreelancerDashboardPage() {
 
   const projects = projectsData?.data || []
   const applications = applicationsData?.data?.items || []
-  const wallet = walletData?.data
+  const wallet = walletData?.data // SignalR auto-updates!
   const jobs = jobsData?.data?.items || []
   const incomeStats = incomeData?.data
 

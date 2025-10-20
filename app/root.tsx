@@ -10,6 +10,7 @@ import { VideoCallProvider } from '~/contexts/VideoCallContext'
 import { NotificationProvider } from '~/contexts/NotificationContext'
 import AuthErrorBoundary from '~/components/errors/AuthErrorBoundary'
 import { registerServiceWorker } from '~/utils/registerServiceWorker'
+import { useNotificationRefetch } from '~/hooks/useNotificationRefetch'
 import './app.css'
 
 const queryClient = new QueryClient({
@@ -60,6 +61,19 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export { HydrateFallback as hydrateFallback } from '~/components/ui'
 
+// Inner component to use hooks after providers are mounted
+function AppContent() {
+  // 🔄 Smart notification refetch - Khi có notification mới → Auto refetch data liên quan
+  useNotificationRefetch()
+
+  return (
+    <>
+      <Outlet />
+      <Toaster />
+    </>
+  )
+}
+
 export default function App() {
   // Register service worker for push notifications
   useEffect(() => {
@@ -76,8 +90,7 @@ export default function App() {
             <VideoCallProvider>
               <AuthErrorBoundary autoRedirectToLogin loginPath='/login'>
                 <ThemeProvider attribute='class' defaultTheme='light' enableSystem storageKey='vite-ui-theme'>
-                  <Outlet />
-                  <Toaster />
+                  <AppContent />
                 </ThemeProvider>
               </AuthErrorBoundary>
             </VideoCallProvider>

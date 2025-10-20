@@ -173,9 +173,16 @@ function ProfilePage() {
     }
   }
 
-  // Loading state - hydrateFallback will show
+  // Loading state
   if (isLoading) {
-    return null
+    return (
+      <div className='container mx-auto px-4 py-8'>
+        <div className='bg-white rounded-lg shadow p-8 text-center'>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4'></div>
+          <p className='text-gray-600'>Đang tải hồ sơ cá nhân...</p>
+        </div>
+      </div>
+    )
   }
 
   // Error state

@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useEffect } from 'react'
 import {
   projectApi,
   type CreateMilestonePayload,
@@ -6,9 +7,51 @@ import {
   type UpdateProjectPayload
 } from '~/apis/project.api'
 import { getProfileFromLS } from '~/utils/auth'
+import { signalRNotificationService } from '~/lib/signalr-notification'
 
 export const useProjects = () => {
   const profile = getProfileFromLS()
+  const queryClient = useQueryClient()
+
+  // Listen to SignalR events for real-time updates
+  useEffect(() => {
+    if (!profile?.id) return
+
+    const handleProjectCreated = (project: any) => {
+      console.log('[useProjects] ProjectCreated event:', project)
+      queryClient.invalidateQueries({ queryKey: ['projects', profile.id, profile.role] })
+    }
+
+    const handleProjectUpdated = (project: any) => {
+      console.log('[useProjects] ProjectUpdated event:', project)
+      queryClient.invalidateQueries({ queryKey: ['projects', profile.id, profile.role] })
+      queryClient.invalidateQueries({ queryKey: ['project', project.id] })
+    }
+
+    const handleProjectStatusChanged = (projectId: string, status: number) => {
+      console.log('[useProjects] ProjectStatusChanged event:', projectId, status)
+      queryClient.invalidateQueries({ queryKey: ['projects', profile.id, profile.role] })
+      queryClient.invalidateQueries({ queryKey: ['project', projectId] })
+    }
+
+    const handleMilestoneUpdated = (milestone: any) => {
+      console.log('[useProjects] MilestoneUpdated event:', milestone)
+      queryClient.invalidateQueries({ queryKey: ['milestones', milestone.projectId] })
+      queryClient.invalidateQueries({ queryKey: ['projects', profile.id, profile.role] })
+    }
+
+    // Register handlers
+    signalRNotificationService.registerHandlers({
+      onProjectCreated: handleProjectCreated,
+      onProjectUpdated: handleProjectUpdated,
+      onProjectStatusChanged: handleProjectStatusChanged,
+      onMilestoneUpdated: handleMilestoneUpdated
+    })
+
+    return () => {
+      // No need to unregister - service handles multiple handlers
+    }
+  }, [profile?.id, profile?.role, queryClient])
 
   return useQuery({
     queryKey: ['projects', profile?.id, profile?.role],
@@ -29,13 +72,53 @@ export const useProjects = () => {
       }
     },
     enabled: !!profile?.id && (profile.role === 1 || profile.role === 2),
-    // staleTime: 1000 * 60 * 5 // OLD: 5 minutes
-    staleTime: 1000 * 3, // NEW: 3 seconds
-    refetchInterval: 1000 * 6 // NEW: Refetch every 6 seconds
+    staleTime: 1000 * 60 * 5, // 5 minutes - rely on SignalR for updates
+    refetchInterval: false, // ❌ NO MORE POLLING - SignalR handles updates!
+    refetchOnWindowFocus: true // Refetch when user returns to tab
   })
 }
 
 export const useProjectById = (projectId: string) => {
+  const queryClient = useQueryClient()
+
+  // Listen to SignalR events for real-time updates
+  useEffect(() => {
+    if (!projectId) return
+
+    const handleProjectUpdated = (project: any) => {
+      console.log('[useProjectById] ProjectUpdated event:', project)
+      if (project.id === projectId) {
+        queryClient.invalidateQueries({ queryKey: ['project', projectId] })
+      }
+    }
+
+    const handleProjectStatusChanged = (updatedProjectId: string, status: number) => {
+      console.log('[useProjectById] ProjectStatusChanged event:', updatedProjectId, status)
+      if (updatedProjectId === projectId) {
+        queryClient.invalidateQueries({ queryKey: ['project', projectId] })
+      }
+    }
+
+    const handleMilestoneUpdated = (milestone: any) => {
+      console.log('[useProjectById] MilestoneUpdated event:', milestone)
+      if (milestone.projectId === projectId) {
+        queryClient.invalidateQueries({ queryKey: ['project', projectId] })
+        queryClient.invalidateQueries({ queryKey: ['milestones', projectId] })
+      }
+    }
+
+    // Register handlers
+    signalRNotificationService.registerHandlers({
+      onProjectUpdated: handleProjectUpdated,
+      onProjectStatusChanged: handleProjectStatusChanged,
+      onMilestoneUpdated: handleMilestoneUpdated
+    })
+
+    return () => {
+      // Cleanup handled by service
+    }
+  }, [projectId, queryClient])
+
   return useQuery({
     queryKey: ['project', projectId],
     queryFn: async () => {
@@ -45,20 +128,52 @@ export const useProjectById = (projectId: string) => {
       return projectApi.getProjectById(projectId)
     },
     enabled: !!projectId,
-    // staleTime: 1000 * 60 * 5 // OLD: 5 minutes
-    staleTime: 1000 * 3, // NEW: 3 seconds
-    refetchInterval: 1000 * 6 // NEW: Refetch every 6 seconds
+    staleTime: 1000 * 60 * 5, // 5 minutes - rely on SignalR for updates
+    refetchInterval: false, // ❌ NO MORE POLLING!
+    refetchOnWindowFocus: true // Refetch when user returns to tab
   })
 }
 
 export const useMilestones = (projectId: string) => {
+  const queryClient = useQueryClient()
+
+  // Listen to SignalR events for real-time updates
+  useEffect(() => {
+    if (!projectId) return
+
+    const handleMilestoneUpdated = (milestone: any) => {
+      console.log('[useMilestones] MilestoneUpdated event:', milestone)
+      if (milestone.projectId === projectId) {
+        queryClient.invalidateQueries({ queryKey: ['milestones', projectId] })
+        queryClient.invalidateQueries({ queryKey: ['project', projectId] })
+      }
+    }
+
+    const handleProjectUpdated = (project: any) => {
+      console.log('[useMilestones] ProjectUpdated event:', project)
+      if (project.id === projectId) {
+        queryClient.invalidateQueries({ queryKey: ['milestones', projectId] })
+      }
+    }
+
+    // Register handlers
+    signalRNotificationService.registerHandlers({
+      onMilestoneUpdated: handleMilestoneUpdated,
+      onProjectUpdated: handleProjectUpdated
+    })
+
+    return () => {
+      // Cleanup handled by service
+    }
+  }, [projectId, queryClient])
+
   return useQuery({
     queryKey: ['milestones', projectId],
     queryFn: () => projectApi.getMilestonesByProject(projectId),
     enabled: !!projectId,
-    // staleTime: 30000 // OLD: 30 seconds
-    staleTime: 1000 * 3, // NEW: 3 seconds
-    refetchInterval: 1000 * 6 // NEW: Refetch every 6 seconds
+    staleTime: 1000 * 60 * 5, // 5 minutes - rely on SignalR for updates
+    refetchInterval: false, // ❌ NO MORE POLLING!
+    refetchOnWindowFocus: true // Refetch when user returns to tab
   })
 }
 
@@ -150,25 +265,70 @@ export const useSubmitComplaint = (options: { onSuccess?: (data: unknown) => voi
 }
 
 export const useGetComplaint = (complaintId: string) => {
+  const queryClient = useQueryClient()
+
+  // Listen to SignalR events for real-time complaint updates
+  useEffect(() => {
+    if (!complaintId) return
+
+    const handleComplaintUpdated = (complaint: any) => {
+      console.log('[useGetComplaint] ComplaintUpdated event:', complaint)
+      if (complaint.id === complaintId) {
+        queryClient.invalidateQueries({ queryKey: ['complaint', complaintId] })
+      }
+    }
+
+    // Register handler
+    signalRNotificationService.registerHandlers({
+      onComplaintUpdated: handleComplaintUpdated
+    })
+
+    return () => {
+      // Cleanup handled by service
+    }
+  }, [complaintId, queryClient])
+
   return useQuery({
     queryKey: ['complaint', complaintId],
     queryFn: () => projectApi.getComplaint(complaintId),
     enabled: !!complaintId,
-    refetchInterval: (state) => {
-      // Poll every 3 seconds while processing (status 0 or 1)
-      const processingStatus = (state as unknown as Record<string, unknown>)?.processingStatus
-      return processingStatus === 0 || processingStatus === 1 ? 3000 : false
-    }
+    staleTime: 1000 * 60 * 5, // 5 minutes - rely on SignalR for updates
+    refetchInterval: false, // ❌ NO MORE POLLING - SignalR handles complaint status updates!
+    refetchOnWindowFocus: true // Refetch when user returns to tab
   })
 }
 
 export const useComplaintsByMilestone = (milestoneId: string) => {
+  const queryClient = useQueryClient()
+
+  // Listen to SignalR events for real-time complaint updates
+  useEffect(() => {
+    if (!milestoneId) return
+
+    const handleComplaintUpdated = (complaint: any) => {
+      console.log('[useComplaintsByMilestone] ComplaintUpdated event:', complaint)
+      if (complaint.milestoneId === milestoneId) {
+        queryClient.invalidateQueries({ queryKey: ['milestoneComplaints', milestoneId] })
+      }
+    }
+
+    // Register handler
+    signalRNotificationService.registerHandlers({
+      onComplaintUpdated: handleComplaintUpdated
+    })
+
+    return () => {
+      // Cleanup handled by service
+    }
+  }, [milestoneId, queryClient])
+
   return useQuery({
     queryKey: ['milestoneComplaints', milestoneId],
     queryFn: () => projectApi.getMilestoneComplaints(milestoneId),
     enabled: !!milestoneId,
-    staleTime: 1000 * 3,
-    refetchInterval: 1000 * 6
+    staleTime: 1000 * 60 * 5, // 5 minutes - rely on SignalR for updates
+    refetchInterval: false, // ❌ NO MORE POLLING!
+    refetchOnWindowFocus: true // Refetch when user returns to tab
   })
 }
 

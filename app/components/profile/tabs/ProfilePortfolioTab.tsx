@@ -83,7 +83,7 @@ export function ProfilePortfolioTab({ portfolio }: ProfilePortfolioTabProps) {
                   onClick={() => window.open(item.pdfUrl, '_blank')}
                 >
                   <FileText className='mr-2 h-4 w-4' />
-                  Xem chi tiết (PDF)
+                  Xem chi tiết Portfolio
                 </Button>
               )}
             </div>

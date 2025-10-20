@@ -194,16 +194,35 @@ export function useNotifications(isAuthenticated: boolean = false) {
     }
   }, [isAuthenticated, loadNotifications, loadUnreadCount])
 
-  // Poll for updates every 30 seconds (only when authenticated)
+  // ❌ REMOVED POLLING - SignalR NotificationHub handles this!
+  // Listen to SignalR for unread count changes
   useEffect(() => {
     if (!isAuthenticated) return
 
-    const interval = setInterval(() => {
-      loadUnreadCount()
-    }, 30000)
+    const handleUnreadCountChanged = (count: number) => {
+      console.log('[useNotifications] UnreadCountChanged event:', count)
+      setUnreadCount(count)
+    }
 
-    return () => clearInterval(interval)
-  }, [isAuthenticated, loadUnreadCount])
+    const handleNotificationReceived = (notification: any) => {
+      console.log('[useNotifications] NotificationReceived event:', notification)
+      // Reload notifications to get the new one
+      loadNotifications()
+      setUnreadCount(prev => prev + 1)
+    }
+
+    // Import signalRNotificationService
+    import('~/lib/signalr-notification').then(({ signalRNotificationService }) => {
+      signalRNotificationService.registerHandlers({
+        onUnreadCountChanged: handleUnreadCountChanged,
+        onNotificationReceived: handleNotificationReceived
+      })
+    })
+
+    return () => {
+      // No need to unregister - service handles multiple handlers
+    }
+  }, [isAuthenticated, loadNotifications])
 
   return {
     notifications,

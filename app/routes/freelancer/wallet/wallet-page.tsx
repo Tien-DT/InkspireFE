@@ -8,10 +8,10 @@ import { Badge } from '~/components/ui/badge'
 import { Wallet, Clock, ArrowUpCircle, ArrowDownCircle } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import { withdrawApi } from '~/apis/withdraw.api'
-import { walletApi } from '~/apis/wallet.api'
 import { transactionApi } from '~/apis/transaction.api'
 import { getProfileFromLS } from '~/utils/auth'
 import { UserRole } from '~/types/user.type'
+import { useWallet } from '~/hooks/useWallet'
 
 interface WalletData {
   id: string
@@ -44,15 +44,9 @@ export default function WalletPage() {
   const isClient = profile?.role === UserRole.CLIENT
   const isFreelancer = profile?.role === UserRole.FREELANCER
 
-  // Fetch wallet with React Query
-  const { data: walletData, isLoading: walletLoading } = useQuery({
-    queryKey: ['wallet', userId],
-    queryFn: async () => {
-      const response = await walletApi.getWalletByUserId(userId)
-      return response.data
-    },
-    enabled: !!userId
-  })
+  // Fetch wallet with SignalR support
+  const { data: walletDataResponse, isLoading: walletLoading } = useWallet(userId)
+  const walletData = walletDataResponse?.data
 
   const wallet = walletData as WalletData | null
 

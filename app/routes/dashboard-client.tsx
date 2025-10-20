@@ -9,13 +9,13 @@ import { Avatar, AvatarFallback } from '~/components/ui/avatar'
 import { AuthErrorBoundary } from '~/components/errors'
 import { projectApi } from '~/apis/project.api'
 import { recruitmentApi } from '~/apis/recruitment.api'
-import { walletApi } from '~/apis/wallet.api'
 import { statisticsApi } from '~/apis/statistics.api'
 import { getProfileFromLS } from '~/utils/auth'
 import { PATH } from '~/constants/path'
 import { formatDistanceToNow } from 'date-fns'
 import { vi } from 'date-fns/locale'
 import { ProjectStatus } from '~/types/recruitment.type'
+import { useWallet } from '~/hooks/useWallet'
 
 function ClientDashboardPage() {
   const navigate = useNavigate()
@@ -41,15 +41,8 @@ function ClientDashboardPage() {
     enabled: !!profile?.id
   })
 
-  // Fetch wallet
-  const { data: walletData, isLoading: walletLoading } = useQuery({
-    queryKey: ['wallet', profile?.id],
-    queryFn: async () => {
-      if (!profile?.id) return null
-      return await walletApi.getWalletByUserId(profile.id)
-    },
-    enabled: !!profile?.id
-  })
+  // Fetch wallet with SignalR support
+  const { data: walletData, isLoading: walletLoading } = useWallet(profile?.id)
 
   // Fetch client spending statistics
   const { data: spendingData, isLoading: spendingLoading } = useQuery({
@@ -63,7 +56,7 @@ function ClientDashboardPage() {
 
   const posts = postsData?.data || []
   const projects = projectsData?.data || []
-  const wallet = walletData?.data
+  const wallet = walletData?.data // SignalR auto-updates!
   const spendingStats = spendingData?.data
 
   // Debug: Log spending stats

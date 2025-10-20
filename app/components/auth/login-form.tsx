@@ -7,6 +7,7 @@ import { Label } from '~/components/ui/label'
 import { ButtonSpinner } from '~/components/ui/button-spinner'
 import { useLogin } from '~/hooks/useAuth'
 import { GoogleLoginButton } from '~/components/auth/google-login-button'
+import { ForgotPasswordDialog } from '~/components/auth/forgot-password-dialog'
 import { Link } from 'react-router'
 
 export function LoginForm() {
@@ -58,12 +59,9 @@ export function LoginForm() {
         <div className='grid gap-3'>
           <div className='flex items-center'>
             <Label htmlFor='login-password'>Mật khẩu</Label>
-            <Link
-              to='/auth/forgot-password'
-              className='ml-auto text-sm font-medium text-emerald-600 underline-offset-4 hover:underline'
-            >
-              Quên mật khẩu?
-            </Link>
+            <div className='ml-auto'>
+              <ForgotPasswordDialog />
+            </div>
           </div>
           <div className='relative'>
             <Input

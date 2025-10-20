@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
 import { userApi, type UserProfileResponse } from '~/apis/user.api'
-import { walletApi, type WalletResponse } from '~/apis/wallet.api'
 
 /**
  * Custom hook to fetch user profile by userId
@@ -17,17 +16,5 @@ export const useUserProfile = (userId: string | undefined) => {
   })
 }
 
-/**
- * Custom hook to fetch user wallet by userId
- * @param userId - User ID to fetch wallet for
- * @returns React Query result with wallet data
- */
-export const useWallet = (userId: string | undefined) => {
-  return useQuery<WalletResponse>({
-    queryKey: ['wallet', userId],
-    queryFn: () => walletApi.getWalletByUserId(userId!),
-    enabled: !!userId,
-    staleTime: 30000, // 30 seconds
-    retry: 1
-  })
-}
+// NOTE: useWallet has been moved to ~/hooks/useWallet.ts with SignalR support
+// Please import from there: import { useWallet } from '~/hooks/useWallet'

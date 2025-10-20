@@ -22,7 +22,7 @@ import {
   useRetryComplaint
 } from '~/hooks/useProjects'
 import type { Milestone } from '~/apis/project.api'
-import { useWallet } from '~/hooks/useUser'
+import { useWallet } from '~/hooks/useWallet'
 import { useAuth } from '~/contexts/AuthContext'
 import {
   Dialog,
@@ -197,7 +197,14 @@ function ProjectDetailContent() {
   }
 
   if (isLoading || milestonesLoading) {
-    return null
+    return (
+      <div className='container mx-auto px-4 py-8'>
+        <div className='bg-white rounded-lg shadow p-8 text-center'>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4'></div>
+          <p className='text-gray-600'>Đang tải thông tin dự án...</p>
+        </div>
+      </div>
+    )
   }
 
   if (error) {

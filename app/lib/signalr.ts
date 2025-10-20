@@ -26,9 +26,11 @@ export interface IChatClient {
 class SignalRChatService {
   private connection: HubConnection | null = null
   private reconnectAttempts = 0
-  private maxReconnectAttempts = 5
+  private maxReconnectAttempts = 10 // Increased from 5 to 10
   private reconnectDelay = 3000
   private clientHandlers: IChatClient = {}
+  private reconnectTimer: NodeJS.Timeout | null = null
+  private isManualDisconnect = false
 
   /**
    * Get hub URL from environment
@@ -80,19 +82,39 @@ class SignalRChatService {
       this.registerClientHandlers()
 
       // Connection lifecycle handlers
-      this.connection.onclose((error) => {
-        console.error('[SignalR] Connection closed:', error)
+      this.connection.onclose(async (error) => {
+        console.error('[SignalR] ❌ Connection closed:', error)
         this.reconnectAttempts = 0
+        
+        // If not manual disconnect, try to reconnect
+        if (!this.isManualDisconnect) {
+          console.log('[SignalR] 🔄 Will attempt manual reconnect in 5s...')
+          this.scheduleReconnect()
+        }
       })
 
       this.connection.onreconnecting((error) => {
-        console.warn('[SignalR] Reconnecting...', error)
+        console.warn('[SignalR] 🔄 Auto-reconnecting...', error)
         this.reconnectAttempts++
+        // Show toast to user
+        if (typeof window !== 'undefined') {
+          import('sonner').then(({ toast }) => {
+            toast.warning('Đang kết nối lại chat...', { duration: 2000 })
+          })
+        }
       })
 
-      this.connection.onreconnected((connectionId) => {
-        console.log('[SignalR] Reconnected successfully:', connectionId)
+      this.connection.onreconnected(async (connectionId) => {
+        console.log('[SignalR] ✅ Auto-reconnected successfully:', connectionId)
         this.reconnectAttempts = 0
+        // Re-notify online status
+        await this.notifyOnline()
+        // Show success toast
+        if (typeof window !== 'undefined') {
+          import('sonner').then(({ toast }) => {
+            toast.success('Đã kết nối lại chat!', { duration: 2000 })
+          })
+        }
       })
 
       // Start connection
@@ -111,6 +133,9 @@ class SignalRChatService {
    * Disconnect from SignalR hub
    */
   async disconnect(): Promise<void> {
+    this.isManualDisconnect = true
+    this.clearReconnectTimer()
+    
     if (!this.connection) return
 
     try {
@@ -119,6 +144,80 @@ class SignalRChatService {
       console.log('[SignalR] Disconnected')
     } catch (error) {
       console.error('[SignalR] Disconnect error:', error)
+    }
+  }
+
+  /**
+   * Schedule reconnect attempt
+   */
+  private scheduleReconnect(): void {
+    this.clearReconnectTimer()
+    
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+      console.error('[SignalR] ❌ Max reconnect attempts reached. Please reload page.')
+      // Show persistent toast
+      if (typeof window !== 'undefined') {
+        import('sonner').then(({ toast }) => {
+          toast.error('Mất kết nối chat. Vui lòng tải lại trang.', {
+            duration: Infinity,
+            action: {
+              label: 'Tải lại',
+              onClick: () => window.location.reload()
+            }
+          })
+        })
+      }
+      return
+    }
+    
+    const delay = Math.min(5000 * Math.pow(2, this.reconnectAttempts), 30000)
+    console.log(`[SignalR] ⏱️ Scheduling reconnect attempt ${this.reconnectAttempts + 1}/${this.maxReconnectAttempts} in ${delay}ms`)
+    
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectAttempts++
+      this.manualReconnect()
+    }, delay)
+  }
+
+  /**
+   * Manual reconnect attempt
+   */
+  private async manualReconnect(): Promise<void> {
+    try {
+      console.log(`[SignalR] 🔄 Manual reconnect attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts}`)
+      
+      // Clear old connection
+      if (this.connection) {
+        await this.connection.stop()
+        this.connection = null
+      }
+      
+      // Try to reconnect
+      await this.connect()
+      
+      console.log('[SignalR] ✅ Manual reconnect successful!')
+      this.reconnectAttempts = 0
+      
+      // Show success toast
+      if (typeof window !== 'undefined') {
+        import('sonner').then(({ toast }) => {
+          toast.success('Đã kết nối lại chat thành công!', { duration: 3000 })
+        })
+      }
+    } catch (error) {
+      console.error('[SignalR] ❌ Manual reconnect failed:', error)
+      // Schedule next attempt
+      this.scheduleReconnect()
+    }
+  }
+
+  /**
+   * Clear reconnect timer
+   */
+  private clearReconnectTimer(): void {
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer)
+      this.reconnectTimer = null
     }
   }
 
