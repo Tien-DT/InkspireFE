@@ -17,9 +17,6 @@ export function NotificationBell() {
   const { isAuthenticated } = useAuth()
   const { unreadCount, notifications, loading, markAsRead, markAllAsRead, deleteNotification, refresh } = useNotifications(isAuthenticated)
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default')
-  const [isOpen, setIsOpen] = useState(false)
-  const [closeTimeout, setCloseTimeout] = useState<NodeJS.Timeout | null>(null)
-
   // Check notification permission on mount and when dropdown opens
   useEffect(() => {
     if (typeof window !== 'undefined' && 'Notification' in window) {
@@ -27,50 +24,24 @@ export function NotificationBell() {
     }
   }, [])
 
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (closeTimeout) {
-        clearTimeout(closeTimeout)
+  // Handle dropdown open change
+  const handleOpenChange = (open: boolean) => {
+    if (open) {
+      // Refetch notifications when opening
+      console.log('🔔 Notification bell opened - refetching notifications')
+      refresh()
+      
+      // Refresh permission state
+      if (typeof window !== 'undefined' && 'Notification' in window) {
+        setNotificationPermission(Notification.permission)
+      }
+      
+      // Mark all as read if has unread
+      if (unreadCount > 0) {
+        console.log('🔔 Marking all notifications as read')
+        markAllAsRead()
       }
     }
-  }, [closeTimeout])
-
-  // Handle mouse enter - open dropdown
-  const handleMouseEnter = () => {
-    if (closeTimeout) {
-      clearTimeout(closeTimeout)
-      setCloseTimeout(null)
-    }
-    setIsOpen(true)
-    
-    // Refetch notifications immediately
-    console.log('🔔 Notification bell hovered - refetching notifications')
-    refresh()
-    
-    // Refresh permission state when opening dropdown
-    if (typeof window !== 'undefined' && 'Notification' in window) {
-      setNotificationPermission(Notification.permission)
-    }
-    
-    // Mark all as read if has unread
-    if (unreadCount > 0) {
-      console.log('🔔 Marking all notifications as read')
-      markAllAsRead()
-    }
-  }
-
-  // Handle mouse leave - close dropdown with delay
-  const handleMouseLeave = () => {
-    const timeout = setTimeout(() => {
-      setIsOpen(false)
-    }, 300) // 300ms delay before closing
-    setCloseTimeout(timeout)
-  }
-
-  // Handle dropdown open change (for manual control)
-  const handleOpenChange = (open: boolean) => {
-    setIsOpen(open)
   }
 
   // Handle enable notifications
@@ -132,11 +103,7 @@ export function NotificationBell() {
   }
 
   return (
-    <div
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
-      <DropdownMenu open={isOpen} onOpenChange={handleOpenChange}>
+    <DropdownMenu onOpenChange={handleOpenChange}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon" className="relative">
             <Bell className="h-5 w-5" />
@@ -153,8 +120,6 @@ export function NotificationBell() {
         <DropdownMenuContent 
           align="end" 
           className="w-[400px] p-0"
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
         >
         {/* Show enable notifications button if not granted */}
         {notificationPermission !== 'granted' && (
@@ -213,6 +178,5 @@ export function NotificationBell() {
         />
       </DropdownMenuContent>
     </DropdownMenu>
-    </div>
   )
 }

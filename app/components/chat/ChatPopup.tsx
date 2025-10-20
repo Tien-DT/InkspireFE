@@ -25,8 +25,6 @@ export function ChatPopup() {
   const { conversations: allConversations, messages: contextMessages, loadMessages, refreshConversations, unreadCount } = useChat()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const [isOpen, setIsOpen] = useState(false)
-  const [closeTimeout, setCloseTimeout] = useState<NodeJS.Timeout | null>(null)
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null)
   const [messageText, setMessageText] = useState('')
 
@@ -35,38 +33,13 @@ export function ChatPopup() {
 
   // unreadCount now comes directly from context (updates realtime via SignalR!)
 
-  // Cleanup timeout on unmount
-  React.useEffect(() => {
-    return () => {
-      if (closeTimeout) {
-        clearTimeout(closeTimeout)
-      }
-    }
-  }, [closeTimeout])
-
-  // Handle mouse enter - open dropdown
-  const handleMouseEnter = () => {
-    if (closeTimeout) {
-      clearTimeout(closeTimeout)
-      setCloseTimeout(null)
-    }
-    setIsOpen(true)
-    console.log('💬 Chat popup hovered - refreshing conversations from context')
-    // Context data is already updated via SignalR - just refresh from API if needed
-    refreshConversations()
-  }
-
-  // Handle mouse leave - close dropdown with delay
-  const handleMouseLeave = () => {
-    const timeout = setTimeout(() => {
-      setIsOpen(false)
-    }, 300) // 300ms delay before closing
-    setCloseTimeout(timeout)
-  }
-
-  // Handle dropdown open change (for manual control)
+  // Handle dropdown open change
   const handleOpenChange = (open: boolean) => {
-    setIsOpen(open)
+    if (open) {
+      console.log('💬 Chat popup opened - refreshing conversations from context')
+      // Context data is already updated via SignalR - just refresh from API if needed
+      refreshConversations()
+    }
   }
 
   // Handle conversation click - open in popup
@@ -96,14 +69,6 @@ export function ChatPopup() {
       }
     }
   }, [selectedConversation?.id, loadMessages, profile?.id])
-
-  // ⭐ Refresh messages when popup is opened (hover) and conversation is already selected
-  useEffect(() => {
-    if (isOpen && selectedConversation?.id) {
-      console.log('[ChatPopup] 🔄 Popup opened, refreshing messages for conversation:', selectedConversation.id)
-      loadMessages(selectedConversation.id)
-    }
-  }, [isOpen, selectedConversation?.id, loadMessages])
 
   // Get messages for selected conversation from context (sort by sendAt - oldest first)
   const messages = selectedConversation?.id 
@@ -182,11 +147,7 @@ export function ChatPopup() {
   }
 
   return (
-    <div
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
-      <DropdownMenu open={isOpen} onOpenChange={handleOpenChange}>
+    <DropdownMenu onOpenChange={handleOpenChange}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon" className="relative">
             <MessageSquareText className="h-5 w-5" />
@@ -204,8 +165,6 @@ export function ChatPopup() {
           align="end" 
           className="w-[380px] p-0" 
           sideOffset={8}
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
         >
         {!selectedConversation ? (
           <>
@@ -414,6 +373,5 @@ export function ChatPopup() {
         )}
         </DropdownMenuContent>
       </DropdownMenu>
-    </div>
   )
 }
