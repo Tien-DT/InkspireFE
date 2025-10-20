@@ -7,6 +7,7 @@ import { UserRole } from '~/types/user.type'
 import { toast } from 'sonner'
 import { IncomingCallToast } from '~/components/call/IncomingCallToast'
 import { VideoCallDialog } from '~/components/call/VideoCallDialog'
+import { EmailVerificationBanner } from '~/components/shared/EmailVerificationBanner'
 
 interface MainLayoutProps {
   children?: React.ReactNode
@@ -39,6 +40,7 @@ function MainLayoutInner({ children }: MainLayoutProps) {
   return (
     <div>
       <Header />
+      <EmailVerificationBanner />
       {children}
       <main>
         <Outlet />
