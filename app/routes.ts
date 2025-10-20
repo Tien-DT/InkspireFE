@@ -47,7 +47,9 @@ export default [
   // Auth routes
   layout('./layouts/auth-layout.tsx', [
     route('login', './routes/login/login-page.tsx'),
-    route('register', './routes/register/register-page.tsx')
+    route('register', './routes/register/register-page.tsx'),
+    route('auth/forgot-password', './routes/auth/forgot-password.tsx'),
+    route('auth/reset-password', './routes/auth/reset-password.tsx')
   ]),
 
   // Auth flow routes (outside MainLayout)

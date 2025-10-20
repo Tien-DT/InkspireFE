@@ -212,6 +212,18 @@
         "file": "./routes/register/register-page.tsx",
         "path": "register"
       },
+      "routes/auth/forgot-password": {
+        "id": "routes/auth/forgot-password",
+        "parentId": "layouts/auth-layout",
+        "file": "./routes/auth/forgot-password.tsx",
+        "path": "auth/forgot-password"
+      },
+      "routes/auth/reset-password": {
+        "id": "routes/auth/reset-password",
+        "parentId": "layouts/auth-layout",
+        "file": "./routes/auth/reset-password.tsx",
+        "path": "auth/reset-password"
+      },
       "routes/logout": {
         "id": "routes/logout",
         "parentId": "root",
@@ -455,6 +467,18 @@
         "file": "./routes/register/register-page.tsx",
         "path": "register"
       },
+      "routes/auth/forgot-password": {
+        "id": "routes/auth/forgot-password",
+        "parentId": "layouts/auth-layout",
+        "file": "./routes/auth/forgot-password.tsx",
+        "path": "auth/forgot-password"
+      },
+      "routes/auth/reset-password": {
+        "id": "routes/auth/reset-password",
+        "parentId": "layouts/auth-layout",
+        "file": "./routes/auth/reset-password.tsx",
+        "path": "auth/reset-password"
+      },
       "routes/logout": {
         "id": "routes/logout",
         "parentId": "root",
@@ -627,6 +651,14 @@
               {
                 "file": "./routes/register/register-page.tsx",
                 "path": "register"
+              },
+              {
+                "file": "./routes/auth/forgot-password.tsx",
+                "path": "auth/forgot-password"
+              },
+              {
+                "file": "./routes/auth/reset-password.tsx",
+                "path": "auth/reset-password"
               }
             ]
           },
