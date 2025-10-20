@@ -11,7 +11,7 @@ import { UserRole } from '~/types/user.type'
  * Custom hook for user login
  * Handles API call, loading state, error handling, and token storage
  */
-export const useLogin = () => {
+export const useLogin = (options?: { onEmailNotVerified?: () => void }) => {
   const navigate = useNavigate()
   const { refreshAuth } = useAuth()
 
@@ -80,10 +80,18 @@ export const useLogin = () => {
       const errorMessage = errors && errors.length > 0 ? errors.join(', ') : err?.response?.data?.message || err?.message
       const errorType = err?.response?.data?.error
 
-      if (errorType === 'email_not_verified') {
-        toast.error('Email chưa được xác thực', {
-          description: 'Vui lòng kiểm tra email và xác thực tài khoản của bạn.'
-        })
+      // Check if message contains EMAIL_NOT_VERIFIED prefix
+      const isEmailNotVerified = errorMessage?.includes('EMAIL_NOT_VERIFIED')
+      
+      if (errorType === 'email_not_verified' || isEmailNotVerified) {
+        // Call callback if provided
+        if (options?.onEmailNotVerified) {
+          options.onEmailNotVerified()
+        } else {
+          toast.error('Email chưa được xác thực', {
+            description: 'Vui lòng kiểm tra email và xác thực tài khoản của bạn.'
+          })
+        }
       } else if (err?.response?.status === 401) {
         toast.error('Sai email hoặc mật khẩu')
       } else {

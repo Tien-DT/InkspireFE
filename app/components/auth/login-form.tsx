@@ -8,15 +8,54 @@ import { ButtonSpinner } from '~/components/ui/button-spinner'
 import { useLogin } from '~/hooks/useAuth'
 import { GoogleLoginButton } from '~/components/auth/google-login-button'
 import { ForgotPasswordDialog } from '~/components/auth/forgot-password-dialog'
+import { EmailVerificationDialog } from '~/components/auth/EmailVerificationDialog'
 import { Link } from 'react-router'
+import { toast } from 'sonner'
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
+  const [showVerificationDialog, setShowVerificationDialog] = useState(false)
 
-  const { mutate: login, isPending } = useLogin()
+  const handleEmailNotVerified = async (userEmail: string) => {
+    // Auto resend verification email
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/verify-email/send`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: userEmail
+        })
+      })
+
+      if (response.ok) {
+        toast.success('Email xác thực đã được gửi!', {
+          description: 'Vui lòng kiểm tra hộp thư của bạn.'
+        })
+      } else if (response.status === 429) {
+        const data = await response.json()
+        toast.info('Email xác thực đã được gửi trước đó', {
+          description: data.message || 'Vui lòng kiểm tra hộp thư.'
+        })
+      }
+    } catch (error) {
+      console.error('Auto resend verification error:', error)
+      // Silent fail - user can still manually resend from dialog
+    }
+
+    // Show dialog
+    setShowVerificationDialog(true)
+  }
+
+  const { mutate: login, isPending } = useLogin({
+    onEmailNotVerified: () => {
+      handleEmailNotVerified(email)
+    }
+  })
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -127,6 +166,13 @@ export function LoginForm() {
           Đăng ký ngay
         </Link>
       </div>
+
+      {/* Email Verification Dialog */}
+      <EmailVerificationDialog
+        open={showVerificationDialog}
+        onOpenChange={setShowVerificationDialog}
+        email={email}
+      />
     </>
   )
 }
