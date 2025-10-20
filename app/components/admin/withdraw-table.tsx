@@ -138,12 +138,15 @@ export function WithdrawRequestTable() {
         
         setWithdrawRequests(normalizedRequests)
         setTotalCount(data.totalCount || 0)
+        setLoading(false) // Set loading to false after successful fetch
       } else {
         toast.error('Không thể tải danh sách yêu cầu rút tiền')
+        setLoading(false) // Set loading to false even on error
       }
     } catch (error) {
       console.error('Error fetching withdraw requests:', error)
       toast.error('Không thể tải danh sách yêu cầu rút tiền')
+      setLoading(false) // Set loading to false on exception
     } finally {
       setIsLoadingPage(false)
     }
