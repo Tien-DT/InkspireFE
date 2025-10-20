@@ -6,7 +6,7 @@ import { Label } from '~/components/ui/label'
 import { ButtonSpinner } from '~/components/ui/button-spinner'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '~/components/ui/dialog'
 import { toast } from 'sonner'
-import { getAccessToken } from '~/utils/auth'
+import { getAccessTokenFromLS } from '~/utils/auth'
 
 interface ChangePasswordDialogProps {
   open: boolean
@@ -62,7 +62,7 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
     setIsSubmitting(true)
 
     try {
-      const token = getAccessToken()
+      const token = getAccessTokenFromLS()
       if (!token) {
         toast.error('Vui lòng đăng nhập lại')
         return
