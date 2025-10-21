@@ -8,7 +8,6 @@ import { ButtonSpinner } from '~/components/ui/button-spinner'
 import { useLogin } from '~/hooks/useAuth'
 import { GoogleLoginButton } from '~/components/auth/google-login-button'
 import { ForgotPasswordDialog } from '~/components/auth/forgot-password-dialog'
-import { EmailVerificationDialog } from '~/components/auth/EmailVerificationDialog'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
 
@@ -17,7 +16,6 @@ export function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
-  const [showVerificationDialog, setShowVerificationDialog] = useState(false)
 
   const handleEmailNotVerified = async (userEmail: string) => {
     // Auto resend verification email
@@ -32,23 +30,31 @@ export function LoginForm() {
         })
       })
 
+      const data = await response.json()
+
       if (response.ok) {
         toast.success('Email xác thực đã được gửi!', {
-          description: 'Vui lòng kiểm tra hộp thư của bạn.'
+          description: 'Vui lòng kiểm tra hộp thư của bạn và nhấn vào link xác thực.',
+          duration: 5000
         })
       } else if (response.status === 429) {
-        const data = await response.json()
-        toast.info('Email xác thực đã được gửi trước đó', {
-          description: data.message || 'Vui lòng kiểm tra hộp thư.'
+        toast.warning('Email xác thực đã được gửi trước đó', {
+          description: data.message || 'Vui lòng kiểm tra hộp thư và nhấn vào link xác thực.',
+          duration: 5000
+        })
+      } else {
+        toast.error('Không thể gửi email xác thực', {
+          description: data.message || 'Vui lòng thử lại sau.',
+          duration: 5000
         })
       }
     } catch (error) {
       console.error('Auto resend verification error:', error)
-      // Silent fail - user can still manually resend from dialog
+      toast.error('Email chưa được xác thực', {
+        description: 'Vui lòng kiểm tra hộp thư email của bạn để xác thực tài khoản.',
+        duration: 5000
+      })
     }
-
-    // Show dialog
-    setShowVerificationDialog(true)
   }
 
   const { mutate: login, isPending } = useLogin({
@@ -166,13 +172,6 @@ export function LoginForm() {
           Đăng ký ngay
         </Link>
       </div>
-
-      {/* Email Verification Dialog */}
-      <EmailVerificationDialog
-        open={showVerificationDialog}
-        onOpenChange={setShowVerificationDialog}
-        email={email}
-      />
     </>
   )
 }

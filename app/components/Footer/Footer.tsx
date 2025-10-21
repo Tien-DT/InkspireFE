@@ -59,7 +59,8 @@ export function Footer() {
               <img src={logo} alt='Logo' className='h-full w-full object-cover object-center align-middle' />
             </Link>
             <div>
-              <p className='text-gray-400 text-sm'>Email: inkspire@gmail.com</p>
+              <p className='text-gray-400 text-sm'>Email:inkspire.startup@gmail.com
+</p>
               <p className='text-gray-400 text-sm'>Hotline: 0968 491 340</p>
             </div>
             <div className='flex gap-4 mt-4 md:mt-0'>
