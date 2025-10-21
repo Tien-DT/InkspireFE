@@ -72,7 +72,7 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Columns generated from config */}
+          {/* Columns generated from configg */}
           {sections.map((section) => (
             <div key={section.title}>
               <h3 className={colTitleClasses}>{section.title}</h3>
