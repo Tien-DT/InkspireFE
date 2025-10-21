@@ -126,7 +126,7 @@ export default function AdminSubscriptionsPage() {
   }
 
   return (
-    <div className='space-y-3'>
+    <div className='space-y-3 bg-gradient-to-br from-sky-50 via-blue-50 to-sky-100 p-6 md:p-8 lg:p-12'>
       {/* Header */}
       <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2'>
         <div>

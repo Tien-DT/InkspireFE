@@ -169,7 +169,7 @@ export default function AdminLayout() {
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
-        <div>
+        <div className='max-w-7xl overflow-hidden'>
           <Outlet />
         </div>
       </SidebarInset>

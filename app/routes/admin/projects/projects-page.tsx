@@ -3,7 +3,7 @@ import { ProjectTable } from '~/components/admin/project-table'
 
 export default function ProjectsPage() {
   return (
-    <div className='min-h-screen bg-background p-3 md:p-4 lg:p-6'>
+    <div className='min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-sky-100 p-6 md:p-8 lg:p-12'>
       <div className='mx-auto max-w-7xl space-y-3'>
         <div className='space-y-1'>
           <h1 className='text-2xl sm:text-3xl font-bold text-slate-900'>Quản lý dự án</h1>
