@@ -198,8 +198,8 @@ function ProjectDetailContent() {
 
   if (isLoading || milestonesLoading) {
     return (
-      <div className='container mx-auto px-4 py-8'>
-        <div className='bg-white rounded-lg shadow p-8 text-center'>
+      <div className='container mx-auto px-4 py-8 '>
+        <div className='rounded-lg shadow p-8 text-center h-screen'>
           <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4'></div>
           <p className='text-gray-600'>Đang tải thông tin dự án...</p>
         </div>
@@ -340,7 +340,7 @@ function ProjectDetailContent() {
         typeof errorData === 'string'
           ? errorData
           : (errorData as { message?: string })?.message || 'Đặt cọc thất bại. Vui lòng thử lại.'
-      
+
       // Check if error is about insufficient balance
       if (errorMsg.includes('Số dư ví không đủ') || errorMsg.includes('không đủ để đặt cọc')) {
         setShowInsufficientFundsDialog(true)
@@ -410,7 +410,7 @@ function ProjectDetailContent() {
     // Prioritize failed complaints, then completed ones
     const failedComplaint = complaints.find((c: any) => c.processingStatus === 3)
     const completedComplaint = complaints.find((c: any) => c.processingStatus === 2)
-    
+
     const complaintToShow = failedComplaint || completedComplaint
     if (complaintToShow) {
       setSelectedComplaint(complaintToShow)
@@ -645,8 +645,6 @@ function ProjectDetailContent() {
           {/* Tabs */}
           <div className='flex border-b border-gray-200 mb-6'>
             <button className='px-4 py-2 text-blue-600 border-b-2 border-blue-600 font-medium'>Timeline dự án</button>
-            <button className='px-4 py-2 text-gray-600 hover:text-gray-900'>Tất cả</button>
-            <button className='px-4 py-2 text-gray-600 hover:text-gray-900'>Đang chờ</button>
           </div>
 
           {/* Project Timeline */}
@@ -968,7 +966,10 @@ function ProjectDetailContent() {
                                 Kiểm tra sản phẩm bằng AI
                               </Button>
                               <Input type='file' accept='.pdf,.jpg,.jpeg,.png,.svg' onChange={handleFileChange} />
-                              <Button onClick={() => handleSubmitFile(timeline.id)} disabled={!selectedFile || isSubmittingFile}>
+                              <Button
+                                onClick={() => handleSubmitFile(timeline.id)}
+                                disabled={!selectedFile || isSubmittingFile}
+                              >
                                 {isSubmittingFile ? (
                                   <>
                                     <Clock className='h-4 w-4 mr-1.5 animate-spin' />
@@ -1031,7 +1032,10 @@ function ProjectDetailContent() {
                                   Kiểm tra sản phẩm bằng AI
                                 </Button>
                                 <Input type='file' accept='.pdf,.jpg,.jpeg,.png,.svg' onChange={handleFileChange} />
-                                <Button onClick={() => handleSubmitFile(timeline.id)} disabled={!selectedFile || isSubmittingFile}>
+                                <Button
+                                  onClick={() => handleSubmitFile(timeline.id)}
+                                  disabled={!selectedFile || isSubmittingFile}
+                                >
                                   {isSubmittingFile ? (
                                     <>
                                       <Clock className='h-4 w-4 mr-1.5 animate-spin' />
