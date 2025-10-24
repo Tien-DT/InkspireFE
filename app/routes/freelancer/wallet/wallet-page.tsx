@@ -39,16 +39,16 @@ export default function WalletPage() {
   const queryClient = useQueryClient()
   const profile = getProfileFromLS()
   const userId = profile?.id || ''
-  // Role 1 = CLIENT: có rút tiền
+  
+  // Role 1 = CLIENT: có rút tiền và lịch sử giao dịch
   // Role 2 = FREELANCER: chỉ có phương thức thanh toán
-  const isClient = profile?.role === UserRole.CLIENT
-  const isFreelancer = profile?.role === UserRole.FREELANCER
+  // Use Number() to ensure type safety
+  const userRole = Number(profile?.role)
+  const isClient = userRole === 1
+  const isFreelancer = userRole === 2
 
   // Fetch wallet with SignalR support
-  const { data: walletDataResponse, isLoading: walletLoading } = useWallet(userId)
-  const walletData = walletDataResponse?.data
-
-  const wallet = walletData as WalletData | null
+  const { data: wallet, isLoading: walletLoading } = useWallet(userId)
 
   // Fetch withdraw requests (only for CLIENT - role 1)
   const { data: withdrawRequests = [], isLoading: requestsLoading } = useQuery({
@@ -171,6 +171,17 @@ export default function WalletPage() {
     }
   }
 
+  // Wait for profile to load
+  if (!profile || !userId) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-sky-100 p-6 md:p-8 lg:p-12">
+        <div className="mx-auto max-w-6xl">
+          <div className="text-center py-12">Đang tải thông tin...</div>
+        </div>
+      </div>
+    )
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-sky-100 p-6 md:p-8 lg:p-12">
@@ -229,7 +240,7 @@ export default function WalletPage() {
           </div>
         )}
 
-        <Tabs defaultValue={isFreelancer ? "payment-methods" : "withdraw"} className="w-full">
+        <Tabs defaultValue={isClient ? "withdraw" : "payment-methods"} className="w-full">
           <TabsList className={isClient ? "grid w-full grid-cols-3" : "w-full"}>
             {isClient && <TabsTrigger value="withdraw">Rút tiền</TabsTrigger>}
             <TabsTrigger value="payment-methods">Phương thức thanh toán</TabsTrigger>
