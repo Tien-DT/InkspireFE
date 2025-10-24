@@ -69,7 +69,7 @@ function AppContent() {
   return (
     <>
       <Outlet />
-      <Toaster />
+      <Toaster richColors={true} position='bottom-right' />
     </>
   )
 }

@@ -14,34 +14,49 @@ type ShowcaseItem = {
 
 const items: ShowcaseItem[] = [
   {
-    title: 'Tyler Durden',
+    title: 'Copywriting',
     image: inkun3,
     className: 'absolute top-10 left-[20%] rotate-[-5deg]'
   },
   {
-    title: 'The Narrator',
+    title: 'Content Writing',
     image: inkun4,
     className: 'absolute top-40 left-[25%] rotate-[-7deg]'
   },
   {
-    title: 'Iceland',
+    title: 'SEO Writing',
     image: inkun5,
     className: 'absolute top-5 left-[40%] rotate-[8deg]'
   },
   {
-    title: 'Japan',
+    title: 'Scriptwriting',
     image: inkun6,
     className: 'absolute top-32 left-[55%] rotate-[10deg]'
   },
   {
-    title: 'New Zealand',
+    title: 'Illustration',
     image: inkun2,
     className: 'absolute top-24 left-[45%] rotate-[-7deg]'
   },
   {
-    title: 'Inkun nè',
+    title: 'Logo Design',
     image: inkun,
     className: 'absolute top-8 left-[30%] rotate-[4deg]'
+  },
+  {
+    title: 'Brand Identity',
+    image: inkun,
+    className: 'absolute top-8 left-[30%] rotate-[7deg]'
+  },
+  {
+    title: 'UI Design',
+    image: inkun,
+    className: 'absolute top-8 left-[30%] rotate-[6deg]'
+  },
+  {
+    title: 'Social Media Graphics',
+    image: inkun,
+    className: 'absolute top-8 left-[30%] rotate-[5deg]'
   }
 ]
 
@@ -54,7 +69,7 @@ export function JobsShowcase() {
       <div className='relative z-10 w-full max-w-6xl px-6 py-20'>
         <DraggableCardContainer className='relative flex min-h-[75vh] w-full items-center justify-center overflow-visible'>
           <p className='absolute top-1/2 mx-auto max-w-sm -translate-y-3/4 text-center text-2xl font-black text-neutral-500 md:text-4xl'>
-            If its your first day at Fight Club, you have to fight.
+            Welcome to Inspire
           </p>
           {items.map((item) => (
             <DraggableCardBody key={item.title} className={item.className}>
