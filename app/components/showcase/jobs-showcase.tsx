@@ -69,7 +69,7 @@ export function JobsShowcase() {
       <div className='relative z-10 w-full max-w-6xl px-6 py-20'>
         <DraggableCardContainer className='relative flex min-h-[75vh] w-full items-center justify-center overflow-visible'>
           <p className='absolute top-1/2 mx-auto max-w-sm -translate-y-3/4 text-center text-2xl font-black text-neutral-500 md:text-4xl'>
-            Welcome to Inspire
+            Welcome to Inkspire
           </p>
           {items.map((item) => (
             <DraggableCardBody key={item.title} className={item.className}>
