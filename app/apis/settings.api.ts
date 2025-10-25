@@ -55,8 +55,8 @@ export const settingsApi = {
   },
 
   getCommissionPercentages: async (): Promise<CommissionPercentagesResponse> => {
-    const response = await axiosClient.get<CommissionPercentagesResponse>('/api/AdminSettings/commission-percentages')
-    return response.data
+    const response = await axiosClient.get<{ success: boolean; message: string; data: CommissionPercentagesResponse }>('/api/AdminSettings/commission-percentages')
+    return response.data.data
   },
 
   updateCommissionPercentages: async (data: CommissionPercentagesResponse): Promise<void> => {
