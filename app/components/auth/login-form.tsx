@@ -10,6 +10,7 @@ import { GoogleLoginButton } from '~/components/auth/google-login-button'
 import { ForgotPasswordDialog } from '~/components/auth/forgot-password-dialog'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
+import { FieldSeparator } from '~/components/ui/field'
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
@@ -81,14 +82,14 @@ export function LoginForm() {
   return (
     <>
       {/* <LoadingOverlay show={isPending} message='Đang đăng nhập...' /> */}
-      <div className='flex flex-col items-center gap-2 text-center'>
+      <div className='flex flex-col items-center gap-3 text-center mb-8'>
         <h1 className='text-2xl font-bold text-slate-900'>Đăng nhập tài khoản</h1>
         <p className='text-sm text-muted-foreground'>
           Nhập email và mật khẩu để truy cập vào hành trình sáng tạo của bạn.
         </p>
       </div>
       <form onSubmit={handleSubmit} className='grid gap-6 text-left'>
-        <div className='grid gap-3'>
+        <div className='grid gap-4'>
           <Label htmlFor='login-email'>Email</Label>
           <Input
             id='login-email'
@@ -101,7 +102,7 @@ export function LoginForm() {
             disabled={isPending}
           />
         </div>
-        <div className='grid gap-3'>
+        <div className='grid gap-4'>
           <div className='flex items-center'>
             <Label htmlFor='login-password'>Mật khẩu</Label>
             <div className='ml-auto'>
@@ -133,7 +134,7 @@ export function LoginForm() {
             </Button>
           </div>
         </div>
-        <div className='flex items-center gap-2'>
+        <div className='flex items-center gap-3'>
           <input
             type='checkbox'
             id='remember-me'
@@ -160,13 +161,10 @@ export function LoginForm() {
             'Đăng nhập'
           )}
         </Button>
-        <div className='relative text-center text-sm text-muted-foreground'>
-          <span className='absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-border' aria-hidden='true' />
-          <span className='relative inline-flex bg-background px-3'>Hoặc tiếp tục với</span>
-        </div>
+        <FieldSeparator className='my-4'>Hoặc tiếp tục với</FieldSeparator>{' '}
         <GoogleLoginButton rememberMe={rememberMe} />
       </form>
-      <div className='text-center text-sm text-muted-foreground'>
+      <div className='text-center text-sm text-muted-foreground mt-8'>
         Chưa có tài khoản?{' '}
         <Link to='/register' className='font-semibold text-emerald-600 underline-offset-4 hover:underline'>
           Đăng ký ngay
