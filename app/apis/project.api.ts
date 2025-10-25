@@ -188,7 +188,8 @@ export const projectApi = {
     const response = await axiosClient.post(`${URL_FILE_EVALUATIONS}/evaluate`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
-      }
+      },
+      timeout: 150000 // 2.5 minutes for AI evaluation (backend will fail fast after 3 retries)
     })
     return response.data
   },

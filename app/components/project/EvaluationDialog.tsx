@@ -43,9 +43,26 @@ export function EvaluationDialog({ isOpen, onClose, milestone, project, timeline
     try {
       const result = await evaluateMutation.mutateAsync({ requirementText, file })
       setEvaluationResult(result.data as EvaluationResultData)
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to evaluate milestone file', error)
-      toast.error('Đã có lỗi xảy ra khi chấm điểm')
+      
+      // Extract error message from backend response
+      const errorMessage = error?.response?.data?.message || 
+                          error?.response?.data || 
+                          error?.message || 
+                          'Đã có lỗi xảy ra khi chấm điểm'
+      
+      // Check if it's an AI overload error
+      if (errorMessage.includes('quá tải') || 
+          errorMessage.includes('overload') || 
+          errorMessage.includes('rate limit') ||
+          error?.response?.status === 429 ||
+          error?.response?.status === 503 ||
+          error?.response?.status === 408) {
+        toast.error('Model A.I đang quá tải. Vui lòng thử lại sau.')
+      } else {
+        toast.error(typeof errorMessage === 'string' ? errorMessage : 'Đã có lỗi xảy ra khi chấm điểm')
+      }
     }
   }
 

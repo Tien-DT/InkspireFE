@@ -10,7 +10,8 @@ import {
 
 const axiosClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
-  headers: { 'Content-Type': 'application/json' }
+  headers: { 'Content-Type': 'application/json' },
+  timeout: 150000 // 2.5 minutes timeout (backend has 2 min timeout + buffer)
 })
 
 const bootToken = getAccessTokenFromLS()

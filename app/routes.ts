@@ -41,7 +41,8 @@ export default [
     route('admin/projects', './routes/admin/projects/projects-page.tsx'),
     route('admin/users', './routes/admin/users/users-page.tsx'),
     route('admin/subscriptions', './routes/admin/subscriptions/subscriptions-page.tsx'),
-    route('admin/withdraws', './routes/admin/withdraws/withdraws-page.tsx')
+    route('admin/withdraws', './routes/admin/withdraws/withdraws-page.tsx'),
+    route('admin/settings', './routes/admin/settings/settings-page.tsx')
   ]),
 
   // Auth routes
@@ -55,5 +56,8 @@ export default [
   // Auth flow routes (outside MainLayout)
   route('logout', './routes/logout.tsx'),
   route('relogin', './routes/relogin.tsx'),
-  route('auth/google', './routes/auth/google.tsx')
+  route('auth/google', './routes/auth/google.tsx'),
+  
+  // Gmail OAuth callback (standalone, no layout)
+  route('admin/settings/gmail-callback', './routes/admin/settings/gmail-callback.tsx')
 ] satisfies RouteConfig

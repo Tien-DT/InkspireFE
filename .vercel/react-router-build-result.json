@@ -195,6 +195,12 @@
         "file": "./routes/admin/withdraws/withdraws-page.tsx",
         "path": "admin/withdraws"
       },
+      "routes/admin/settings/settings-page": {
+        "id": "routes/admin/settings/settings-page",
+        "parentId": "layouts/AdminLayout/AdminLayout",
+        "file": "./routes/admin/settings/settings-page.tsx",
+        "path": "admin/settings"
+      },
       "layouts/auth-layout": {
         "id": "layouts/auth-layout",
         "parentId": "root",
@@ -241,6 +247,12 @@
         "parentId": "root",
         "file": "./routes/auth/google.tsx",
         "path": "auth/google"
+      },
+      "routes/admin/settings/gmail-callback": {
+        "id": "routes/admin/settings/gmail-callback",
+        "parentId": "root",
+        "file": "./routes/admin/settings/gmail-callback.tsx",
+        "path": "admin/settings/gmail-callback"
       }
     }
   },
@@ -450,6 +462,12 @@
         "file": "./routes/admin/withdraws/withdraws-page.tsx",
         "path": "admin/withdraws"
       },
+      "routes/admin/settings/settings-page": {
+        "id": "routes/admin/settings/settings-page",
+        "parentId": "layouts/AdminLayout/AdminLayout",
+        "file": "./routes/admin/settings/settings-page.tsx",
+        "path": "admin/settings"
+      },
       "layouts/auth-layout": {
         "id": "layouts/auth-layout",
         "parentId": "root",
@@ -496,6 +514,12 @@
         "parentId": "root",
         "file": "./routes/auth/google.tsx",
         "path": "auth/google"
+      },
+      "routes/admin/settings/gmail-callback": {
+        "id": "routes/admin/settings/gmail-callback",
+        "parentId": "root",
+        "file": "./routes/admin/settings/gmail-callback.tsx",
+        "path": "admin/settings/gmail-callback"
       }
     },
     "routeDiscovery": {
@@ -638,6 +662,10 @@
               {
                 "file": "./routes/admin/withdraws/withdraws-page.tsx",
                 "path": "admin/withdraws"
+              },
+              {
+                "file": "./routes/admin/settings/settings-page.tsx",
+                "path": "admin/settings"
               }
             ]
           },
@@ -673,6 +701,10 @@
           {
             "file": "./routes/auth/google.tsx",
             "path": "auth/google"
+          },
+          {
+            "file": "./routes/admin/settings/gmail-callback.tsx",
+            "path": "admin/settings/gmail-callback"
           }
         ]
       }
