@@ -12,6 +12,7 @@ import { userPaymentApi, type UserPayment } from '~/apis/userPayment.api'
 import { withdrawApi, type CreateWithdrawRequestDto } from '~/apis/withdraw.api'
 import { getProfileFromLS } from '~/utils/auth'
 import { UserRole } from '~/types/user.type'
+import { useCommissionPercentages } from '~/hooks/useCommissionSettings'
 
 interface WithdrawRequestFormProps {
   userId: string
@@ -33,75 +34,22 @@ export function WithdrawRequestForm({ userId, walletBalance, currency, onSuccess
     bankAccountName: ''
   })
   
-  // Fetch commission percentages from admin settings
-  const [commissions, setCommissions] = useState({
-    freelancerCommissionPercentage: 20,
-    clientCommissionPercentage: 0,
-    loading: true
-  })
-
-  useEffect(() => {
-    fetchCommissions()
-  }, [])
-
-  const fetchCommissions = async () => {
-    try {
-      const token = localStorage.getItem('token')
-      console.log('🔍 Fetching commission percentages...')
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/AdminSettings/commission-percentages`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }
-      )
-      
-      console.log('📡 API Response status:', response.status)
-      
-      if (response.ok) {
-        const data = await response.json()
-        console.log('✅ Commission data received:', data)
-        setCommissions({
-          freelancerCommissionPercentage: data.freelancerCommissionPercentage,
-          clientCommissionPercentage: data.clientCommissionPercentage,
-          loading: false
-        })
-        console.log('💾 State updated - Client:', data.clientCommissionPercentage, '%, Freelancer:', data.freelancerCommissionPercentage, '%')
-      } else {
-        const errorText = await response.text()
-        console.error('❌ API Error:', response.status, errorText)
-        toast.error(`Không thể tải cài đặt hoa hồng (${response.status}). Sử dụng giá trị mặc định.`)
-        setCommissions({
-          freelancerCommissionPercentage: 20,
-          clientCommissionPercentage: 0,
-          loading: false
-        })
-      }
-    } catch (error) {
-      console.error('❌ Error fetching commission percentages:', error)
-      toast.error('Lỗi kết nối API. Sử dụng giá trị mặc định.')
-      setCommissions({
-        freelancerCommissionPercentage: 20,
-        clientCommissionPercentage: 0,
-        loading: false
-      })
-    }
-  }
+  // Use React Query hook for commission percentages
+  const { data: commissions, isLoading: isLoadingCommissions } = useCommissionPercentages()
   
   // Calculate commission based on user role
   const commissionPercentage = isClient 
-    ? commissions.clientCommissionPercentage 
-    : commissions.freelancerCommissionPercentage
+    ? (commissions?.clientCommissionPercentage ?? 0)
+    : (commissions?.freelancerCommissionPercentage ?? 20)
   
   // Debug logging
   useEffect(() => {
-    if (!commissions.loading) {
+    if (!isLoadingCommissions && commissions) {
       console.log('👤 User role:', isClient ? 'CLIENT' : 'FREELANCER')
       console.log('💰 Commission percentage:', commissionPercentage, '%')
-      console.log('📊 Full commissions state:', commissions)
+      console.log('📊 Full commissions:', commissions)
     }
-  }, [commissions.loading, commissionPercentage])
+  }, [isLoadingCommissions, commissionPercentage, commissions, isClient])
   
   const calculateAmounts = (amount: number) => {
     const platformFee = Math.round(amount * (commissionPercentage / 100))
@@ -193,15 +141,15 @@ export function WithdrawRequestForm({ userId, walletBalance, currency, onSuccess
             type="button"
             variant="ghost"
             size="sm"
-            onClick={fetchCommissions}
-            disabled={commissions.loading}
+            onClick={() => {}} // Removed manual refetch, React Query handles this
+            disabled={isLoadingCommissions}
             className="text-blue-600 hover:text-blue-700"
             title="Làm mới cài đặt hoa hồng"
           >
-            <RefreshCw className={`h-4 w-4 ${commissions.loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-4 w-4 ${isLoadingCommissions ? 'animate-spin' : ''}`} />
           </Button>
         </div>
-        {commissions.loading ? (
+        {isLoadingCommissions ? (
           <Alert className="mt-2 bg-gray-50 border-gray-200">
             <RefreshCw className="h-4 w-4 text-gray-600 animate-spin" />
             <AlertDescription className="text-sm text-gray-600">
@@ -245,7 +193,7 @@ export function WithdrawRequestForm({ userId, walletBalance, currency, onSuccess
               onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
               required
             />
-            {formData.amount && parseFloat(formData.amount) > 0 && !commissions.loading && (
+            {formData.amount && parseFloat(formData.amount) > 0 && !isLoadingCommissions && (
               <div className="mt-2 p-3 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg border border-blue-200 text-sm space-y-1">
                 <p className="text-gray-700 font-semibold">
                   💰 <strong>Tổng rút:</strong> {formatCurrency(parseFloat(formData.amount))}

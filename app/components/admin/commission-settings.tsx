@@ -5,55 +5,25 @@ import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { Settings, Save, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
+import { useCommissionPercentages, useUpdateCommissionPercentages } from '~/hooks/useCommissionSettings'
 
 export function CommissionSettings() {
-  const [loading, setLoading] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [commissions, setCommissions] = useState({
-    freelancerCommissionPercentage: 20,
-    clientCommissionPercentage: 0,
-    freelancerNetPercentage: 80,
-    clientNetPercentage: 100
-  })
+  const { data: commissions, isLoading: loading, refetch } = useCommissionPercentages()
+  const updateMutation = useUpdateCommissionPercentages()
+
   const [editValues, setEditValues] = useState({
     freelancer: 20,
     client: 0
   })
 
   useEffect(() => {
-    fetchCommissions()
-  }, [])
-
-  const fetchCommissions = async () => {
-    setLoading(true)
-    try {
-      const token = localStorage.getItem('token')
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/AdminSettings/commission-percentages`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }
-      )
-      
-      if (response.ok) {
-        const data = await response.json()
-        setCommissions(data)
-        setEditValues({
-          freelancer: data.freelancerCommissionPercentage,
-          client: data.clientCommissionPercentage
-        })
-      } else {
-        toast.error('Không thể tải cài đặt hoa hồng')
-      }
-    } catch (error) {
-      console.error('Error fetching commission settings:', error)
-      toast.error('Lỗi khi tải cài đặt hoa hồng')
-    } finally {
-      setLoading(false)
+    if (commissions) {
+      setEditValues({
+        freelancer: commissions.freelancerCommissionPercentage,
+        client: commissions.clientCommissionPercentage
+      })
     }
-  }
+  }, [commissions])
 
   const handleSave = async () => {
     // Validation
@@ -66,38 +36,10 @@ export function CommissionSettings() {
       return
     }
 
-    setSaving(true)
-    try {
-      const token = localStorage.getItem('token')
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/AdminSettings/commission-percentages`,
-        {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            freelancerCommissionPercentage: editValues.freelancer,
-            clientCommissionPercentage: editValues.client
-          })
-        }
-      )
-      
-      if (response.ok) {
-        const data = await response.json()
-        setCommissions(data)
-        toast.success('Cập nhật % hoa hồng thành công')
-      } else {
-        const error = await response.text()
-        toast.error('Không thể cập nhật: ' + error)
-      }
-    } catch (error) {
-      console.error('Error updating commission settings:', error)
-      toast.error('Lỗi khi cập nhật cài đặt hoa hồng')
-    } finally {
-      setSaving(false)
-    }
+    updateMutation.mutate({
+      freelancerCommissionPercentage: editValues.freelancer,
+      clientCommissionPercentage: editValues.client
+    })
   }
 
   const formatPercent = (value: number) => `${value}%`
@@ -115,7 +57,7 @@ export function CommissionSettings() {
           <Button
             variant='ghost'
             size='sm'
-            onClick={fetchCommissions}
+            onClick={() => refetch()}
             disabled={loading}
             className='text-amber-600 hover:text-amber-700'
           >
@@ -148,7 +90,7 @@ export function CommissionSettings() {
               <p>Freelancer nhận: <span className='font-bold text-green-600'>{formatPercent(100 - editValues.freelancer)}</span></p>
             </div>
             <div className='mt-2 p-2 bg-purple-50 rounded text-xs text-purple-700'>
-              Hiện tại: {formatPercent(commissions.freelancerCommissionPercentage)}
+              Hiện tại: {formatPercent(commissions?.freelancerCommissionPercentage ?? 20)}
             </div>
           </div>
 
@@ -172,7 +114,7 @@ export function CommissionSettings() {
               <p>Client nhận: <span className='font-bold text-green-600'>{formatPercent(100 - editValues.client)}</span></p>
             </div>
             <div className='mt-2 p-2 bg-blue-50 rounded text-xs text-blue-700'>
-              Hiện tại: {formatPercent(commissions.clientCommissionPercentage)}
+              Hiện tại: {formatPercent(commissions?.clientCommissionPercentage ?? 0)}
             </div>
           </div>
         </div>
@@ -181,11 +123,11 @@ export function CommissionSettings() {
         <div className='flex justify-end pt-2'>
           <Button
             onClick={handleSave}
-            disabled={saving}
+            disabled={updateMutation.isPending}
             className='bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white'
           >
             <Save className='h-4 w-4 mr-2' />
-            {saving ? 'Đang lưu...' : 'Lưu cài đặt'}
+            {updateMutation.isPending ? 'Đang lưu...' : 'Lưu cài đặt'}
           </Button>
         </div>
 

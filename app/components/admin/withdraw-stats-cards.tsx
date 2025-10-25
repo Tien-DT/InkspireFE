@@ -1,6 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 import { Banknote, Clock, CheckCircle2, XCircle, TrendingUp } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { useCommissionPercentages } from '~/hooks/useCommissionSettings'
+import axiosClient from '~/lib/axios'
 
 export function WithdrawRequestStatsCards() {
   const [stats, setStats] = useState({
@@ -19,72 +21,35 @@ export function WithdrawRequestStatsCards() {
     freelancerTotalWithdraw: 0
   })
   
-  const [commissions, setCommissions] = useState({
-    freelancerCommissionPercentage: 20,
-    clientCommissionPercentage: 0
-  })
+  // Use React Query hook for commission percentages
+  const { data: commissions, isLoading: isLoadingCommissions } = useCommissionPercentages()
 
   useEffect(() => {
     fetchStats()
-    fetchCommissions()
   }, [])
-
-  const fetchCommissions = async () => {
-    try {
-      const token = localStorage.getItem('token')
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/AdminSettings/commission-percentages`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }
-      )
-      
-      if (response.ok) {
-        const data = await response.json()
-        setCommissions({
-          freelancerCommissionPercentage: data.freelancerCommissionPercentage,
-          clientCommissionPercentage: data.clientCommissionPercentage
-        })
-      }
-    } catch (error) {
-      console.error('Error fetching commission percentages:', error)
-    }
-  }
 
   const fetchStats = async () => {
     try {
-      const token = localStorage.getItem('token')
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/WithdrawRequests/stats`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }
-      )
+      const response = await axiosClient.get('/api/WithdrawRequests/stats')
       
-      if (response.ok) {
-        const data = await response.json()
-        console.log('📊 Stats from backend:', data)
+      const data = response.data
+      console.log('📊 Stats from backend:', data)
         
-        // Map backend response (PascalCase) to frontend state (camelCase)
-        setStats({
-          totalRequests: data.totalRequests || 0,
-          pendingRequests: data.pendingRequests || 0,
-          approvedRequests: data.approvedRequests || 0,
-          rejectedRequests: data.rejectedRequests || 0,
-          totalAmount: data.totalAmount || 0,
-          pendingAmount: data.pendingAmount || 0,
-          totalPlatformFee: data.totalPlatformFee || 0,
-          totalNetAmount: data.totalNetAmount || 0,
-          clientRequests: data.clientRequests || 0,
-          clientTotalWithdraw: data.clientTotalWithdraw || 0,
-          freelancerRequests: data.freelancerRequests || 0,
-          freelancerTotalWithdraw: data.freelancerTotalWithdraw || 0
-        })
-      }
+      // Map backend response (PascalCase) to frontend state (camelCase)
+      setStats({
+        totalRequests: data.totalRequests || 0,
+        pendingRequests: data.pendingRequests || 0,
+        approvedRequests: data.approvedRequests || 0,
+        rejectedRequests: data.rejectedRequests || 0,
+        totalAmount: data.totalAmount || 0,
+        pendingAmount: data.pendingAmount || 0,
+        totalPlatformFee: data.totalPlatformFee || 0,
+        totalNetAmount: data.totalNetAmount || 0,
+        clientRequests: data.clientRequests || 0,
+        clientTotalWithdraw: data.clientTotalWithdraw || 0,
+        freelancerRequests: data.freelancerRequests || 0,
+        freelancerTotalWithdraw: data.freelancerTotalWithdraw || 0
+      })
     } catch (error) {
       console.error('Error fetching withdraw stats:', error)
     }
@@ -199,7 +164,7 @@ export function WithdrawRequestStatsCards() {
               </div>
               <div className='pt-2 border-t border-blue-200'>
                 <p className='text-xs text-blue-600'>
-                  {commissions.clientCommissionPercentage === 0 
+                  {!commissions || commissions.clientCommissionPercentage === 0 
                     ? '✓ Không mất phí hoa hồng (0% commission)'
                     : `ⓘ Có phí hoa hồng (${commissions.clientCommissionPercentage}% commission)`
                   }
@@ -229,7 +194,7 @@ export function WithdrawRequestStatsCards() {
               </div>
               <div className='pt-2 border-t border-purple-200'>
                 <p className='text-xs text-purple-600'>
-                  ⓘ Có phí hoa hồng ({commissions.freelancerCommissionPercentage}% commission)
+                  ⓘ Có phí hoa hồng ({commissions?.freelancerCommissionPercentage ?? 20}% commission)
                 </p>
               </div>
             </div>

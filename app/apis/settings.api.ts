@@ -13,6 +13,11 @@ export interface ApiSettingsResponse {
   geminiApiKeySet: boolean
 }
 
+export interface CommissionPercentagesResponse {
+  freelancerCommissionPercentage: number
+  clientCommissionPercentage: number
+}
+
 export const settingsApi = {
   getSettings: async (): Promise<{ success: boolean; message: string; data: ApiSettingsResponse }> => {
     const response = await axiosClient.get(URL_ADMIN_SETTINGS)
@@ -47,5 +52,14 @@ export const settingsApi = {
   exchangeGmailCode: async (code: string): Promise<{ success: boolean; data: { refreshToken: string } }> => {
     const response = await axiosClient.post('/api/auth/gmail/exchange-code', { code })
     return response.data
+  },
+
+  getCommissionPercentages: async (): Promise<CommissionPercentagesResponse> => {
+    const response = await axiosClient.get<CommissionPercentagesResponse>('/api/AdminSettings/commission-percentages')
+    return response.data
+  },
+
+  updateCommissionPercentages: async (data: CommissionPercentagesResponse): Promise<void> => {
+    await axiosClient.put('/api/AdminSettings/commission-percentages', data)
   }
 }
