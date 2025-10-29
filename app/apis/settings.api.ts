@@ -1,6 +1,6 @@
 import axiosClient from '~/lib/axios'
 
-export const URL_ADMIN_SETTINGS = '/api/admin/settings'
+export const URL_ADMIN_SETTINGS = '/api/AdminSettings'
 
 export interface ApiSettingsResponse {
   gmailRefreshToken: string
