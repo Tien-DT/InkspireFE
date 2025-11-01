@@ -34,7 +34,8 @@ export function EvaluationDialog({ isOpen, onClose, milestone, project, timeline
       return
     }
 
-    let requirementText = project.description
+    // let requirementText = project.description
+    let requirementText = '';
     const currentMilestoneIndex = timelines.findIndex((t) => t.id === milestone.id)
     for (let i = 0; i <= currentMilestoneIndex; i++) {
       requirementText += `\nLần nộp thứ ${i + 1}: ${timelines[i].description}`
