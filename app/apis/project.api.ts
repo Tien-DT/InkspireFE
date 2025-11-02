@@ -189,7 +189,7 @@ export const projectApi = {
       headers: {
         'Content-Type': 'multipart/form-data'
       },
-      timeout: 150000 // 2.5 minutes for AI evaluation (backend will fail fast after 3 retries)
+      timeout: 60000 // 2.5 minutes for AI evaluation (backend will fail fast after 3 retries)
     })
     return response.data
   },
@@ -221,6 +221,11 @@ export const projectApi = {
 
   retryComplaint: async (complaintId: string): Promise<any> => {
     const response = await axiosClient.post(`${URL_PROJECT_MILESTONES}/complaints/${complaintId}/retry`)
+    return response.data
+  },
+
+  cancelComplaint: async (complaintId: string): Promise<any> => {
+    const response = await axiosClient.delete(`${URL_PROJECT_MILESTONES}/complaints/${complaintId}`)
     return response.data
   },
 

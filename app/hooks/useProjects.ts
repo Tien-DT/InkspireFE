@@ -347,3 +347,20 @@ export const useRetryComplaint = (options: { onSuccess?: (data: unknown) => void
     onError: options.onError
   })
 }
+
+export const useCancelComplaint = (options: { onSuccess?: (data: unknown) => void; onError?: (error: unknown) => void } = {}) => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (complaintId: string) => projectApi.cancelComplaint(complaintId),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['milestoneComplaints'] })
+      queryClient.invalidateQueries({ queryKey: ['complaint'] })
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
+      queryClient.invalidateQueries({ queryKey: ['project'] })
+      queryClient.invalidateQueries({ queryKey: ['milestones'] })
+      options.onSuccess?.(data)
+    },
+    onError: options.onError
+  })
+}

@@ -19,7 +19,8 @@ import {
   useUploadMilestoneDocument,
   useSubmitComplaint,
   useComplaintsByMilestone,
-  useRetryComplaint
+  useRetryComplaint,
+  useCancelComplaint
 } from '~/hooks/useProjects'
 import type { Milestone } from '~/apis/project.api'
 import { useWallet } from '~/hooks/useWallet'
@@ -116,6 +117,70 @@ const mapMilestoneToTimeline = (milestone: Milestone): TimelineItem => {
   }
 }
 
+// Component to handle cancel complaint button with proper hook usage
+function CancelComplaintSection({ 
+  milestoneId, 
+  onViewComplaint,
+  cancelComplaint 
+}: { 
+  milestoneId: string
+  onViewComplaint: (milestoneId: string, complaints: any[]) => void
+  cancelComplaint: any
+}) {
+  const { data: complaintsData } = useComplaintsByMilestone(milestoneId)
+  const complaints = complaintsData?.data || []
+  const pendingOrProcessingComplaint = complaints.find(
+    (c: any) => c.processingStatus === 0 || c.processingStatus === 1
+  )
+
+  const handleCancelClick = async () => {
+    if (!pendingOrProcessingComplaint) return
+    
+    if (window.confirm('Bạn có chắc chắn muốn hủy khiếu nại này? Trạng thái milestone sẽ được khôi phục về trạng thái trước đó.')) {
+      try {
+        await cancelComplaint.mutateAsync(pendingOrProcessingComplaint.id)
+      } catch (error) {
+        console.error('Failed to cancel complaint:', error)
+      }
+    }
+  }
+
+  return (
+    <div className='flex items-center gap-2'>
+      <div className='flex items-center gap-2 text-purple-600 text-base font-semibold'>
+        <Clock className='h-5 w-5 animate-pulse' />
+        Đang kiểm tra khiếu nại bằng AI
+      </div>
+      <TimelineItemWithComplaints
+        milestoneId={milestoneId}
+        onViewComplaint={onViewComplaint}
+      />
+      {/* Show Cancel button only if there's a pending or processing complaint */}
+      {pendingOrProcessingComplaint && (
+        <Button
+          size='sm'
+          variant='outline'
+          onClick={handleCancelClick}
+          disabled={cancelComplaint.isPending}
+          className='border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700'
+        >
+          {cancelComplaint.isPending ? (
+            <>
+              <Clock className='h-4 w-4 mr-1.5 animate-spin' />
+              Đang hủy...
+            </>
+          ) : (
+            <>
+              <X className='h-4 w-4 mr-1.5' />
+              Hủy khiếu nại
+            </>
+          )}
+        </Button>
+      )}
+    </div>
+  )
+}
+
 function ProjectDetailContent() {
   const { projectId } = useParams()
   const navigate = useNavigate()
@@ -156,6 +221,17 @@ function ProjectDetailContent() {
     onError: (error) => {
       console.error('Complaint submission error:', error)
       toast.error('Gửi khiếu nại thất bại. Vui lòng thử lại.')
+    }
+  })
+
+  const cancelComplaint = useCancelComplaint({
+    onSuccess: () => {
+      toast.success('Khiếu nại đã được hủy. Trạng thái milestone đã được khôi phục.')
+    },
+    onError: (error: any) => {
+      console.error('Cancel complaint error:', error)
+      const errorMessage = error?.response?.data?.message || 'Hủy khiếu nại thất bại. Vui lòng thử lại.'
+      toast.error(errorMessage)
     }
   })
 
@@ -910,16 +986,11 @@ function ProjectDetailContent() {
 
                               {/* Show "Đang kiểm tra khiếu nại" when status is under-complaint-review */}
                               {timeline.status === 'under-complaint-review' && (
-                                <div className='flex items-center gap-2'>
-                                  <div className='flex items-center gap-2 text-purple-600 text-base font-semibold'>
-                                    <Clock className='h-5 w-5 animate-pulse' />
-                                    Đang kiểm tra khiếu nại bằng AI
-                                  </div>
-                                  <TimelineItemWithComplaints
-                                    milestoneId={timeline.id}
-                                    onViewComplaint={handleViewComplaintResult}
-                                  />
-                                </div>
+                                <CancelComplaintSection
+                                  milestoneId={timeline.id}
+                                  onViewComplaint={handleViewComplaintResult}
+                                  cancelComplaint={cancelComplaint}
+                                />
                               )}
 
                               {/* Show "Chờ freelancer sửa lại" when status is pending-revision */}
