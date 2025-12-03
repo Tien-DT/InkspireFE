@@ -223,14 +223,12 @@ export function ProjectTable() {
       </CardHeader>
       <CardContent className='p-3 sm:p-4'>
         <div className='overflow-x-auto'>
-          <Table className='min-w-[900px] text-xs sm:text-sm'>
+          <Table className='min-w-[700px] text-xs sm:text-sm'>
             <TableHeader>
               <TableRow className='border-border/40 text-sm text-muted-foreground'>
                 <TableHead className='w-[250px]'>Dự án</TableHead>
                 <TableHead className='w-[150px]'>Khách hàng</TableHead>
-                <TableHead className='w-[120px]'>Ngân sách</TableHead>
                 <TableHead className='w-[130px]'>Trạng thái</TableHead>
-                <TableHead className='w-[100px]'>Hạn chót</TableHead>
                 <TableHead className='w-[180px]'>Hành động</TableHead>
               </TableRow>
             </TableHeader>
@@ -254,7 +252,6 @@ export function ProjectTable() {
                         {project.client}
                       </div>
                     </TableCell>
-                    <TableCell className='text-slate-900 whitespace-nowrap'>{project.budget}</TableCell>
                     <TableCell>
                       <Badge
                         variant='outline'
@@ -263,7 +260,6 @@ export function ProjectTable() {
                         {status.label}
                       </Badge>
                     </TableCell>
-                    <TableCell className='text-slate-700 whitespace-nowrap'>{project.deadline}</TableCell>
                     <TableCell>
                       <div className='flex gap-1'>
                         <Button
